@@ -8,7 +8,7 @@ Projeto Final de SCM22108 Sistemas de Comunicação, Engenharia Eletrônica, IFS
 | Bloco | Conteúdo | Estado |
 |---|---|---|
 | 0 | Ambiente, repositório, portão de qualidade | concluído |
-| 1 | Calibração do RTL-SDR (ppm e offset residual) | concluído: 0 ppm, resíduo cerca de −44 Hz ([registro](docs/calibracao_rtl.md)) |
+| 1 | Calibração do RTL-SDR (ppm e offset residual) | concluído: correção adotada +77 ppm ([registro](docs/calibracao_rtl.md)) |
 | 2 | Estudo e auditoria da OOK de referência no enlace real | a fazer |
 
 O plano completo, com os requisitos numerados e a matriz de rastreabilidade, está em [docs/00_planejamento_e_auditoria.md](docs/00_planejamento_e_auditoria.md).

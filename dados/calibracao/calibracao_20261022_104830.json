@@ -35,5 +35,6 @@
     "snr_min_db": 20.299786615643953,
     "n": 8
   },
-  "nota_versao": "Medição feita com o código do Bloco 1 ainda não commitado, sobre o commit 4c1caff. O campo versao_codigo não marcou '-sujo' porque o git describe --dirty ignora arquivos novos; o defeito foi corrigido no commit 856a5b6, que contém o mesmo código de medição usado aqui (as mudanças posteriores à medição foram só em testes, no nome de uma constante e na marcação de versão)."
+  "nota_versao": "Medição feita com o código do Bloco 1 ainda não commitado, sobre o commit 4c1caff. O campo versao_codigo não marcou '-sujo' porque o git describe --dirty ignora arquivos novos; o defeito foi corrigido no commit 856a5b6, que contém o mesmo código de medição usado aqui (as mudanças posteriores à medição foram só em testes, no nome de uma constante e na marcação de versão).",
+  "invalidado": "Resultado INVÁLIDO: a busca em ±10 kHz travou num espúrio do próprio RTL em 915,2 MHz (grade de 100 kHz). O sinal do Pluto estava em 915,1301 MHz. Reprocessamento correto da mesma captura: calibracao_20261022_111529.json (+75 ppm)."
 }
