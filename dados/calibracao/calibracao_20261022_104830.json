@@ -1,0 +1,39 @@
+{
+  "versao_codigo": "bloco-00-2-g4c1caff",
+  "parametros": {
+    "freq_tom_hz": 915200000.0,
+    "deslocamento_hz": 250000.0,
+    "taxa_sps": 2048000.0,
+    "ganho_db": 40.0,
+    "medidas": 8,
+    "janela_busca_hz": 10000.0,
+    "minutos_ligado": 30.0,
+    "salvar_iq": true
+  },
+  "rtl_ganho_lido_db": 40.2,
+  "taxa_lida_sps": 2048000.0,
+  "resultado": {
+    "freq_medida_hz": 915199957.5720773,
+    "offset_antes_hz": -42.42792272567749,
+    "erro_ppm": -0.04635918129990984,
+    "correcao_ppm": 0.0,
+    "residuo_previsto_hz": -42.42792272567748,
+    "residuo_medido_hz": -45.73919141292572,
+    "deslocamento_hz": 250000.0
+  },
+  "estatistica_sem_correcao": {
+    "media_hz": 249957.57207724339,
+    "desvio_hz": 1.0158525715614948,
+    "deriva_hz_s": 0.16530264092751792,
+    "snr_min_db": 20.698887900652657,
+    "n": 8
+  },
+  "estatistica_com_correcao": {
+    "media_hz": 249954.26080863952,
+    "desvio_hz": 1.5272095377389383,
+    "deriva_hz_s": 0.4309859864160868,
+    "snr_min_db": 20.299786615643953,
+    "n": 8
+  },
+  "nota_versao": "Medição feita com o código do Bloco 1 ainda não commitado, sobre o commit 4c1caff. O campo versao_codigo não marcou '-sujo' porque o git describe --dirty ignora arquivos novos; o defeito foi corrigido no commit 856a5b6, que contém o mesmo código de medição usado aqui (as mudanças posteriores à medição foram só em testes, no nome de uma constante e na marcação de versão)."
+}

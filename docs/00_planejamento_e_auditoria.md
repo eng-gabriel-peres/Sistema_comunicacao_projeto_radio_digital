@@ -200,7 +200,8 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | PKT-01 a PKT-04 | ❌ | Achados A3, A4, A9 | 3 |
 | RX-01 a RX-03 | ❌ | Achados A1, A2, A8 | 3, 5 |
 | TX-01 | ❌ | Achado A4 | 3 |
-| CAL-01 a CAL-03 | 🟡 | Script existe, com achados A5 a A7 | 1 |
+| CAL-01, CAL-02 | ✅ | Calibrado em 22/10: correção 0 ppm, resíduo cerca de −44 Hz ([calibracao_rtl.md](calibracao_rtl.md)); achados A5 a A7 corrigidos | 1 |
+| CAL-03 | ⏳ | Correção do oscilador do Pluto: o Pluto usado é o do professor | 1 |
 | MET-01 a MET-05 | ❌ | | 5 |
 | CMP-01 a CMP-04 | ❌ | | 4, 5 |
 | CMP-A, CMP-B, CMP-C | ❌ | | 6, 7 |
