@@ -21,6 +21,12 @@ Thumbs.db
 # O índice dos ensaios (dados/README.md) é versionado.
 dados/*
 !dados/README.md
+# Registros de calibração são pequenos e são evidência de entrega (CAL-01):
+# o JSON e a figura entram no git; a captura IQ (.npy) não.
+!dados/calibracao/
+dados/calibracao/*
+!dados/calibracao/*.json
+!dados/calibracao/*.png
 *.npy
 *.bin
 *.iq
