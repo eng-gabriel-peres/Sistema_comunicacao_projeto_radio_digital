@@ -1,0 +1,12 @@
+#!/bin/sh
+# Portão de qualidade: nenhum commit entra sem passar em ferramentas/verificar.py.
+# Ativar uma vez por clone:  git config core.hooksPath .githooks
+if [ -x .venv/Scripts/python.exe ]; then
+    PY=.venv/Scripts/python.exe
+elif [ -x .venv/bin/python ]; then
+    PY=.venv/bin/python
+else
+    echo "pre-commit: ambiente .venv não encontrado (ver README, seção Ambiente)." >&2
+    exit 1
+fi
+exec "$PY" ferramentas/verificar.py

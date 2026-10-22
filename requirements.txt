@@ -1,0 +1,11 @@
+# Dependências de execução (versões fixas para o ensaio ser reprodutível).
+# Atualizar uma versão é uma mudança de configuração: registrar no commit.
+numpy==2.5.4
+scipy==1.18.1
+matplotlib==3.11.2
+# RTL-SDR (receptor). O pyrtlsdrlib traz a librtlsdr pronta para Windows.
+pyrtlsdr==0.5.1
+pyrtlsdrlib==0.0.7
+# ADALM-Pluto (transmissor). pylibiio 0.25 casa com a libiio 0.25 instalada no sistema.
+pylibiio==0.25
+pyadi-iio==0.0.21

@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sdrlink"
+version = "0.1.0"
+description = "Enlace digital simplex ADALM-Pluto -> RTL-SDR (Projeto Final SCM22108, IFSC)"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Gabriel de Oliveira Peres" }]
+
+[tool.setuptools.packages.find]
+include = ["sdrlink*"]
+
+# ---------------------------------------------------------------------------
+# Ruff: lint + formatação. Regras escolhidas para aproximar o "Power of 10"
+# do JPL/NASA em Python (ver docs/padrao_de_codigo.md).
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["referencia"]   # código do professor, mantido intocado
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F",   # pycodestyle e pyflakes
+    "I",             # ordem dos imports
+    "N",             # nomes
+    "D",             # docstrings
+    "UP",            # sintaxe moderna
+    "B",             # bugbear (inclui argumento padrão mutável, B006)
+    "A",             # sombrear nomes embutidos
+    "C90",           # complexidade ciclomática
+    "PL",            # pylint (argumentos, desvios, comandos por função)
+    "S",             # segurança (assert, eval, exec)
+    "SIM", "RET",    # simplificação
+    "PTH",           # pathlib em vez de os.path
+    "NPY",           # boas práticas NumPy
+    "ERA",           # código comentado esquecido
+    "T20",           # print fora de scripts
+    "RUF",
+]
+ignore = [
+    "D203", "D213",  # conflitam com D211/D212
+    "RUF001", "RUF002", "RUF003",  # caracteres acentuados em textos em português
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 6
+max-branches = 12
+max-statements = 40
+max-returns = 4
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "D", "PLR2004"]          # assert é o mecanismo do pytest
+"scripts/**" = ["T20"]                          # scripts conversam com o usuário
+"ferramentas/**" = ["T20", "S603", "S607"]      # chama ruff/mypy/pytest
+
+# ---------------------------------------------------------------------------
+# mypy: tipagem estrita (regra 10: zero avisos)
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unreachable = true
+files = ["sdrlink", "scripts", "tests", "ferramentas"]
+exclude = ["^referencia/"]
+
+[[tool.mypy.overrides]]
+module = ["adi", "adi.*", "iio", "rtlsdr", "rtlsdr.*", "scipy", "scipy.*", "matplotlib", "matplotlib.*"]
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------------------
+# pytest: avisos viram erro; testes que exigem hardware ficam marcados
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "--strict-config", "-ra", "-m", "not hardware"]
+pythonpath = ["."]
+filterwarnings = ["error"]
+markers = [
+    "hardware: exige Pluto ou RTL-SDR conectado (rodar com: pytest -m hardware)",
+]
+
+[tool.coverage.run]
+source = ["sdrlink"]
+branch = true

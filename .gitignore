@@ -1,0 +1,31 @@
+# Ambiente e caches
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Editores e sistema
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Dados de ensaio: capturas IQ e logs grandes ficam fora do git.
+# O índice dos ensaios (dados/README.md) é versionado.
+dados/*
+!dados/README.md
+*.npy
+*.bin
+*.iq
+*.cu8
+*.cf32
+
+# Saídas geradas por scripts (figuras, relatórios temporários)
+saidas/

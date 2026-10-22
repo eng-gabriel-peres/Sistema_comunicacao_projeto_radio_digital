@@ -1,0 +1,13 @@
+# Texto sempre com LF no repositório (Windows e Fedora iguais)
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+
+# Binários
+*.png binary
+*.pdf binary
+*.npy binary
+*.exe binary
+
+# Código do professor: guardado byte a byte, sem normalizar fim de linha
+referencia/** -text
