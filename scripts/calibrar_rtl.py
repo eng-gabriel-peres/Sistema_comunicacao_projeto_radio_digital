@@ -13,7 +13,7 @@ buffer cíclico de 1024 amostras (achado A15).
 
 Uso:
     ao vivo (tx_test.py): python scripts/calibrar_rtl.py --freq-tom-hz 915.2e6 --tx-test
-                          --correcao-inicial-ppm 1
+                          --correcao-inicial-ppm 1 (padrão: configs/rtl.toml)
     ao vivo (OOK v2)    : python scripts/calibrar_rtl.py --freq-tom-hz 915.2e6
     gravado             : acrescentar --arquivo-iq captura.npy (mesma sintonia e correção)
 """
@@ -46,6 +46,7 @@ from sdrlink.calibracao import (
     residuo_previsto_hz,
     resumir,
 )
+from sdrlink.config import correcao_rtl_ppm_padrao
 from sdrlink.hw.rtl_rx import Captura, ConfigRtl, capturar, fracao_saturada
 from sdrlink.registro import RAIZ, carimbo_de_tempo, salvar_json, versao_do_codigo
 
@@ -65,7 +66,12 @@ def _argumentos() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     p.add_argument("--freq-tom-hz", type=float, required=True, help="frequência nominal do tom")
     p.add_argument("--tx-test", action="store_true", help="tom gerado pelo tx_test.py (achado A15)")
-    p.add_argument("--correcao-inicial-ppm", type=int, default=0, help="correção da 1ª captura")
+    p.add_argument(
+        "--correcao-inicial-ppm",
+        type=int,
+        default=correcao_rtl_ppm_padrao(),
+        help="correção da 1ª captura (padrão: configs/rtl.toml)",
+    )
     p.add_argument("--deslocamento-hz", type=float, default=250e3, help="tom em banda base")
     p.add_argument("--taxa-sps", type=float, default=2.048e6, help="taxa de amostragem do RTL")
     p.add_argument("--ganho-db", type=float, default=40.0, help="ganho manual (AGC desligado)")

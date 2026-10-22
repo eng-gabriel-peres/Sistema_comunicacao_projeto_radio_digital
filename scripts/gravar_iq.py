@@ -15,6 +15,7 @@ from pathlib import Path
 
 import numpy as np
 
+from sdrlink.config import correcao_rtl_ppm_padrao
 from sdrlink.hw.rtl_rx import AMOSTRAS_POR_LEITURA, ConfigRtl, capturar, fracao_saturada
 from sdrlink.registro import RAIZ, carimbo_de_tempo, salvar_json, versao_do_codigo
 
@@ -27,7 +28,12 @@ def _argumentos() -> argparse.Namespace:
     p.add_argument("--centro-hz", type=float, required=True)
     p.add_argument("--taxa-sps", type=float, default=2.048e6)
     p.add_argument("--ganho-db", type=float, default=40.0)
-    p.add_argument("--correcao-ppm", type=int, default=0)
+    p.add_argument(
+        "--correcao-ppm",
+        type=int,
+        default=correcao_rtl_ppm_padrao(),
+        help="padrão: configs/rtl.toml",
+    )
     p.add_argument("--segundos", type=float, default=4.0)
     p.add_argument("--nome", default="captura", help="prefixo do arquivo")
     p.add_argument("--pasta", type=Path, default=RAIZ / "dados" / "capturas")
