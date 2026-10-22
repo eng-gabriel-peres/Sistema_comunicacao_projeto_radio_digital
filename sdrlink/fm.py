@@ -22,6 +22,7 @@ from scipy.signal import firwin, lfilter
 N_TAPS_FILTRO = 255
 DECIMACAO = 8
 BANDA_FM_HZ = 110e3  # desvio de ±75 kHz mais o espectro do áudio estéreo
+ERRO_MAXIMO_PPM = 200
 N_BLOCOS_MINIMO = 2  # precisa de pelo menos 2 blocos para estimar a incerteza
 
 
@@ -59,3 +60,18 @@ def desvio_portadora_fm(
     freq_inst = np.angle(x[1:] * np.conj(x[:-1])) * taxa_dec / (2 * np.pi)
     por_bloco = freq_inst[: len(freq_inst) // n_blocos * n_blocos].reshape(n_blocos, -1).mean(1)
     return float(por_bloco.mean()), float(por_bloco.std(ddof=1) / np.sqrt(n_blocos))
+
+
+def erro_absoluto_ppm(erro_medido_ppm: float, correcao_aplicada_ppm: int) -> float:
+    """Erro do próprio RTL a partir de uma medida feita com correção aplicada.
+
+    Aplicar +c ppm desloca o sinal observado em +c ppm (visto em 22/10: com 77
+    ppm o tom subiu cerca de 70 kHz em 915 MHz), logo erro sem correção = erro
+    medido - c.
+
+    Raises:
+        ValueError: correção fora de ±200 ppm.
+    """
+    if abs(correcao_aplicada_ppm) > ERRO_MAXIMO_PPM:
+        raise ValueError(f"correção fora da faixa plausível: {correcao_aplicada_ppm}")
+    return erro_medido_ppm - correcao_aplicada_ppm

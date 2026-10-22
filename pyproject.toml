@@ -7,7 +7,7 @@ name = "sdrlink"
 version = "0.1.0"
 description = "Enlace digital simplex ADALM-Pluto -> RTL-SDR (Projeto Final SCM22108, IFSC)"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"  # tomllib na biblioteca padrão
 authors = [{ name = "Gabriel de Oliveira Peres" }]
 
 [tool.setuptools.packages.find]
@@ -19,7 +19,7 @@ include = ["sdrlink*"]
 # ---------------------------------------------------------------------------
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 extend-exclude = ["referencia"]   # código do professor, mantido intocado
 
 [tool.ruff.lint]
@@ -67,7 +67,7 @@ convention = "google"
 # mypy: tipagem estrita (regra 10: zero avisos)
 # ---------------------------------------------------------------------------
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 strict = true
 warn_unreachable = true
 files = ["sdrlink", "scripts", "tests", "ferramentas"]

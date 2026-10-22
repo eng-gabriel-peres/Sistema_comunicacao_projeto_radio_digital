@@ -16,7 +16,7 @@ import importlib
 import sys
 from dataclasses import dataclass
 
-VERSAO_PYTHON_MINIMA = (3, 10)
+VERSAO_PYTHON_MINIMA = (3, 11)
 MODULOS_DO_PROJETO = ("numpy", "scipy", "matplotlib", "rtlsdr", "iio", "adi")
 
 # Exceções que as bibliotecas de hardware levantam quando a biblioteca C do
@@ -69,6 +69,17 @@ def verificar_modulo(nome: str) -> ItemAmbiente:
     return ItemAmbiente(nome, True, str(versao))
 
 
+def verificar_correcao() -> ItemAmbiente:
+    """Confere a correção de frequência adotada em configs/rtl.toml."""
+    from sdrlink.config import ARQUIVO_RTL, ler_correcao_ppm  # noqa: PLC0415
+
+    try:
+        valor = ler_correcao_ppm(ARQUIVO_RTL)
+    except (OSError, ValueError) as erro:
+        return ItemAmbiente("correção rtl", False, str(erro))
+    return ItemAmbiente("correção rtl", True, f"{valor:+d} ppm (configs/rtl.toml)")
+
+
 def verificar_rtl() -> ItemAmbiente:
     """Conta os dongles RTL-SDR e tenta abrir o primeiro."""
     try:
@@ -108,6 +119,7 @@ def diagnosticar() -> list[ItemAmbiente]:
     """Roda todas as verificações, na ordem: Python, bibliotecas, hardware."""
     itens = [verificar_python()]
     itens.extend(verificar_modulo(nome) for nome in MODULOS_DO_PROJETO)
+    itens.append(verificar_correcao())
     itens.append(verificar_rtl())
     itens.append(verificar_pluto())
     return itens

@@ -7,7 +7,7 @@ Depois de cada passo, conferir com `python scripts/verificar_ambiente.py`.
 
 | Componente | Versão | Por quê |
 |---|---|---|
-| Python | 3.13 (mínimo 3.10) | Já instalado no PC de desenvolvimento |
+| Python | 3.13 (mínimo 3.11, por causa do tomllib) | Já instalado no PC de desenvolvimento |
 | libiio (biblioteca C) | **0.25** | O pyadi-iio usa a API 0.x; a libiio 1.0 mudou a API |
 | pylibiio | 0.25 | Precisa casar com a libiio do sistema |
 | pyadi-iio | 0.0.21 | Controle do Pluto |

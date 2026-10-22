@@ -8,11 +8,13 @@ vez do complex128 do `read_samples` (16 bytes por amostra).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
+
+from sdrlink.config import correcao_rtl_ppm_padrao
 
 FREQ_MIN_HZ = 24e6  # faixa de sintonia do R820T/R820T2
 FREQ_MAX_HZ = 1766e6
@@ -32,13 +34,14 @@ class ConfigRtl:
         centro_hz: frequência central sintonizada.
         taxa_sps: taxa de amostragem.
         ganho_db: ganho manual do sintonizador (AGC sempre desligado).
-        correcao_ppm: correção de frequência inteira aplicada pela librtlsdr.
+        correcao_ppm: correção de frequência inteira aplicada pela librtlsdr; se
+            omitida, vale a correção adotada em configs/rtl.toml.
     """
 
     centro_hz: float
     taxa_sps: float
     ganho_db: float
-    correcao_ppm: int = 0
+    correcao_ppm: int = field(default_factory=correcao_rtl_ppm_padrao)
 
     def __post_init__(self) -> None:
         """Rejeita parâmetros fora do que o hardware aceita."""
