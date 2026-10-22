@@ -14,6 +14,7 @@ Depois de cada passo, conferir com `python scripts/verificar_ambiente.py`.
 | pyrtlsdr + pyrtlsdrlib | 0.5.1 + 0.0.7 | Controle do RTL; o pyrtlsdrlib traz a librtlsdr pronta |
 | numpy, scipy, matplotlib | ver `requirements.txt` | |
 | ruff, mypy, pytest, pytest-cov | ver `requirements-dev.txt` | Portão de qualidade |
+| PyQt5 | 5.15.11 | O `referencia/teste_FM.py` força o backend gráfico `Qt5Agg` |
 
 ## Windows
 
