@@ -1,0 +1,10 @@
+# Configuração do RTL-SDR do projeto (requisito CAL-01).
+# Lida pelo receptor a partir do Bloco 2. Registro completo: docs/calibracao_rtl.md
+
+[calibracao]
+correcao_ppm = 77  # decisão da equipe em 22/10/2026, para o par com o Pluto do professor
+data = "2026-10-22"
+pluto = "Pluto do professor (bancada)"
+medicoes_do_par_ppm = [75.5, 78.7, 78.8, 78.9, 77.9, 77.9, 77.5]  # deriva do Pluto ao longo da manhã
+residuo_medido_com_77_hz = -600  # OOK às 11:19; o receptor precisa estimar o resíduo
+erro_absoluto_rtl_ppm = -68.3  # mediana nas emissoras FM (dados/calibracao/fm_20261022_111611.json)

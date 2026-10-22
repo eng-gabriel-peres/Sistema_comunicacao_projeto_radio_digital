@@ -1,0 +1,36 @@
+{
+  "versao_codigo": "bloco-01-sujo",
+  "parametros": {
+    "freq_tom_hz": 915200000.0,
+    "tx_test": true,
+    "correcao_inicial_ppm": 0,
+    "deslocamento_hz": 250000.0,
+    "taxa_sps": 2048000.0,
+    "ganho_db": 40.0,
+    "medidas": 8,
+    "janela_busca_hz": 150000.0,
+    "minutos_ligado": null,
+    "arquivo_iq": "dados\\calibracao\\calibracao_20261022_104830.npy",
+    "aceitar_espurios": false,
+    "salvar_iq": false
+  },
+  "resultado": {
+    "freq_esperada_hz": 915199218.75,
+    "freq_medida_hz": 915130145.4535027,
+    "offset_antes_hz": -69073.29649734497,
+    "correcao_inicial_ppm": 0.0,
+    "erro_com_correcao_inicial_ppm": -75.47350902646842,
+    "erro_total_ppm": -75.47350902646842,
+    "correcao_ppm": 75.0,
+    "residuo_previsto_hz": -433.3550910949714
+  },
+  "estatistica_antes": {
+    "media_hz": 180145.45350262188,
+    "desvio_hz": 54.41497916552738,
+    "deriva_hz_s": -42.04227293228434,
+    "snr_min_db": 24.872603424457935,
+    "n": 8
+  },
+  "estatistica_depois": null,
+  "nota": "Reprocessamento offline da captura das 10:48 (sinal: tx_test.py), com detecção no espectro médio e grade de espúrios descartada."
+}

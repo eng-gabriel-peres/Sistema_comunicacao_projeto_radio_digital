@@ -1,0 +1,36 @@
+{
+  "versao_codigo": "bloco-01-sujo",
+  "parametros": {
+    "freq_tom_hz": 915200000.0,
+    "tx_test": false,
+    "correcao_inicial_ppm": 1,
+    "deslocamento_hz": 250000.0,
+    "taxa_sps": 2048000.0,
+    "ganho_db": 40.0,
+    "medidas": 8,
+    "janela_busca_hz": 150000.0,
+    "minutos_ligado": null,
+    "arquivo_iq": "dados\\calibracao\\calibracao_20261022_111837.npy",
+    "aceitar_espurios": false,
+    "salvar_iq": false
+  },
+  "resultado": {
+    "freq_esperada_hz": 915200000.0,
+    "freq_medida_hz": 915129642.506509,
+    "offset_antes_hz": -70357.49349105358,
+    "correcao_inicial_ppm": 1.0,
+    "erro_com_correcao_inicial_ppm": -76.87663187396589,
+    "erro_total_ppm": -77.87663187396589,
+    "correcao_ppm": 78.0,
+    "residuo_previsto_hz": 112.90650894641621
+  },
+  "estatistica_antes": {
+    "media_hz": 179642.50650892092,
+    "desvio_hz": 36.469170652382964,
+    "deriva_hz_s": -27.215396767754857,
+    "snr_min_db": 24.916908959178702,
+    "n": 8
+  },
+  "estatistica_depois": null,
+  "nota": "Reprocessamento offline da captura das 11:18 com a referência da OOK (915,2000 MHz)."
+}

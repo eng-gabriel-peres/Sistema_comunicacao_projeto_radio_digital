@@ -1,0 +1,43 @@
+{
+  "versao_codigo": "bloco-01-sujo",
+  "parametros": {
+    "freq_tom_hz": 915200000.0,
+    "tx_test": true,
+    "correcao_inicial_ppm": 1,
+    "deslocamento_hz": 250000.0,
+    "taxa_sps": 2048000.0,
+    "ganho_db": 40.0,
+    "medidas": 8,
+    "janela_busca_hz": 150000.0,
+    "minutos_ligado": 60.0,
+    "arquivo_iq": null,
+    "aceitar_espurios": false,
+    "salvar_iq": true
+  },
+  "resultado": {
+    "freq_esperada_hz": 915199218.75,
+    "freq_medida_hz": 915129642.506509,
+    "offset_antes_hz": -69576.24349105358,
+    "correcao_inicial_ppm": 1.0,
+    "erro_com_correcao_inicial_ppm": -76.02305822122794,
+    "erro_total_ppm": -77.02305822122794,
+    "correcao_ppm": 77.0,
+    "residuo_previsto_hz": -21.10286605357677,
+    "residuo_medido_hz": -54.97215402126312
+  },
+  "estatistica_antes": {
+    "media_hz": 179642.50650892092,
+    "desvio_hz": 36.469170652382964,
+    "deriva_hz_s": -27.215396767754857,
+    "snr_min_db": 24.916908959178702,
+    "n": 8
+  },
+  "estatistica_depois": {
+    "media_hz": 249163.7778460349,
+    "desvio_hz": 12.106605231119584,
+    "deriva_hz_s": -5.889365563939079,
+    "snr_min_db": 23.02929344947186,
+    "n": 8
+  },
+  "referencia_incorreta": "Rodado com --tx-test, mas às 11:18 o professor já transmitia a OOK (portadora em 915,2000 MHz exatos). Reprocessado com a referência certa em calibracao_20261022_112118.json (erro -77,88 ppm)."
+}

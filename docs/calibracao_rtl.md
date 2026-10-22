@@ -1,93 +1,94 @@
-# Registro de calibração do RTL-SDR (Etapa 1)
+# Registro de calibração do RTL-SDR (Etapa 1), revisão 2
 
 Requisitos: **CAL-01** (correção de ppm calibrada e registrada) e **CAL-02** (offset residual medido).
 
-## 1. Montagem do ensaio (22/10/2026)
+![Resumo da calibração](figuras/calibracao_22out.png)
+
+## 1. Resultado
 
 | Item | Valor |
 |---|---|
-| Transmissor | ADALM-Pluto do professor, rodando `referencia/tx_test.py` sem alterações: LO em 915 MHz e tom complexo em +200 kHz, ou seja, **915,2 MHz**, ganho de TX −20 dB |
-| Receptor | RTL-SDR RTL2832U + R820T2 com TCXO, no Windows 11, driver WinUSB |
-| Aquecimento do RTL | cerca de 30 min ligado (estimativa; acima dos 10 min pedidos em PLT-06) |
-| Sintonia do RTL | 914,95 MHz, para o tom cair em +250 kHz, longe do pico DC |
-| Taxa de amostragem | 2,048 MS/s |
-| Ganho | 40 dB pedido, **40,2 dB** aplicado pelo sintonizador, AGC desligado |
-| Saturação do ADC | nenhuma amostra no fundo de escala |
-| Ferramenta | `scripts/calibrar_rtl.py` (commit 856a5b6) |
+| **Correção adotada** | **+77 ppm**: decisão da equipe em 22/10/2026, para o par "nosso RTL + Pluto do professor" (`configs/rtl.toml`) |
+| Correção do par medida ao longo da manhã | de +75,5 a +78,9 ppm; as duas últimas deram +77,9 e +77,5 |
+| Resíduo com +77 ppm | cerca de −0,6 kHz na OOK às 11:19; varia com a deriva do Pluto |
+| Erro absoluto do nosso RTL (rádios FM) | de −64 a −77 ppm, mediana −68,3 ppm |
 
-## 2. Método
+O erro grande é principalmente do **nosso RTL**, apesar de o dongle ser vendido como "TCXO". O Pluto do professor contribui com os ppm restantes e **deriva de 1 a 3 ppm** ao longo de uma manhã. Por isso a calibração precisa ser repetida em cada sessão (depois dos 10 min de aquecimento), e o receptor ainda vai ter de estimar um resíduo de centenas de Hz, como o enunciado prevê.
 
-1. Captura **sem correção** (freq_correction = 0), em 8 blocos de 2²⁰ amostras (0,51 s cada, 4,1 s no total).
-2. Espectro médio dos 8 blocos (janela de Hann, 1,95 Hz por bin). A média deixa o ruído liso e mostra as raias estáveis.
-3. Escolha da raia mais forte numa janela de ±10 kHz em torno do esperado. O script para se a segunda raia estiver a menos de 3 dB da primeira.
-4. Estimativa fina em cada bloco (±100 Hz em torno da raia), com interpolação parabólica do pico: média, desvio e deriva.
-5. Erro em ppm = (f_medida − f_esperada) / f_esperada × 10⁶; correção inteira da librtlsdr = arredondamento de −erro.
-6. Nova captura **com** a correção, para medir o resíduo de verdade.
+## 2. Montagem
 
-## 3. Resultados
+| Item | Valor |
+|---|---|
+| Transmissor | ADALM-Pluto do professor: `tx_test.py` até ~11:06 e `pluto_tx_ook_v2.py` (OOK 10 kbit/s) a partir de ~11:18 |
+| Receptor | RTL-SDR RTL2832U + R820T2, Windows 11, driver WinUSB |
+| Sintonia | 914,95 MHz (o sinal esperado cai em +250 kHz, longe do pico DC) |
+| Taxa / ganho | 2,048 MS/s; 40 dB (40,2 dB aplicados) ou 30 dB, AGC desligado |
+| Ferramentas | `scripts/calibrar_rtl.py`, `scripts/verificar_ppm_fm.py`, `scripts/figura_calibracao.py` |
 
-| Medição | Offset sem correção | Erro | Desvio entre blocos | Deriva | SNR mín. | Correção | Resíduo medido |
-|---|---|---|---|---|---|---|---|
-| 10:48:05 (só impressa; a figura falhou ao salvar, defeito corrigido) | −43,8 Hz | −0,048 ppm | 1,26 Hz | +0,20 Hz/s | 21,2 dB | 0 ppm | −43,3 Hz |
-| **10:48:30 (registro oficial)** | **−42,4 Hz** | **−0,046 ppm** | 1,02 Hz | +0,17 Hz/s | 20,7 dB | **0 ppm** | **−45,7 Hz** |
+## 3. Onde cada transmissão do professor coloca a portadora
 
-Nas varreduras de diagnóstico feitas antes dessas duas medições, o tom apareceu sempre entre −41 e −47 Hz.
+| Programa | Portadora | Por quê |
+|---|---|---|
+| `tx_test.py` | **LO + 199,219 kHz** = 915,199219 MHz | O buffer cíclico tem 1024 amostras a 2 MS/s e o tom de 200 kHz completa 102,4 ciclos nele. O espectro vira um pente com passo de 1953,125 Hz, e o dente principal é o k = 102 (o k = 103 fica 3,5 dB abaixo). Achado A15. |
+| `pluto_tx_ook_v2.py` | **LO + 200,000 kHz** = 915,200000 MHz | Cada bit tem 200 amostras e 20 ciclos inteiros da portadora, para qualquer mensagem. |
 
-**Conclusão:**
-- Para o par "Pluto do professor + nosso RTL-SDR", a correção de ppm é **0**.
-- O **offset residual é de cerca de −44 Hz** (cerca de −0,05 ppm), estável: desvio de 1 a 2 Hz e deriva abaixo de 0,5 Hz/s.
-- Esse resíduo não vem do arredondamento da correção inteira (o erro já é bem menor que 0,5 ppm). É a diferença real entre os dois osciladores.
+Usar a referência errada desloca o resultado em 0,85 ppm. Por isso o script tem a opção `--tx-test`, que só deve ser usada quando o professor roda o `tx_test.py`.
 
-O erro medido é **relativo** entre os dois rádios (achado A7). Com outro Pluto, a calibração precisa ser refeita.
+## 4. Linha do tempo das medições
 
-Evidência: `dados/calibracao/calibracao_20261022_104830.json` e `.png`. A captura IQ de 64 MB (`.npy`) fica só no disco, fora do git.
-
-## 4. Comparação com o `rx_test_915.py` do professor
-
-O mesmo tom foi medido com o script de referência, uma vez sem alteração e outra com `freq_correction = 1` no lugar de 34, como o professor pediu. A segunda rodada usou uma cópia, para a referência ficar intocada.
-
-| Rodada | Pico encontrado | Potência | ppm estimado | Pico depois da correção |
+| Horário | Sinal | Correção durante a captura | Correção total do par | Situação |
 |---|---|---|---|---|
-| Original (34 ppm) | 915,3310 MHz (+331,0 kHz) | −78,5 dB | −143,2 | 915,1690 MHz |
-| Com 1 ppm | 915,1845 MHz (+184,5 kHz) | −76,5 dB | +16,9 | 915,6985 MHz |
+| 10:48 | `tx_test.py` | 0 | **+75,5 ppm** | reprocessado (`calibracao_20261022_111529.json`) |
+| 10:48 | | 0 | ~~0 ppm~~ | **inválido**: travou num espúrio do RTL (ver seção 5) |
+| ~11:05 | `tx_test.py` | 0, 1 e 77 | +78,7 / +78,8 / +78,9 ppm | medições de diagnóstico (só impressas) |
+| ~11:06 | `tx_test.py` | 0, quatro sintonias | +77,9 ppm (média) | medição de diagnóstico; confirmou que o sinal é real |
+| 11:18 | OOK | +1 | **+77,9 ppm** | reprocessado com a referência da OOK (`..._112118.json`) |
+| 11:19 | OOK | +1, depois +77 | **+77,5 ppm**; resíduo com +77 de cerca de −0,6 kHz | reprocessado (`..._112123.json`); figura, painel B |
 
-As duas leituras estão erradas. Um RTL com TCXO não tem erro de 143 nem de 17 ppm, e o tom foi medido em 915,19996 MHz. Os motivos, confirmados no ensaio:
+## 5. O que deu errado no caminho, e como foi corrigido
 
-1. **Resolução de 500 Hz por bin** (FFT de 4096 pontos a 2,048 MS/s, achado A6). Cada bin junta o ruído de uma faixa de 500 Hz, e um tom fraco some no meio dele. Com 2²⁰ pontos o bin tem 1,95 Hz e o ruído por bin cai 256 vezes (24 dB).
-2. **Busca do maior pico na banda inteira.** Há outros sinais na faixa ISM com potência parecida com a do tom aqui. A rodada com 1 ppm travou exatamente num deles.
-3. **Correção inicial fixa** (34 ppm, achado A5). Num dongle com TCXO ela introduz um erro de cerca de 31 kHz, e o valor calculado depois descarta essa correção inicial.
+Ficam registrados, porque fazem parte da análise de falhas pedida no projeto.
 
-## 5. Interferência observada na faixa
+1. **"Calibração de 0 ppm" (10:48).** A busca estreita, de ±10 kHz em volta de 915,2 MHz, travou numa raia que é **espúrio do próprio RTL**. Ele gera uma família de raias em múltiplos exatos de **100 kHz** (o cristal de 28,8 MHz dividido por 288) e de **256 kHz** (a taxa de amostragem dividida por 8). Como saem do próprio relógio do dongle, aparecem em números "redondos" mesmo com o RTL errando −68 ppm. **Correção:** o script descarta automaticamente raias nessa grade (`possivel_espurio_rtl`) e busca em ±150 kHz.
+2. **Dente errado do pente do `tx_test.py`.** Uma estimativa intermediária usou o dente k = 101 no lugar do k = 102. **Correção:** a detecção usa o espectro médio, e os dentes vizinhos do mesmo pente não contam como sinais concorrentes (`mesmo_pente`).
+3. **Referência errada quando o professor trocou para a OOK.** As rodadas ao vivo das 11:18 e 11:19 usaram `--tx-test` com o sinal já em OOK. Elas foram reprocessadas com a referência certa, e os registros originais foram mantidos com uma nota.
+4. **Captura de "Pluto desligado" contaminada.** O professor voltou a transmitir durante a captura de fundo das 11:16. Ela foi descartada e não é usada como evidência.
 
-Com o espectro médio apareceram, além do tom do Pluto:
+## 6. Por que o `rx_test_915.py` deu 77 e como usar o 77
 
-| Frequência | Desvio do tom | Altura sobre o ruído (ganho 40 dB) |
-|---|---|---|
-| ~915,1845 MHz (várias raias próximas) | −15,5 kHz | até 18,8 dB |
-| ~915,140 MHz | −60 kHz | cerca de 20 dB |
+- O script do professor procura o maior pico da banda inteira com FFT de 500 Hz por bin (achado A6). Neste RTL isso funciona só quando o sinal do Pluto é o mais forte da banda.
+- Ele descarta a correção inicial (achado A5). Partindo de 1 ppm, ele mediu 77 e aplicou 77. Pela própria medição dele, o total seria 78. A diferença entre 77 e 78 fica dentro da deriva do Pluto, e a equipe adotou **77**.
+- **Atenção:** colocar `freq_correction = 77` no início do `rx_test_915.py` **não** mantém os 77. O script mede o que sobra (perto de 0), aplica só isso e descarta os 77. A correção deve ser fixada no **receptor**: `FREQ_CORRECTION_PPM = 77` no `rtl_rx_ook_v2.py` (Bloco 2) e `configs/rtl.toml` no nosso código.
 
-São outros dispositivos da faixa ISM, intermitentes. Isso tem duas consequências para o projeto:
-- o receptor não pode assumir que o sinal mais forte da banda é o nosso;
-- a escolha da frequência e da banda do enlace precisa considerar esses sinais.
+## 7. Impacto nas próximas etapas
 
-## 6. Impacto nas próximas etapas
+- **OOK:** o resíduo de centenas de Hz não afeta (filtro de ±10 kHz, detecção de envoltória).
+- **BPSK coerente:** com −0,6 kHz de resíduo, a fase gira 21,6° por símbolo a 10 kbaud e cerca de 2,2° a 100 kbaud. Num pacote de 1109 símbolos isso dá várias voltas. Então a BPSK precisa de DBPSK ou de estimar o resíduo pelo preâmbulo (decisão D2). A deriva do Pluto, de centenas de Hz por minuto, reforça essa necessidade.
+- **Faixa ISM:** há outros sinais na banda, e o nosso RTL tem espúrios próprios em 915,0, 915,2 e 915,3 MHz. A escolha do deslocamento do nosso sinal deve evitar essas frequências.
 
-O resíduo de cerca de 44 Hz não afeta a OOK (filtro de ±10 kHz, detecção de envoltória), mas afeta a BPSK coerente. A fase gira 360° × 44 / Rs por símbolo:
+## 8. Como reproduzir
 
-| Taxa de símbolos | Giro por símbolo | Giro num pacote de 1109 símbolos |
-|---|---|---|
-| 10 kbaud | 1,6° | cerca de 1760° (quase 5 voltas) |
-| 100 kbaud | 0,16° | cerca de 176° |
-| 250 kbaud | 0,06° | cerca de 70° |
-
-Então, mesmo calibrado, a BPSK precisa de DBPSK ou de estimativa e correção do offset pelo preâmbulo, decisão D2 do planejamento.
-
-## 7. Como reproduzir
-
-Com o RTL ligado há pelo menos 10 min e o Pluto transmitindo o `tx_test.py`:
+Com o RTL ligado há pelo menos 10 min:
 
 ```powershell
-.venv\Scripts\python scripts\calibrar_rtl.py --freq-tom-hz 915.2e6 --janela-busca-hz 10e3 --minutos-ligado 30 --salvar-iq
+# professor rodando o tx_test.py
+.venv\Scripts\python scripts\calibrar_rtl.py --freq-tom-hz 915.2e6 --tx-test --correcao-inicial-ppm 1 --salvar-iq
+# professor rodando a OOK (pluto_tx_ook_v2.py)
+.venv\Scripts\python scripts\calibrar_rtl.py --freq-tom-hz 915.2e6 --correcao-inicial-ppm 1 --salvar-iq
+# erro absoluto do RTL, sem depender do Pluto
+.venv\Scripts\python scripts\verificar_ppm_fm.py
+# figura-resumo a partir dos arquivos gravados
+.venv\Scripts\python scripts\figura_calibracao.py
 ```
 
-Sem `--janela-busca-hz`, a busca usa ±60 kHz. Se houver interferente parecido, o script para e avisa da ambiguidade em vez de escolher às cegas.
+## 9. Evidências (`dados/calibracao/`)
+
+| Arquivo | Conteúdo |
+|---|---|
+| `calibracao_20261022_104830.*` | captura das 10:48 (`tx_test.py`); o JSON original está marcado como inválido |
+| `calibracao_20261022_111529.json/.png` | reprocessamento das 10:48: +75,5 ppm |
+| `calibracao_20261022_111837.*`, `..._111918.*` | rodadas ao vivo (OOK), com nota de referência incorreta |
+| `calibracao_20261022_112118.json`, `..._112123.json` | reprocessamentos com a referência da OOK: +77,9 e +77,5 ppm |
+| `fm_20261022_111611.json` | erro absoluto do RTL pelas emissoras FM |
+
+As capturas IQ (`.npy`) ficam só no disco, fora do git.

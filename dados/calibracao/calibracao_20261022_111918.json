@@ -1,0 +1,43 @@
+{
+  "versao_codigo": "bloco-01-sujo",
+  "parametros": {
+    "freq_tom_hz": 915200000.0,
+    "tx_test": true,
+    "correcao_inicial_ppm": 1,
+    "deslocamento_hz": 250000.0,
+    "taxa_sps": 2048000.0,
+    "ganho_db": 40.0,
+    "medidas": 8,
+    "janela_busca_hz": 150000.0,
+    "minutos_ligado": 60.0,
+    "arquivo_iq": null,
+    "aceitar_espurios": false,
+    "salvar_iq": true
+  },
+  "resultado": {
+    "freq_esperada_hz": 915199218.75,
+    "freq_medida_hz": 915129945.1035538,
+    "offset_antes_hz": -69273.64644622803,
+    "correcao_inicial_ppm": 1.0,
+    "erro_com_correcao_inicial_ppm": -75.69242305608996,
+    "erro_total_ppm": -76.69242305608996,
+    "correcao_ppm": 77.0,
+    "residuo_previsto_hz": 281.4941787719771,
+    "residuo_medido_hz": 195.91187453269958
+  },
+  "estatistica_antes": {
+    "media_hz": 179945.10355371947,
+    "desvio_hz": 57.64530566784671,
+    "deriva_hz_s": 12.388702560845891,
+    "snr_min_db": 8.834284131565202,
+    "n": 8
+  },
+  "estatistica_depois": {
+    "media_hz": 249414.6618745771,
+    "desvio_hz": 21.71531811876883,
+    "deriva_hz_s": -15.913304203875885,
+    "snr_min_db": 23.788374919678,
+    "n": 8
+  },
+  "referencia_incorreta": "Rodado com --tx-test, mas às 11:19 o sinal era a OOK. Reprocessado com a referência certa em calibracao_20261022_112123.json (erro -77,55 ppm)."
+}

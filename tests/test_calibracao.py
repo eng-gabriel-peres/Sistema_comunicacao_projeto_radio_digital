@@ -164,3 +164,36 @@ def test_entradas_invalidas_da_deteccao() -> None:
         cal.detectar_raias(freqs, np.ones(2**10), DESLOCAMENTO_HZ, 60e3, n_max=0)
     with pytest.raises(ValueError, match="bins"):
         cal.detectar_raias(freqs, np.ones(2**10), DESLOCAMENTO_HZ, 1.0)
+
+
+def test_correcao_total_soma_a_correcao_inicial() -> None:
+    # 22/10: medido com +1 ppm, sobrou -76,02 ppm -> total 77 (o rx_test_915.py descartaria o 1)
+    assert cal.correcao_total_ppm(1, -76.02) == 77
+    assert cal.correcao_total_ppm(0, -77.83) == 78
+    with pytest.raises(ValueError, match="plausível"):
+        cal.correcao_total_ppm(150, -100.0)
+
+
+def test_grade_de_espurios_do_rtl() -> None:
+    assert cal.possivel_espurio_rtl(915.199955e6, TAXA_SPS)  # múltiplo de 100 kHz
+    assert cal.possivel_espurio_rtl(914.943957e6, TAXA_SPS)  # múltiplo de 256 kHz
+    assert not cal.possivel_espurio_rtl(915.130145e6, TAXA_SPS)  # Pluto do professor
+    assert cal.possivel_espurio_rtl(915.3e6 * (1 + 77e-6), TAXA_SPS, correcao_ppm=77)
+    with pytest.raises(ValueError, match="positivas"):
+        cal.possivel_espurio_rtl(-1.0, TAXA_SPS)
+
+
+def test_raia_principal_do_tx_test() -> None:
+    # 102,4 ciclos no buffer de 1024 amostras: raia principal em LO + 102 x 1953,125 Hz
+    assert cal.raia_principal_tx_test(915e6, 200e3, 2e6, 1024) == pytest.approx(915_199_218.75)
+    with pytest.raises(ValueError, match="positivos"):
+        cal.raia_principal_tx_test(915e6, 200e3, 2e6, 0)
+
+
+def test_dentes_do_mesmo_pente() -> None:
+    passo = 2e6 / 1024
+    assert cal.mesmo_pente(915.130145e6, 915.132076e6, passo)  # dentes k=102 e k=103 medidos
+    assert not cal.mesmo_pente(915.130145e6, 915.131145e6, passo)
+    assert not cal.mesmo_pente(915.130145e6, 915.130145e6, passo)
+    with pytest.raises(ValueError, match="positivos"):
+        cal.mesmo_pente(1.0, 2.0, 0)

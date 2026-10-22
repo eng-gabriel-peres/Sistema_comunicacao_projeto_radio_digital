@@ -134,6 +134,8 @@ Quadro de referência: `[preâmbulo 16][Barker-13][comprimento 8][payload 8·N][
 | A12 | Baixo | `teste_FM.py` | Força o backend `Qt5Agg`, que exige PyQt5 (não instalado pelo script) | Pode falhar ao abrir o gráfico | (teste) |
 | A13 | Baixo | TX | `PLUTO_URI = "ip:192.168.2.22"`; o padrão de fábrica é `192.168.2.1` | Confirmar o IP do Pluto da bancada | PLT-01 |
 | A14 | Baixo | todos | Parâmetros espalhados como constantes em cada script, sem arquivo de configuração | O requisito pede parâmetros configuráveis e o TX e o RX precisam concordar | PRC-01 |
+| A15 | Alto | `tx_test.py` | O tom de 200 kHz completa 102,4 ciclos no buffer cíclico de 1024 amostras: o espectro vira um pente de 1953 Hz e a raia principal fica em LO + 199,219 kHz | Calibrar contra 915,2 MHz exatos erra 0,85 ppm (descoberto no ensaio de 22/10) | CAL-01 |
+| A16 | Alto | RTL-SDR do projeto | O dongle erra cerca de −68 ppm (medido pelas rádios FM), apesar de vendido como TCXO, e gera espúrios em múltiplos de 100 kHz e de taxa/8 | Uma calibração que trave num espúrio dá um resultado falso (aconteceu em 22/10) | CAL-01, CAL-02 |
 
 Conclusão da auditoria: a referência é uma **boa base didática** (quadro, Barker, limiar pelo preâmbulo, CRC), mas atende só MOD-01 e parte de PKT-01. O restante tem de ser construído. Os achados A1 a A4 são o núcleo do trabalho de engenharia.
 
@@ -200,7 +202,7 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | PKT-01 a PKT-04 | ❌ | Achados A3, A4, A9 | 3 |
 | RX-01 a RX-03 | ❌ | Achados A1, A2, A8 | 3, 5 |
 | TX-01 | ❌ | Achado A4 | 3 |
-| CAL-01, CAL-02 | ✅ | Calibrado em 22/10: correção 0 ppm, resíduo cerca de −44 Hz ([calibracao_rtl.md](calibracao_rtl.md)); achados A5 a A7 corrigidos | 1 |
+| CAL-01, CAL-02 | ✅ | Calibrado em 22/10: correção adotada +77 ppm (medições de 75,5 a 78,9 com a deriva do Pluto), resíduo com 77 de cerca de −0,6 kHz ([calibracao_rtl.md](calibracao_rtl.md)); achados A5 a A7, A15 e A16 tratados | 1 |
 | CAL-03 | ⏳ | Correção do oscilador do Pluto: o Pluto usado é o do professor | 1 |
 | MET-01 a MET-05 | ❌ | | 5 |
 | CMP-01 a CMP-04 | ❌ | | 4, 5 |
