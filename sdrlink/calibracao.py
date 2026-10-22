@@ -30,6 +30,9 @@ MARGEM_AMBIGUIDADE_DB = 3.0  # 2ª raia mais perto que isso: não dá para escol
 JANELA_FINA_HZ = 100.0  # estimativa por bloco só perto da raia detectada
 SEPARACAO_RAIAS_HZ = 200.0
 BINS_MINIMOS_BUSCA = 3  # menos que isso não forma um pico
+GRADE_CRISTAL_HZ = 100e3  # 28,8 MHz / 288: grade de espúrios do próprio RTL (visto em 22/10)
+DIVISOR_GRADE_AMOSTRAGEM = 8  # taxa/8 (256 kHz a 2,048 MS/s): outra grade de espúrios
+TOLERANCIA_ESPURIO_HZ = 300.0  # passo do sintetizador do R820T + erro de estimativa
 N_FFT_MINIMO = 1024
 ERRO_MAXIMO_PPM = 200.0  # cristais comuns ficam bem abaixo disso
 PPM = 1e6
@@ -273,3 +276,76 @@ def detectar_raias(
     picos, _ = find_peaks(db, distance=max(1, int(SEPARACAO_RAIAS_HZ / resolucao_hz)))
     melhores = picos[np.argsort(db[picos])[::-1][:n_max]]
     return [Raia(float(freqs[indices[k]]), float(db[k])) for k in melhores]
+
+
+def correcao_total_ppm(correcao_inicial: int, erro_medido: float) -> int:
+    """Correção final quando a captura já foi feita com uma correção aplicada.
+
+    O erro medido com a correção inicial c0 é o que sobra depois dela; a nova
+    correção é c0 somada à correção desse resto (achado A5: o rx_test_915.py
+    descarta c0 e por isso deu 77 em vez de 78 em 22/10).
+
+    Raises:
+        ValueError: correção total fora da faixa plausível.
+    """
+    total = correcao_inicial + correcao_rtl_ppm(erro_medido)
+    if abs(total) > ERRO_MAXIMO_PPM:
+        raise ValueError(f"correção total de {total} ppm fora da faixa plausível")
+    return total
+
+
+def possivel_espurio_rtl(freq_rf_hz: float, taxa_sps: float, correcao_ppm: int = 0) -> bool:
+    """Indica se a frequência cai na grade de espúrios internos do RTL-SDR.
+
+    Em 22/10 o RTL mostrou raias em múltiplos de 100 kHz e de taxa/8, presentes
+    com o transmissor desligado. Com a correção c aplicada, a grade aparece
+    escalada por (1 + c/1e6).
+
+    Raises:
+        ValueError: frequência ou taxa não positivas.
+    """
+    if freq_rf_hz <= 0 or taxa_sps <= 0:
+        raise ValueError("frequência e taxa precisam ser positivas")
+    escala = 1 + correcao_ppm / PPM
+    for grade_hz in (GRADE_CRISTAL_HZ, taxa_sps / DIVISOR_GRADE_AMOSTRAGEM):
+        passo_hz = grade_hz * escala
+        resto_hz = freq_rf_hz % passo_hz
+        if min(resto_hz, passo_hz - resto_hz) <= TOLERANCIA_ESPURIO_HZ:
+            return True
+    return False
+
+
+def raia_principal_tx_test(lo_hz: float, tom_hz: float, taxa_tx_sps: float, n_buffer: int) -> float:
+    """Frequência real da raia mais forte de um tom em buffer cíclico.
+
+    O buffer de n_buffer amostras se repete; se o tom não fecha um número
+    inteiro de ciclos nele, o espectro vira raias em múltiplos de
+    taxa/n_buffer e a mais forte é a mais próxima do tom. No tx_test.py
+    (200 kHz, 2 MS/s, 1024 amostras) são 102,4 ciclos: a raia principal fica
+    em LO + 199,219 kHz, e não em LO + 200 kHz.
+
+    Raises:
+        ValueError: argumentos não positivos.
+    """
+    if min(lo_hz, tom_hz, taxa_tx_sps) <= 0 or n_buffer < 1:
+        raise ValueError("argumentos do tom em buffer cíclico precisam ser positivos")
+    passo_hz = taxa_tx_sps / n_buffer
+    return lo_hz + round(tom_hz / passo_hz) * passo_hz
+
+
+def mesmo_pente(
+    freq_a_hz: float, freq_b_hz: float, passo_hz: float, tolerancia_hz: float = 150.0
+) -> bool:
+    """Indica se duas raias são dentes do mesmo pente (distância múltipla de passo_hz).
+
+    O tom do tx_test.py vira um pente com passo de 1953,125 Hz; o 2º dente fica
+    só 3,5 dB abaixo do 1º e não deve ser confundido com um sinal concorrente.
+
+    Raises:
+        ValueError: passo ou tolerância não positivos.
+    """
+    if passo_hz <= 0 or tolerancia_hz <= 0:
+        raise ValueError("passo e tolerância precisam ser positivos")
+    distancia_hz = abs(freq_a_hz - freq_b_hz)
+    n = round(distancia_hz / passo_hz)
+    return n >= 1 and abs(distancia_hz - n * passo_hz) <= tolerancia_hz
