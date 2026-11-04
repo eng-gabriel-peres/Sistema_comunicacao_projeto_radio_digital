@@ -3,11 +3,13 @@
 Requisitos: PLT-01 (RTL-SDR só como receptor), MET-05 (ganho manual com AGC
 desligado, registrado na captura), RX-02. Corrige o achado A8 da auditoria:
 lê os bytes brutos e converte direto para complex64 (8 bytes por amostra), em
-vez do complex128 do `read_samples` (16 bytes por amostra).
+vez do complex128 do `read_samples` (16 bytes por amostra). Corrige também o
+achado A17: a leitura é assíncrona e contínua, sem perder amostras entre blocos.
 """
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -24,6 +26,7 @@ CORRECAO_MAX_PPM = 200
 AMOSTRAS_POR_LEITURA = 256 * 1024  # múltiplo de 512 bytes, exigência da librtlsdr
 AMOSTRAS_DESCARTADAS = 256 * 1024  # primeiras amostras após sintonizar são instáveis
 ESCALA_ADC = 127.5  # mesma escala do pyrtlsdr: (byte - 127,5) / 127,5
+MARGEM_TEMPO_S = 5.0  # folga do tempo máximo de uma captura
 
 
 @dataclass(frozen=True)
@@ -112,16 +115,79 @@ def _configurar(radio: Any, config: ConfigRtl) -> None:
         radio.freq_correction = config.correcao_ppm
 
 
-def _ler(radio: Any, n_amostras: int) -> NDArray[np.complex64]:
-    """Lê n_amostras em blocos de tamanho fixo, num vetor pré-alocado."""
-    amostras = np.empty(n_amostras, dtype=np.complex64)
-    for i in range(n_amostras // AMOSTRAS_POR_LEITURA):  # laço com limite fixo
-        bruto = np.frombuffer(radio.read_bytes(2 * AMOSTRAS_POR_LEITURA), dtype=np.uint8)
-        if len(bruto) != 2 * AMOSTRAS_POR_LEITURA:
-            raise RuntimeError(f"leitura incompleta do RTL-SDR: {len(bruto)} bytes")
-        inicio = i * AMOSTRAS_POR_LEITURA
-        amostras[inicio : inicio + AMOSTRAS_POR_LEITURA] = bytes_para_iq(bruto)
-    return amostras
+class Acumulador:
+    """Recebe os blocos da leitura assíncrona e os copia, em ordem, num vetor pré-alocado.
+
+    A leitura síncrona bloco a bloco (`read_bytes` em laço, como no
+    capture_chunks da referência) perde de 1 a 6 mil amostras em cada emenda
+    de bloco: medido em 04/11/2026, cerca de 1,5% a 4% das amostras (achado A17).
+    Na leitura assíncrona a librtlsdr mantém vários buffers USB em fila e o
+    fluxo é contínuo; este objeto é o callback que guarda cada bloco.
+    """
+
+    def __init__(self, radio: Any, n_bytes: int, n_bytes_descarte: int) -> None:
+        """Prepara o destino.
+
+        Raises:
+            ValueError: tamanhos inválidos.
+        """
+        if n_bytes <= 0 or n_bytes % 2 or n_bytes_descarte < 0:
+            raise ValueError("tamanhos de leitura inválidos")
+        self.radio = radio
+        self.dados = np.empty(n_bytes, dtype=np.uint8)
+        self.pos = -n_bytes_descarte  # posição negativa: ainda descartando o início
+        self.cancelado = False
+
+    @property
+    def completo(self) -> bool:
+        """True quando o vetor de destino está cheio."""
+        return self.pos >= len(self.dados)
+
+    def __call__(self, valores: Any, _contexto: Any) -> None:
+        """Copia um bloco (o buffer da librtlsdr é reaproveitado, então copia na hora)."""
+        if self.completo:
+            return
+        bloco = np.frombuffer(valores, dtype=np.uint8)
+        inicio = 0
+        if self.pos < 0:  # ainda dentro do descarte inicial
+            inicio = min(len(bloco), -self.pos)
+            self.pos += inicio
+        n = min(len(bloco) - inicio, len(self.dados) - max(self.pos, 0))
+        if n > 0:
+            self.dados[self.pos : self.pos + n] = bloco[inicio : inicio + n]
+            self.pos += n
+        if self.pos >= len(self.dados) and not self.cancelado:  # comparação direta
+            self.cancelado = True
+            self.radio.cancel_read_async()
+
+
+def _ler(radio: Any, n_amostras: int, taxa_sps: float) -> NDArray[np.complex64]:
+    """Lê n_amostras contínuas pela leitura assíncrona, com tempo máximo de segurança.
+
+    Ao cancelar, a librtlsdr devolve o resultado do último libusb_cancel_transfer,
+    que é LIBUSB_ERROR_NOT_FOUND quando a transferência já tinha terminado; o
+    pyrtlsdr transforma isso em exceção (e fecha o rádio). Com o vetor cheio esse
+    erro é só o fim normal da leitura e é ignorado.
+
+    Raises:
+        RuntimeError: leitura incompleta (tempo de segurança esgotado ou erro USB).
+    """
+    acumulador = Acumulador(radio, 2 * n_amostras, 2 * AMOSTRAS_DESCARTADAS)
+    limite_s = 2 * (n_amostras + AMOSTRAS_DESCARTADAS) / taxa_sps + MARGEM_TEMPO_S
+    vigia = threading.Timer(limite_s, radio.cancel_read_async)  # regra 2: termina sempre
+    vigia.start()
+    erro_usb: OSError | None = None
+    try:
+        radio.read_bytes_async(acumulador, 2 * AMOSTRAS_POR_LEITURA)
+    except OSError as erro:  # LibUSBError herda de IOError
+        erro_usb = erro
+    finally:
+        vigia.cancel()
+    if not acumulador.completo:
+        raise RuntimeError(
+            f"leitura incompleta do RTL-SDR: {max(acumulador.pos, 0)} bytes"
+        ) from erro_usb
+    return bytes_para_iq(acumulador.dados)
 
 
 def capturar(config: ConfigRtl, n_amostras: int) -> Captura:
@@ -148,14 +214,12 @@ def capturar(config: ConfigRtl, n_amostras: int) -> Captura:
         ) from erro
     try:
         _configurar(radio, config)
-        radio.read_bytes(2 * AMOSTRAS_DESCARTADAS)
-        amostras = _ler(radio, n_amostras)
-        return Captura(
-            amostras=amostras,
-            centro_hz=float(radio.center_freq),
-            taxa_sps=float(radio.sample_rate),
-            ganho_db=float(radio.gain),
-            correcao_ppm=int(radio.get_freq_correction()),
-        )
+        # lidos antes da captura: o pyrtlsdr pode fechar o rádio ao fim da leitura assíncrona
+        centro_hz = float(radio.center_freq)
+        taxa_sps = float(radio.sample_rate)
+        ganho_db = float(radio.gain)
+        correcao_ppm = int(radio.get_freq_correction())
+        amostras = _ler(radio, n_amostras, config.taxa_sps)
+        return Captura(amostras, centro_hz, taxa_sps, ganho_db, correcao_ppm)
     finally:
         radio.close()
