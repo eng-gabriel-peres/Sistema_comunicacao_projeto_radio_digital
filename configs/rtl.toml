@@ -2,9 +2,12 @@
 # Lida pelo receptor a partir do Bloco 2. Registro completo: docs/calibracao_rtl.md
 
 [calibracao]
-correcao_ppm = 77  # decisão da equipe em 22/10/2026, para o par com o Pluto do professor
-data = "2026-10-22"
-pluto = "Pluto do professor (bancada)"
-medicoes_do_par_ppm = [75.5, 78.7, 78.8, 78.9, 77.9, 77.9, 77.5]  # deriva do Pluto ao longo da manhã
-residuo_medido_com_77_hz = -600  # OOK às 11:19; o receptor precisa estimar o resíduo
-erro_absoluto_rtl_ppm = -68.3  # mediana nas emissoras FM (dados/calibracao/fm_20261022_111611.json)
+correcao_ppm = 84  # par "Pluto da equipe + RTL", medido em 04/11/2026 com o RTL aquecido
+data = "2026-11-04"
+pluto = "Pluto da equipe (Rev.C AD9364, fw v0.32, serial ...bc7b7b4d52)"
+medicoes_do_par_ppm = [84.04, 84.21]  # 10:06 e 10:09, RTL aquecido
+residuo_medido_com_84_hz = [-356, -524]  # o receptor precisa estimar o resíduo
+erro_absoluto_rtl_ppm = -74.6  # mediana nas emissoras FM, aquecido (dados/calibracao/fm_20261104_101037.json)
+
+# Histórico: com o Pluto do professor (22/10/2026) a correção adotada foi de 77 ppm.
+# Cada Pluto tem o seu próprio erro de oscilador; ao trocar de Pluto, recalibrar.
