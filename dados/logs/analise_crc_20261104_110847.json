@@ -1,0 +1,50 @@
+{
+  "ensaio": "deteccao de erros do CRC no quadro v2 com payload de 128 bytes",
+  "versao_do_codigo": "bloco-02-rev3-2-g6c340c2-sujo",
+  "semente": 20261104,
+  "amostras_monte_carlo_por_item": 50000,
+  "resultado": {
+    "A: CRC-8 so no payload (referencia)": {
+      "exato": {
+        "n_bits": 1056,
+        "1 bit": 24,
+        "2 bits": 3960,
+        "3 bits": 90440
+      },
+      "monte_carlo": {
+        "4 bits aleatorios": 0.00674,
+        "6 bits aleatorios": 0.00688,
+        "8 bits aleatorios": 0.00688,
+        "rajadas de 9 a 40 bits": 0.00838
+      }
+    },
+    "B: CRC-16/CCITT em cabecalho+payload (projeto)": {
+      "exato": {
+        "n_bits": 1064,
+        "1 bit": 0,
+        "2 bits": 0,
+        "3 bits": 0
+      },
+      "monte_carlo": {
+        "4 bits aleatorios": 6e-05,
+        "6 bits aleatorios": 0.0,
+        "8 bits aleatorios": 8e-05,
+        "rajadas de 9 a 40 bits": 0.0
+      }
+    },
+    "C: CRC-32 em cabecalho+payload": {
+      "exato": {
+        "n_bits": 1080,
+        "1 bit": 0,
+        "2 bits": 0,
+        "3 bits": 0
+      },
+      "monte_carlo": {
+        "4 bits aleatorios": 0.0,
+        "6 bits aleatorios": 0.0,
+        "8 bits aleatorios": 0.0,
+        "rajadas de 9 a 40 bits": 0.0
+      }
+    }
+  }
+}
