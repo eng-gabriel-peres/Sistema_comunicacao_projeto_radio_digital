@@ -41,7 +41,7 @@ Cada requisito do PDF recebeu um identificador. Todo código, teste e evidência
 | PLT-02 | TX e RX em computadores distintos, sem rede entre eles nem com o avaliador durante o ensaio | 3, 8 |
 | PLT-03 | Cadeia de modulação e demodulação implementada pela equipe, em Python (NumPy, SciPy, pyadi-iio, pyrtlsdr; outras bibliotecas só justificadas) | 3, 4 |
 | PLT-04 | Sem amplificadores externos, alterações de hardware ou canais paralelos | 10 |
-| PLT-05 | Frequência, potência e operação autorizadas e compatíveis com a Anatel (candidata: ISM 915 a 928 MHz, a confirmar pelo professor) | 10, 12 |
+| PLT-05 | Frequência, potência e operação autorizadas e compatíveis com a Anatel: **faixa de 915 a 928 MHz**, definida pelo professor em 04/11/2026 | 10, 12 |
 | PLT-06 | Aquecer o RTL-SDR cerca de 10 min antes de calibrar ou ensaiar | 10 |
 | PLT-07 | Receptor sem acesso prévio aos payloads da prova | 8, 10 |
 
@@ -139,6 +139,7 @@ Quadro de referência: `[preâmbulo 16][Barker-13][comprimento 8][payload 8·N][
 | A17 | Alto | `rtl_rx_ook_v2.py` (`capture_chunks`) e todo leitor síncrono do RTL | A leitura síncrona em blocos de 256 k amostras perde de 2 a 5 mil amostras em **cada emenda** (a cada 128 ms), cerca de 1,3% do sinal | Quadros que cruzam a emenda falham no CRC ou somem (12 de 107 no ensaio de 04/11); PER e goodput sairiam errados. Corrigido com leitura assíncrona ([etapa2_recepcao_ook.md](etapa2_recepcao_ook.md)) | RX-02, MET-01 |
 | A18 | Alto | enlace Pluto da equipe → RTL | Mesmo com +84 ppm, o offset residual não é fixo: foi de −0,36 a −1,62 kHz em 35 min e andou 440 Hz dentro de uma transmissão de 60 s (até cerca de −35 Hz/s); a temperatura do chip do Pluto ficou parada | Na BPSK, 2 kHz giram a fase 20 voltas por pacote de 10 ms: o receptor tem de estimar o offset em cada pacote, com busca de pelo menos ±3 kHz | CAL-02, MOD-03 |
 | A19 | Baixo | `sdrlink.hw.rtl_rx` (leitura assíncrona) | Em cerca de 5% das capturas a librtlsdr acusa erro de I2C ao pôr o sintonizador em repouso no fechamento; nunca com leitura síncrona | Não afeta os dados (captura sempre completa e a seguinte funciona); fica sob observação | RX-02 |
+| A20 | Médio | ensaios de 04/11 e referência (`CENTER_FREQ = 915e6`) | O LO do Pluto ficou em 915,000 MHz, exatamente na borda da faixa autorizada; o vazamento do LO fica na borda e a imagem IQ (LO − 200 kHz = 914,8 MHz) cai fora dela. O sinal útil (915,2 MHz) estava dentro | Nos próximos ensaios o LO vai para perto do meio da faixa; o código do projeto recusa transmitir se sinal, LO ou imagem saírem de 915 a 928 MHz | PLT-05 |
 
 Conclusão da auditoria: a referência é uma **boa base didática** (quadro, Barker, limiar pelo preâmbulo, CRC), mas atende só MOD-01 e parte de PKT-01. O restante tem de ser construído. Os achados A1 a A4 são o núcleo do trabalho de engenharia.
 
@@ -197,7 +198,7 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | PLT-01 | ✅ | Pluto da equipe só como TX (`ip:192.168.2.22`, fw v0.32), RTL só como RX | 1 |
 | PLT-02 | 🟡 | Ensaios de 04/11 feitos num só PC; falta repetir com TX e RX em computadores distintos (pendência P2) | 1 |
 | PLT-03 | 🟡 | Referência em Python; 2-FSK e BPSK ainda não existem | 3 |
-| PLT-05 | ⏳ | Frequência oficial ainda não definida pelo professor | 2 |
+| PLT-05 | 🟡 | Faixa definida (915 a 928 MHz) e conferida no código (`conferir_faixa_autorizada`: sinal, vazamento do LO e imagem IQ); os ensaios de 04/11 usaram o LO em 915,0 MHz, na borda (A20); próximos ensaios no meio da faixa | 2, 3 |
 | MOD-01 | ✅ | Enlace real em 04/11: 8 de 8 recepções da referência com CRC OK; 698 de 698 quadros em 16 s, PER 0%, BER 0 em 117 264 bits ([etapa2_recepcao_ook.md](etapa2_recepcao_ook.md), [auditoria_etapas_1_2.md](auditoria_etapas_1_2.md)) | 2 |
 | MOD-02, MOD-03 | ❌ | | 3 |
 | MOD-04 | ❌ (opcional) | Avaliar na Etapa 6 | 6 |
@@ -345,4 +346,4 @@ Otimizar velocidade (prova A) e alcance (prova B), comparando com a versão ante
 | D2 | BPSK coerente ou DBPSK | Implementar as duas na simulação e escolher pelos resultados | Etapa 3/4 |
 | D3 | Taxa de amostragem do RX | Igual à do TX (ex.: 2,0 MS/s), para amostras por símbolo inteiras nos dois lados | Etapa 3 |
 | D4 | RX em tempo real ou gravar e processar | Gravar e processar depois (mais simples e auditável) | Etapa 3 |
-| D5 | Frequência e deslocamento do sinal | Aguardar a definição do professor (ISM 915 a 928 MHz) | Etapa 2 |
+| D5 | Frequência e deslocamento do sinal | Faixa definida pelo professor: 915 a 928 MHz. Proposta: LO perto do meio (cerca de 921 MHz), com o sinal deslocado do LO; sinal, LO e imagem dentro da faixa | Etapa 3 |
