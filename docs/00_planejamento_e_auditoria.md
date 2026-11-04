@@ -136,6 +136,7 @@ Quadro de referência: `[preâmbulo 16][Barker-13][comprimento 8][payload 8·N][
 | A14 | Baixo | todos | Parâmetros espalhados como constantes em cada script, sem arquivo de configuração | O requisito pede parâmetros configuráveis e o TX e o RX precisam concordar | PRC-01 |
 | A15 | Alto | `tx_test.py` | O tom de 200 kHz completa 102,4 ciclos no buffer cíclico de 1024 amostras: o espectro vira um pente de 1953 Hz e a raia principal fica em LO + 199,219 kHz | Calibrar contra 915,2 MHz exatos erra 0,85 ppm (descoberto no ensaio de 22/10) | CAL-01 |
 | A16 | Alto | RTL-SDR do projeto | O dongle erra cerca de −68 ppm (medido pelas rádios FM), apesar de vendido como TCXO, e gera espúrios em múltiplos de 100 kHz e de taxa/8 | Uma calibração que trave num espúrio dá um resultado falso (aconteceu em 22/10) | CAL-01, CAL-02 |
+| A17 | Alto | `rtl_rx_ook_v2.py` (`capture_chunks`) e todo leitor síncrono do RTL | A leitura síncrona em blocos de 256 k amostras perde de 2 a 5 mil amostras em **cada emenda** (a cada 128 ms), cerca de 1,3% do sinal | Quadros que cruzam a emenda falham no CRC ou somem (12 de 107 no ensaio de 04/11); PER e goodput sairiam errados. Corrigido com leitura assíncrona ([etapa2_recepcao_ook.md](etapa2_recepcao_ook.md)) | RX-02, MET-01 |
 
 Conclusão da auditoria: a referência é uma **boa base didática** (quadro, Barker, limiar pelo preâmbulo, CRC), mas atende só MOD-01 e parte de PKT-01. O restante tem de ser construído. Os achados A1 a A4 são o núcleo do trabalho de engenharia.
 
@@ -185,25 +186,26 @@ Conclusão: BPSK coerente **sem** tratar o offset não funciona (a fase dá vár
 - Resolução de frequência da FFT = fs / N. Com 2,048 MS/s e N = 4096, são 500 Hz. Para medir o residual com resolução de cerca de 10 Hz, usar N ≥ 2²⁰ (cerca de 2 Hz) ou interpolar o pico.
 - ppm = (f_medida − f_esperada) / f_portadora × 10⁶, aplicada **sobre** a correção já ativa (achado A5).
 
-## 6. Matriz de rastreabilidade (estado em 22/10)
+## 6. Matriz de rastreabilidade (estado em 04/11)
 
 Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware ou de definição do professor.
 
 | ID | Estado hoje | Evidência / observação | Etapa que fecha |
 |---|---|---|---|
-| PLT-01 | 🟡 | Referência usa Pluto só como TX; falta confirmar IP e firmware | 1 |
+| PLT-01 | ✅ | Pluto da equipe só como TX (`ip:192.168.2.22`, fw v0.32), RTL só como RX | 1 |
 | PLT-02 | ⏳ | Depende de dois computadores na bancada | 1 |
 | PLT-03 | 🟡 | Referência em Python; 2-FSK e BPSK ainda não existem | 3 |
 | PLT-05 | ⏳ | Frequência oficial ainda não definida pelo professor | 2 |
-| MOD-01 | ✅ (simulação) / ⏳ (enlace) | Simulação decodificou com CRC OK; falta a recepção real | 1, 2 |
+| MOD-01 | ✅ | Enlace real em 04/11: 5 de 5 recepções da referência com CRC OK; 178 de 178 quadros com a captura contínua ([etapa2_recepcao_ook.md](etapa2_recepcao_ook.md)) | 2 |
 | MOD-02, MOD-03 | ❌ | | 3 |
 | MOD-04 | ❌ (opcional) | Avaliar na Etapa 6 | 6 |
 | PUL-01 | 🟡 | Só a rampa de cosseno levantado da OOK | 3 |
 | PKT-01 a PKT-04 | ❌ | Achados A3, A4, A9 | 3 |
-| RX-01 a RX-03 | ❌ | Achados A1, A2, A8 | 3, 5 |
+| RX-01, RX-03 | ❌ | Achados A1, A2 | 3, 5 |
+| RX-02 | 🟡 | Captura contínua em bytes brutos sem perda (A8 e A17 corrigidos); falta a gravação de 60 s em arquivo | 3 |
 | TX-01 | ❌ | Achado A4 | 3 |
-| CAL-01, CAL-02 | ✅ | Calibrado em 22/10: correção adotada +77 ppm (medições de 75,5 a 78,9 com a deriva do Pluto), resíduo com 77 de cerca de −0,6 kHz ([calibracao_rtl.md](calibracao_rtl.md)); achados A5 a A7, A15 e A16 tratados | 1 |
-| CAL-03 | ⏳ | Correção do oscilador do Pluto: o Pluto usado é o do professor | 1 |
+| CAL-01, CAL-02 | ✅ | Recalibrado em 04/11 com o Pluto da equipe: correção adotada +84 ppm (medições de 84,04 e 84,21), resíduo com 84 de −356 a −524 Hz ([calibracao_rtl.md](calibracao_rtl.md)); em 22/10, com o Pluto do professor, era +77; achados A5 a A7, A15 e A16 tratados | 1 |
+| CAL-03 | 🟡 | Agora o Pluto é o da equipe (erro próprio de cerca de −9,5 ppm); falta decidir se ajustamos o `xo_correction` ou deixamos a correção toda no RTL | 1 |
 | MET-01 a MET-05 | ❌ | | 5 |
 | CMP-01 a CMP-04 | ❌ | | 4, 5 |
 | CMP-A, CMP-B, CMP-C | ❌ | | 6, 7 |

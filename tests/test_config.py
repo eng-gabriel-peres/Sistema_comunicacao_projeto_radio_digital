@@ -9,13 +9,13 @@ from sdrlink.fm import erro_absoluto_ppm
 from sdrlink.hw.rtl_rx import ConfigRtl
 
 
-def test_correcao_adotada_e_77_ppm() -> None:
-    assert config.ler_correcao_ppm(config.ARQUIVO_RTL) == 77
-    assert config.correcao_rtl_ppm_padrao() == 77
+def test_correcao_adotada_e_84_ppm() -> None:
+    assert config.ler_correcao_ppm(config.ARQUIVO_RTL) == 84
+    assert config.correcao_rtl_ppm_padrao() == 84
 
 
 def test_captura_sem_correcao_explicita_usa_a_configuracao() -> None:
-    assert ConfigRtl(915e6, 2.048e6, 20.0).correcao_ppm == 77
+    assert ConfigRtl(915e6, 2.048e6, 20.0).correcao_ppm == 84
     assert ConfigRtl(915e6, 2.048e6, 20.0, 0).correcao_ppm == 0
 
 

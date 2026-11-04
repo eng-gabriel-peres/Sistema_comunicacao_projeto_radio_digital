@@ -13,3 +13,5 @@ Capturas IQ, logs de TX/RX e registros de calibração ficam nesta pasta, **fora
 | 04/11/2026 10:06 | `calibracao/calibracao_20261104_100631.*` | Tom do Pluto da equipe, RTL aquecido | TX −30 dB, RX 20 dB, 8 blocos | bloco 1c | **par −84,04 ppm, correção +84**, resíduo −356 Hz |
 | 04/11/2026 10:09 | `calibracao/calibracao_20261104_100917.*` | Tom do Pluto da equipe, RTL aquecido | TX −30 dB, RX 20 dB, 8 blocos | bloco 1c | **par −84,21 ppm, correção +84**, resíduo −524 Hz |
 | 04/11/2026 10:10 | `calibracao/fm_20261104_101037.json` | Erro absoluto do RTL (FM), aquecido | ganho 20 dB | bloco 1c | mediana −74,6 ppm |
+| 04/11/2026 10:16 a 10:17 | `capturas/ook_ref_20261104_1016*`, `..._1017*` (`.npy` e `.png`) | OOK de referência, cópia de ensaio do RX | Pluto da equipe TX −20 dB; RTL 915 MHz, 10 dB, 84 ppm, 0,5 s | e26167a | 5 de 5 com CRC OK; todos os quadros: 95 OK, 12 falhos nas emendas (A17) |
+| 04/11/2026 10:23 | `capturas/ook_ref_continua_20261104.npy` | OOK de referência, `capturar` assíncrona | RTL 915 MHz, 10 dB, 84 ppm, 4,1 s | 70689d0 | 0 saltos, 178 de 178 quadros com CRC OK |

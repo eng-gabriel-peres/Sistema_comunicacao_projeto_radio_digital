@@ -20,7 +20,7 @@ include = ["sdrlink*"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = ["referencia"]   # código do professor, mantido intocado
+extend-exclude = ["referencia", "ensaios/**/*_ensaio.py"]   # código do professor e cópias de ensaio
 
 [tool.ruff.lint]
 select = [
@@ -62,6 +62,7 @@ convention = "google"
 "tests/**" = ["S101", "D", "PLR2004"]          # assert é o mecanismo do pytest
 "scripts/**" = ["T20"]                          # scripts conversam com o usuário
 "ferramentas/**" = ["T20", "S603", "S607"]      # chama ruff/mypy/pytest
+"ensaios/**" = ["T20"]                          # geradores de ensaio imprimem o diff
 
 # ---------------------------------------------------------------------------
 # mypy: tipagem estrita (regra 10: zero avisos)
