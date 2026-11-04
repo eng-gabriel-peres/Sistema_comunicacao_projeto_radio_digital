@@ -346,4 +346,4 @@ Otimizar velocidade (prova A) e alcance (prova B), comparando com a versão ante
 | D2 | BPSK coerente ou DBPSK | Implementar as duas na simulação e escolher pelos resultados | Etapa 3/4 |
 | D3 | Taxa de amostragem do RX | Igual à do TX (ex.: 2,0 MS/s), para amostras por símbolo inteiras nos dois lados | Etapa 3 |
 | D4 | RX em tempo real ou gravar e processar | Gravar e processar depois (mais simples e auditável) | Etapa 3 |
-| D5 | Frequência e deslocamento do sinal | Faixa definida pelo professor: 915 a 928 MHz. Proposta: LO perto do meio (cerca de 921 MHz), com o sinal deslocado do LO; sinal, LO e imagem dentro da faixa | Etapa 3 |
+| D5 | Frequência e deslocamento do sinal | Faixa definida pelo professor: 915 a 928 MHz. Varredura sem transmissão em 04/11 (`dados/logs/varredura_faixa_20261104_110544.json`, figura `varredura_faixa_04nov.png`): a linha mais forte (+35 dB) fica perto de 921,6 MHz = 32 × 28,8 MHz, harmônica do cristal do RTL, então **evitar 921,6 MHz**; trechos mais limpos por volta de 919 a 920,4 MHz e 923 a 924 MHz. Escolha final no sub-bloco 3d, com captura de controle | Etapa 3 |
