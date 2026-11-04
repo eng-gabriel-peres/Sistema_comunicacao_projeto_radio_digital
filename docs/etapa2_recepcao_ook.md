@@ -27,7 +27,7 @@ A OOK de referência funciona no enlace real. As falhas de CRC que apareceram n�
 | Item | Valor |
 |---|---|
 | Transmissor | Pluto da equipe (Rev.C AD9364, fw v0.32, `ip:192.168.2.22`), `pluto_tx_ook_v2.py`, ganho de TX −20 dB (padrão da referência) |
-| Sinal | OOK 10 kbit/s, portadora em LO + 200 kHz = 915,200 MHz, quadro repetido em buffer cíclico |
+| Sinal | OOK 10 kbit/s, portadora em LO + 200 kHz = 915,200 MHz, quadro repetido em buffer cíclico. A faixa autorizada (915 a 928 MHz) foi definida pelo professor depois destes ensaios: o sinal estava dentro, mas o LO (915,0 MHz) ficou na borda e a imagem IQ (914,8 MHz) fora (achado A20). Os próximos ensaios usam o LO perto do meio da faixa |
 | Receptor | RTL-SDR RTL2832U + R820T2, 915 MHz, 2,048 MS/s, AGC desligado |
 | Distância | rádios lado a lado na bancada |
 | Computadores | **um só PC** para TX e RX neste ensaio (ver pendência P2 em [auditoria_etapas_1_2.md](auditoria_etapas_1_2.md)) |

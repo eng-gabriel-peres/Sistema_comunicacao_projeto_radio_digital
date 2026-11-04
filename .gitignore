@@ -40,3 +40,6 @@ dados/logs/*
 
 # Saídas geradas por scripts (figuras, relatórios temporários)
 saidas/
+
+# HTML intermediário do relatório (o PDF entra no git)
+entregas/*.html

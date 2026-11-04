@@ -35,6 +35,7 @@ N_MAXIMO = 2**20
 DURACAO_MAX_S = 600.0
 TOLERANCIA_CICLOS = 1e-9  # folga numérica ao conferir ciclos inteiros
 TOLERANCIA_LO_HZ = 10.0  # resolução do sintetizador do AD9364 (visto: 2 Hz)
+FAIXA_AUTORIZADA_HZ = (915e6, 928e6)  # definida pelo professor em 04/11/2026 (PLT-05)
 
 
 @dataclass(frozen=True)
@@ -65,6 +66,39 @@ class ConfigPluto:
             )
         if not self.uri:
             raise ValueError("URI do Pluto vazia")
+
+
+def conferir_faixa_autorizada(lo_hz: float, deslocamento_hz: float, meia_banda_hz: float) -> None:
+    """Confere que tudo o que o Pluto emite fica dentro da faixa autorizada.
+
+    Além do sinal em LO + deslocamento, o Pluto emite o vazamento do LO e a
+    imagem do desequilíbrio IQ em LO − deslocamento; os três precisam caber.
+
+    Args:
+        lo_hz: frequência do oscilador local.
+        deslocamento_hz: posição do sinal em relação ao LO (positiva ou negativa).
+        meia_banda_hz: metade da banda ocupada pelo sinal (0 para um tom).
+
+    Raises:
+        ValueError: alguma componente fora da faixa, ou meia banda negativa.
+    """
+    if meia_banda_hz < 0:
+        raise ValueError(f"meia banda negativa: {meia_banda_hz} Hz")
+    componentes = {
+        "vazamento do LO": (lo_hz, lo_hz),
+        "sinal": (lo_hz + deslocamento_hz - meia_banda_hz, lo_hz + deslocamento_hz + meia_banda_hz),
+        "imagem IQ": (
+            lo_hz - deslocamento_hz - meia_banda_hz,
+            lo_hz - deslocamento_hz + meia_banda_hz,
+        ),
+    }
+    baixo, alto = FAIXA_AUTORIZADA_HZ
+    fora = [nome for nome, (f1, f2) in componentes.items() if f1 < baixo or f2 > alto]
+    if fora:
+        raise ValueError(
+            f"fora da faixa autorizada de {baixo / 1e6:.0f} a {alto / 1e6:.0f} MHz: "
+            + ", ".join(fora)
+        )
 
 
 def n_amostras_ciclos_inteiros(freq_hz: float, taxa_sps: float, n_min: int = N_MINIMO) -> int:

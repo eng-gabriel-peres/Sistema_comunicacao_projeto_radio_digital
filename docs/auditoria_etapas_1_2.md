@@ -27,7 +27,7 @@ Legenda: ✅ atendido com evidência, 🟡 parcial, ❌ não atendido, ⏳ depen
 | 2.3 | Aquecer o RTL cerca de 10 min antes de calibrar ou ensaiar | ✅ | RTL ligado antes das 09:57; calibração adotada às 10:06 e 10:09 com o RTL aquecido; ensaios a partir das 10:16 |
 | 2.4 | Correção de ppm calibrada e registrada | ✅ | item 1.1 |
 | 2.5 | Ajustar a correção do oscilador do Pluto (recomendado) | 🟡 | Erro do Pluto da equipe estimado em cerca de −9,5 ppm; `xo_correction` ainda de fábrica. Pendência P3 |
-| 2.6 | Frequência e potência autorizadas (Anatel) | 🟡 | 915,2 MHz, dentro da faixa ISM 902 a 928 MHz; TX −20 dB, rádios lado a lado. A frequência oficial ainda não foi definida pelo professor (PLT-05) |
+| 2.6 | Frequência e potência autorizadas (faixa de 915 a 928 MHz, definida pelo professor em 04/11) | 🟡 | O sinal (915,2 MHz) ficou dentro da faixa, mas o LO do Pluto ficou em 915,000 MHz, na borda, e a imagem IQ em 914,8 MHz caiu fora (A20). Corrigido para os próximos ensaios: `conferir_faixa_autorizada` recusa a transmissão se sinal, LO ou imagem saírem da faixa (com teste) |
 | 2.7 | Registrar: pacotes transmitidos, recebidos, válidos e perdidos | ✅ | `decodificar_quadros_ensaio.py`: esperados, detectados, CRC OK, CRC falho, não detectados (seção 4 do registro da Etapa 2) |
 | 2.8 | Registrar: duração, modulação e parâmetros | ✅ | Logs e tabela de montagem |
 | 2.9 | Registrar: ganho do receptor com AGC desligado | ✅ | Corrigido nesta auditoria: o registro dizia 10 dB, mas o R820T aplica **8,7 dB** (degrau mais próximo). Os documentos passaram a citar o valor aplicado |
@@ -58,6 +58,7 @@ Legenda: ✅ atendido com evidência, 🟡 parcial, ❌ não atendido, ⏳ depen
 | F4 | A PER tinha sido estimada com só 179 quadros | Captura de 16 s: 698 quadros, PER 0%, BER 0 |
 | F5 | O topo de `calibracao_rtl.md` ainda mostrava +77 ppm e a figura de 22/10 | Topo atualizado para +84 ppm com a figura de 04/11; revisão 2 marcada como histórico |
 | F6 | Erro de I2C ao fechar o RTL depois da leitura assíncrona | Investigado e registrado como A19 (não afeta os dados) |
+| F7 | LO do Pluto na borda da faixa autorizada, imagem IQ fora (A20) | Faixa conferida no código antes de transmitir; padrão do transmissor de tom passou para 921,25 MHz |
 
 ## 5. Pendências
 
@@ -68,4 +69,4 @@ Legenda: ✅ atendido com evidência, 🟡 parcial, ❌ não atendido, ⏳ depen
 | P3 | Decidir sobre o `xo_correction` do Pluto e, se ajustar, recalibrar o RTL | equipe | próxima bancada |
 | P4 | Separar a deriva do Pluto da do RTL (rádios FM medidas junto com a OOK) | equipe | Etapa 3 |
 | P5 | Confirmar com o professor como entregar as Etapas 1 e 2 fora do prazo | Gabriel | já |
-| P6 | Pedir ao professor a frequência oficial (PLT-05) | Gabriel | já |
+| P6 | Frequência oficial: resolvida, o professor definiu 915 a 928 MHz em 04/11. Repetir os ensaios com o LO perto do meio da faixa (A20) | equipe | próxima bancada |

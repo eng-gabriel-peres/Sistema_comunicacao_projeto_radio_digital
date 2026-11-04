@@ -53,3 +53,20 @@ def test_transmitir_rejeita_duracao_e_buffer_invalidos() -> None:
         pluto_tx.transmitir(ConfigPluto(915e6), tom, 0)
     with pytest.raises(ValueError, match="vazio"):
         pluto_tx.transmitir(ConfigPluto(915e6), tom[:0], 1.0)
+
+
+def test_faixa_autorizada_aceita_sinal_lo_e_imagem_dentro() -> None:
+    pluto_tx.conferir_faixa_autorizada(921e6, 250e3, 0.0)
+    pluto_tx.conferir_faixa_autorizada(921.5e6, 600e3, 500e3)
+
+
+def test_faixa_autorizada_rejeita_imagem_ou_sinal_fora() -> None:
+    # LO na borda (ensaios de 04/11): a imagem em 914,8 MHz sai da faixa
+    with pytest.raises(ValueError, match="imagem IQ"):
+        pluto_tx.conferir_faixa_autorizada(915e6, 200e3, 0.0)
+    with pytest.raises(ValueError, match="sinal"):
+        pluto_tx.conferir_faixa_autorizada(927.8e6, 300e3, 0.0)
+    with pytest.raises(ValueError, match="vazamento do LO"):
+        pluto_tx.conferir_faixa_autorizada(914e6, 1.5e6, 0.0)
+    with pytest.raises(ValueError, match="negativa"):
+        pluto_tx.conferir_faixa_autorizada(921e6, 250e3, -1.0)

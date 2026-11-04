@@ -4,10 +4,11 @@ O tom fica em LO + deslocamento e fecha ciclos inteiros no buffer cíclico, ent�
 o espectro é uma raia única. O buffer é sempre desligado no final.
 
 Uso:
-    python scripts/transmitir_tom.py --freq-tom-hz 915.25e6 --duracao-s 120
+    python scripts/transmitir_tom.py --freq-tom-hz 921.25e6 --duracao-s 120
 
 Escolha um tom fora das grades de espúrios do RTL (múltiplos de 100 kHz e de
-taxa/8); 915,25 MHz serve. Respeitar a faixa ISM autorizada (PLT-05).
+taxa/8). O tom, o vazamento do LO e a imagem IQ precisam ficar na faixa
+autorizada de 915 a 928 MHz (PLT-05); o script confere antes de transmitir.
 """
 
 from __future__ import annotations
@@ -18,26 +19,29 @@ import sys
 from sdrlink.hw.pluto_tx import (
     URI_PADRAO,
     ConfigPluto,
+    conferir_faixa_autorizada,
     n_amostras_ciclos_inteiros,
     tom_complexo,
     transmitir,
 )
 
-FAIXA_ISM_HZ = (902e6, 928e6)
-
 
 def _argumentos() -> argparse.Namespace:
     """Lê os parâmetros da linha de comando."""
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    p.add_argument("--freq-tom-hz", type=float, default=915.25e6, help="frequência RF do tom")
+    p.add_argument("--freq-tom-hz", type=float, default=921.25e6, help="frequência RF do tom")
     p.add_argument("--deslocamento-hz", type=float, default=250e3, help="tom = LO + deslocamento")
     p.add_argument("--taxa-sps", type=float, default=2e6)
     p.add_argument("--ganho-db", type=float, default=-30.0, help="atenuação de TX (0 = máximo)")
     p.add_argument("--duracao-s", type=float, default=120.0)
     p.add_argument("--uri", default=URI_PADRAO)
     args = p.parse_args()
-    if not FAIXA_ISM_HZ[0] <= args.freq_tom_hz <= FAIXA_ISM_HZ[1]:
-        p.error("o tom precisa ficar na faixa ISM de 902 a 928 MHz")
+    try:
+        conferir_faixa_autorizada(
+            args.freq_tom_hz - args.deslocamento_hz, args.deslocamento_hz, 0.0
+        )
+    except ValueError as erro:
+        p.error(str(erro))
     return args
 
 
