@@ -27,6 +27,11 @@ dados/*
 dados/calibracao/*
 !dados/calibracao/*.json
 !dados/calibracao/*.png
+# Logs de console e registros JSON dos ensaios: pequenos, são evidência.
+!dados/logs/
+dados/logs/*
+!dados/logs/*.log
+!dados/logs/*.json
 *.npy
 *.bin
 *.iq

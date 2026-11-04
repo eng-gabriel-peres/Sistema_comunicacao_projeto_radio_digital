@@ -1,0 +1,172 @@
+{
+  "ensaio": "deriva do offset residual da OOK de referência durante a transmissão",
+  "versao_do_codigo": "bloco-02-sujo",
+  "rtl": {
+    "centro_hz": 915000000.0,
+    "taxa_sps": 2048000.0,
+    "ganho_db": 8.7,
+    "correcao_ppm": 84
+  },
+  "pontos": [
+    {
+      "t_s": 0.0,
+      "offset_hz": -1184.4,
+      "temp_pluto_c": 34.211
+    },
+    {
+      "t_s": 1.96,
+      "offset_hz": -1252.4,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 3.66,
+      "offset_hz": -1287.4,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 5.34,
+      "offset_hz": -1313.2,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 7.03,
+      "offset_hz": -1334.8,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 8.69,
+      "offset_hz": -1359.0,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 10.43,
+      "offset_hz": -1431.6,
+      "temp_pluto_c": 34.211
+    },
+    {
+      "t_s": 12.12,
+      "offset_hz": -1426.3,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 13.8,
+      "offset_hz": -1442.4,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 15.47,
+      "offset_hz": -1466.7,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 17.14,
+      "offset_hz": -1489.6,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 18.83,
+      "offset_hz": -1511.4,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 20.5,
+      "offset_hz": -1532.8,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 22.17,
+      "offset_hz": -1554.0,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 23.87,
+      "offset_hz": -1568.5,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 25.53,
+      "offset_hz": -1586.0,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 27.21,
+      "offset_hz": -1597.0,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 28.89,
+      "offset_hz": -1603.0,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 30.55,
+      "offset_hz": -1608.2,
+      "temp_pluto_c": 34.211
+    },
+    {
+      "t_s": 32.24,
+      "offset_hz": -1609.4,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 33.9,
+      "offset_hz": -1608.0,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 35.57,
+      "offset_hz": -1603.4,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 37.26,
+      "offset_hz": -1596.5,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 38.93,
+      "offset_hz": -1589.0,
+      "temp_pluto_c": 34.211
+    },
+    {
+      "t_s": 40.6,
+      "offset_hz": -1623.2,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 42.27,
+      "offset_hz": -1584.5,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 43.95,
+      "offset_hz": -1562.9,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 45.62,
+      "offset_hz": -1546.0,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 47.29,
+      "offset_hz": -1529.2,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 48.97,
+      "offset_hz": -1514.5,
+      "temp_pluto_c": 35.088
+    },
+    {
+      "t_s": 50.67,
+      "offset_hz": -1497.1,
+      "temp_pluto_c": 34.211
+    },
+    {
+      "t_s": 52.38,
+      "offset_hz": -1481.1,
+      "temp_pluto_c": 34.211
+    }
+  ]
+}

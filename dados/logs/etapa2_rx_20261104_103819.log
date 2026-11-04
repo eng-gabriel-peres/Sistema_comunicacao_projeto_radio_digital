@@ -1,0 +1,17 @@
+Capturing ~0.50 s at 915.000 MHz, gain=10 dB, ppm=84...
+  chunk 1/4 captured  chunk 2/4 captured  chunk 3/4 captured  chunk 4/4 captured
+[ensaio] captura salva em C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\ook_ref_20261104_103821.npy
+Total samples: 1048576 (~512.0 ms)
+Complex bandpass: +/-10.0 kHz around baseband, numtaps=2705
+Envelope smoothing: cutoff=30.0 kHz, numtaps=903
+
+Sync correlation peak at sample 23209 (t=11.33 ms), strength=182.34
+Preamble levels: high=0.2652, low=0.0503, threshold=0.1577
+Decoded length byte: 00010101 = 21 bytes
+
+Decoded message: 'HELLO WORLD MANDRIAUM'
+CRC-8 received=0x44 computed=0x44 -> OK ✅
+[ensaio] figura salva em C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\ook_ref_20261104_103821.png
+C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\ensaios\etapa2\rtl_rx_ook_v2_ensaio.py:313: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Found Rafael Micro R820T/2 tuner
