@@ -203,7 +203,8 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | MOD-02, MOD-03 | ❌ | | 3 |
 | MOD-04 | ❌ (opcional) | Avaliar na Etapa 6 | 6 |
 | PUL-01 | 🟡 | Só a rampa de cosseno levantado da OOK | 3 |
-| PKT-01 a PKT-04 | ❌ | Achados A3, A4, A9 | 3 |
+| PKT-01 a PKT-03 | ✅ (código) | Quadro v2 com sequência de 16 bits e CRC-16 sobre cabeçalho e payload; CRC justificado com contagem exata de erros não detectados ([etapa3_quadro.md](etapa3_quadro.md)); A3 e A9 tratados; falta usar no enlace (3c a 3e) | 3 |
+| PKT-04 | 🟡 | Quadro aceita os 128 bytes da prova; falta o TX ler os payloads de arquivo (A4, sub-bloco 3d) | 3 |
 | RX-01, RX-03 | ❌ | Achados A1, A2 | 3, 5 |
 | RX-02 | 🟡 | Captura contínua em bytes brutos sem perda (A8 e A17 corrigidos); falta a gravação de 60 s em arquivo | 3 |
 | TX-01 | ❌ | Achado A4 | 3 |

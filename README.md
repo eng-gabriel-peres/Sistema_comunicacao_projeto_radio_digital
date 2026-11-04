@@ -10,6 +10,8 @@ Projeto Final de SCM22108 Sistemas de Comunicação, Engenharia Eletrônica, IFS
 | 0 | Ambiente, repositório, portão de qualidade | concluído |
 | 1 | Calibração do RTL-SDR (ppm e offset residual) | concluído: +84 ppm com o Pluto da equipe ([registro](docs/calibracao_rtl.md)) |
 | 2 | Estudo e auditoria da OOK de referência no enlace real | concluído: PER 0% em 698 quadros, achados A17 a A19 ([registro](docs/etapa2_recepcao_ook.md), [auditoria](docs/auditoria_etapas_1_2.md)) |
+| 3a | Quadro v2: sequência de 16 bits e CRC-16 | concluído ([registro](docs/etapa3_quadro.md)) |
+| 3b a 3f | Modulações 2-FSK e BPSK, RX multiquadro, TX de prova, enlace real, relatório | a fazer |
 
 O plano completo, com os requisitos numerados e a matriz de rastreabilidade, está em [docs/00_planejamento_e_auditoria.md](docs/00_planejamento_e_auditoria.md).
 
