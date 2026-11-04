@@ -1,0 +1,59 @@
+--- referencia/Tx_Rx_OOK/pluto_tx_ook_v2.py
++++ ensaios/etapa2/pluto_tx_ook_v2_ensaio.py
+@@ -1,3 +1,5 @@
++# CÓPIA DE ENSAIO (Etapa 2) de referencia/Tx_Rx_OOK/pluto_tx_ook_v2.py.
++# Gerada por ensaios/etapa2/gerar_copias.py; diferenças em ensaios/etapa2/diferencas.diff
+ """
+ ADALM-Pluto TX script v2 — Framed OOK text message.
+ 
+@@ -133,9 +135,9 @@
+ 
+ sdr.tx(iq_samples)
+ 
++DURACAO_S = 60  # [ensaio] duração fixa no lugar do while True
+ try:
+-    while True:
+-        time.sleep(1)
+-except KeyboardInterrupt:
++    time.sleep(DURACAO_S)
++finally:
+     print("\nStopping transmission...")
+     sdr.tx_destroy_buffer()
+--- referencia/Tx_Rx_OOK/rtl_rx_ook_v2.py
++++ ensaios/etapa2/rtl_rx_ook_v2_ensaio.py
+@@ -1,3 +1,5 @@
++# CÓPIA DE ENSAIO (Etapa 2) de referencia/Tx_Rx_OOK/rtl_rx_ook_v2.py.
++# Gerada por ensaios/etapa2/gerar_copias.py; diferenças em ensaios/etapa2/diferencas.diff
+ """
+ RTL-SDR RX script v2 — Framed OOK text message receiver.
+ 
+@@ -25,8 +27,8 @@
+ # ---- Configuration (should match pluto_tx_ook_v2.py) ----
+ CENTER_FREQ = 915e6
+ SAMPLE_RATE = 2.048e6
+-GAIN = 30
+-FREQ_CORRECTION_PPM = 34
++GAIN = 10  # [ensaio] com 30 dB o ADC saturou em 29% das amostras (rádios lado a lado)
++FREQ_CORRECTION_PPM = 84  # [ensaio] calibração de 04/11 (configs/rtl.toml)
+ 
+ TONE_FREQ_OFFSET = 200e3
+ BIT_RATE = 10e3
+@@ -122,6 +124,11 @@
+ print(f"Capturing ~{CAPTURE_SECONDS:.2f} s at {CENTER_FREQ/1e6:.3f} MHz, "
+       f"gain={GAIN} dB, ppm={FREQ_CORRECTION_PPM}...")
+ samples = capture_chunks(sdr, CAPTURE_SECONDS, CHUNK_SIZE, SAMPLE_RATE)
++import time as _t, pathlib as _p  # [ensaio] grava a captura como evidência
++_BASE = _p.Path(__file__).resolve().parents[2] / 'dados' / 'capturas' / ('ook_ref_' + _t.strftime('%Y%m%d_%H%M%S'))
++_BASE.parent.mkdir(parents=True, exist_ok=True)
++np.save(str(_BASE) + '.npy', samples.astype(np.complex64))
++print(f'[ensaio] captura salva em {_BASE}.npy')
+ sdr.close()
+ 
+ actual_duration = len(samples) / SAMPLE_RATE
+@@ -273,4 +280,6 @@
+ axes[2].grid(True)
+ 
+ plt.tight_layout()
++plt.savefig(str(_BASE) + '.png', dpi=110)  # [ensaio]
++print(f'[ensaio] figura salva em {_BASE}.png')
+ plt.show()
