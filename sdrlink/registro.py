@@ -69,5 +69,6 @@ def salvar_json(caminho: Path, dados: dict[str, object]) -> Path:
     if not dados:
         raise ValueError("nada para registrar")
     caminho.parent.mkdir(parents=True, exist_ok=True)
-    caminho.write_text(json.dumps(dados, indent=2, ensure_ascii=False), encoding="utf-8")
+    texto = json.dumps(dados, indent=2, ensure_ascii=False) + "\n"
+    caminho.write_text(texto, encoding="utf-8", newline="\n")  # LF, padrão do repositório
     return caminho

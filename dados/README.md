@@ -8,3 +8,8 @@ Capturas IQ, logs de TX/RX e registros de calibração ficam nesta pasta, **fora
 | 22/10/2026 11:16 | `calibracao/fm_20261022_111611.json` | Erro absoluto do RTL pelas rádios FM | ganho 20 dB, 3 emissoras | revisão do bloco 1 | mediana −68,3 ppm |
 | 22/10/2026 11:18 | `calibracao/calibracao_20261022_111837.*` | Calibração ao vivo (sinal OOK) partindo de +1 ppm | ganho 40 dB | revisão do bloco 1 | reprocessado em `..._112118`: +77,9 ppm |
 | 22/10/2026 11:19 | `calibracao/calibracao_20261022_111918.*` (antes e depois) | Calibração ao vivo (OOK), +1 e +77 ppm | ganho 40 dB | revisão do bloco 1 | reprocessado em `..._112123`: +77,5 ppm; resíduo com 77 de cerca de −0,6 kHz |
+| 04/11/2026 09:57 | `calibracao/fm_20261104_095704.json` | Erro absoluto do RTL (FM), RTL frio, com +77 ppm | ganho 20 dB | bloco 1c | mediana −76,9 ppm |
+| 04/11/2026 10:00 | `calibracao/calibracao_20261104_100033.*` | Tom do Pluto da equipe (915,25 MHz), RTL frio | TX −30 dB, RX 20 dB | bloco 1c | teste: par −83,6 ppm |
+| 04/11/2026 10:06 | `calibracao/calibracao_20261104_100631.*` | Tom do Pluto da equipe, RTL aquecido | TX −30 dB, RX 20 dB, 8 blocos | bloco 1c | **par −84,04 ppm, correção +84**, resíduo −356 Hz |
+| 04/11/2026 10:09 | `calibracao/calibracao_20261104_100917.*` | Tom do Pluto da equipe, RTL aquecido | TX −30 dB, RX 20 dB, 8 blocos | bloco 1c | **par −84,21 ppm, correção +84**, resíduo −524 Hz |
+| 04/11/2026 10:10 | `calibracao/fm_20261104_101037.json` | Erro absoluto do RTL (FM), aquecido | ganho 20 dB | bloco 1c | mediana −74,6 ppm |
