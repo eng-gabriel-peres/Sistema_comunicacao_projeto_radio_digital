@@ -92,3 +92,29 @@ Com o RTL ligado há pelo menos 10 min:
 | `fm_20261022_111611.json` | erro absoluto do RTL pelas emissoras FM |
 
 As capturas IQ (`.npy`) ficam só no disco, fora do git.
+
+---
+
+## 10. Revisão 3: calibração com o Pluto da equipe (04/11/2026)
+
+A calibração de 22/10 foi feita com o Pluto do professor. Em 04/11 o par foi medido com o **Pluto da equipe**, o que de fato vai transmitir no projeto: ADALM-Pluto Rev.C (AD9364), firmware v0.32, IP 192.168.2.22, serial terminando em `bc7b7b4d52`, `xo_correction` de fábrica = 39 999 784 Hz.
+
+**Transmissor próprio:** `scripts/transmitir_tom.py` (`sdrlink/hw/pluto_tx.py`). O tom fecha ciclos inteiros no buffer, sem o pente do `tx_test.py`. A duração é fixa e o buffer é sempre desligado no final. Usei o tom em **915,25 MHz** (LO 915,0 MHz + 250 kHz), fora das grades de espúrios do RTL, com ganho de TX de −30 dB e o RTL em 20 dB, porque os dois rádios estão lado a lado.
+
+| Horário | Medida | Resultado |
+|---|---|---|
+| 09:57 | Rádios FM, RTL recém-conectado, com +77 ppm | erro do RTL de −76,9 ppm (mediana); ainda frio |
+| 10:00 | Tom do Pluto, RTL com cerca de 5 min | tom 64,7 dB acima do ruído; par −83,6 ppm (teste, RTL ainda frio) |
+| 10:01 | Controle com o Pluto **desligado** | o tom some (9 dB, só ruído). Fica outro sinal ISM em 915,2432 MHz, a 750 Hz do tom, com ~18 dB |
+| **10:06** | **Tom, RTL aquecido** | **par −84,04 ppm, correção +84, resíduo medido −356 Hz** |
+| **10:09** | **Tom, RTL aquecido** | **par −84,21 ppm, correção +84, resíduo medido −524 Hz** |
+| 10:10 | Rádios FM, RTL aquecido | erro do RTL de −74,6 ppm (mediana) |
+
+**Conclusões:**
+- O par **Pluto da equipe + RTL** precisa de **+84 ppm**. O valor de 77 ppm vale para o Pluto do professor: cada Pluto tem o seu próprio erro de oscilador.
+- Pelas rádios FM, o RTL sozinho erra cerca de −75 ppm depois de aquecido, e mais 2 a 3 ppm quando ainda está frio. Logo, o Pluto da equipe erra cerca de −9,5 ppm. Ele pode ser corrigido pelo `xo_correction` (requisito CAL-03), se a equipe quiser deixar a correção do RTL igual para qualquer Pluto.
+- Mesmo com a correção, sobra um resíduo de centenas de Hz que deriva cerca de 1 Hz/s logo depois do aquecimento. O receptor precisa estimar esse resíduo.
+
+**Falha encontrada e corrigida:** a primeira tentativa abortou porque o Pluto sintonizou o LO 2 Hz abaixo do pedido (resolução do sintetizador), e a checagem aceitava só 1 Hz. Sem o tom no ar, a calibração travou no sinal ISM de 915,2432 MHz e deu um resultado falso; esse registro foi apagado. A tolerância do LO passou a 10 Hz. Lição: **sempre fazer a captura de controle com o Pluto desligado**.
+
+Evidências: `dados/calibracao/calibracao_20261104_100033`, `..._100631` e `..._100917` (JSON e figura), `fm_20261104_095704.json` e `fm_20261104_101037.json`.

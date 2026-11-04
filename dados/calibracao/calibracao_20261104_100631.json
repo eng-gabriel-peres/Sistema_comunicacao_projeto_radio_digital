@@ -1,0 +1,42 @@
+{
+  "versao_codigo": "bloco-01-rev2-2-g9562b05-sujo",
+  "parametros": {
+    "freq_tom_hz": 915250000.0,
+    "tx_test": false,
+    "correcao_inicial_ppm": 77,
+    "deslocamento_hz": 250000.0,
+    "taxa_sps": 2048000.0,
+    "ganho_db": 20.0,
+    "medidas": 8,
+    "janela_busca_hz": 150000.0,
+    "minutos_ligado": 11.0,
+    "arquivo_iq": null,
+    "aceitar_espurios": false,
+    "salvar_iq": true
+  },
+  "resultado": {
+    "freq_esperada_hz": 915250000.0,
+    "freq_medida_hz": 915243553.9805174,
+    "offset_antes_hz": -6446.01948261261,
+    "correcao_inicial_ppm": 77.0,
+    "erro_com_correcao_inicial_ppm": -7.042905744455187,
+    "erro_total_ppm": -84.04290574445518,
+    "correcao_ppm": 84.0,
+    "residuo_previsto_hz": -39.269482612609515,
+    "residuo_medido_hz": -355.8222438097
+  },
+  "estatistica_antes": {
+    "media_hz": 243553.98051741582,
+    "desvio_hz": 41.65024823278513,
+    "deriva_hz_s": -32.160317145495135,
+    "snr_min_db": 8.119599766168601,
+    "n": 8
+  },
+  "estatistica_depois": {
+    "media_hz": 249644.1777561957,
+    "desvio_hz": 44.792095970769275,
+    "deriva_hz_s": -34.66853680501749,
+    "snr_min_db": 27.310343880711386,
+    "n": 8
+  }
+}
