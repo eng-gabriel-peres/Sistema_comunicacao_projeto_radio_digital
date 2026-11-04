@@ -1,10 +1,14 @@
-# Registro de calibração do RTL-SDR (Etapa 1), revisão 2
+# Registro de calibração do RTL-SDR (Etapa 1), revisão 3
 
 Requisitos: **CAL-01** (correção de ppm calibrada e registrada) e **CAL-02** (offset residual medido).
 
-![Resumo da calibração](figuras/calibracao_22out.png)
+> **Valor vigente (04/11/2026): +84 ppm**, para o par "Pluto da equipe + nosso RTL" (`configs/rtl.toml`). Medições de +84,04 e +84,21 ppm; resíduo logo após a calibração de −356 e −524 Hz. Detalhes na [seção 10](#10-revisão-3-calibração-com-o-pluto-da-equipe-04112026). O resíduo depois deriva: chegou a −1,6 kHz no fim da manhã ([etapa2_recepcao_ook.md](etapa2_recepcao_ook.md), seção 6). As seções 1 a 9 registram a revisão 2 (22/10, Pluto do professor, +77 ppm) e ficam como histórico.
 
-## 1. Resultado
+![Calibração de 04/11 às 10:06 (Pluto da equipe)](../dados/calibracao/calibracao_20261104_100631.png)
+
+![Resumo da calibração de 22/10 (Pluto do professor, histórico)](figuras/calibracao_22out.png)
+
+## 1. Resultado da revisão 2 (22/10, Pluto do professor; histórico)
 
 | Item | Valor |
 |---|---|
@@ -114,6 +118,7 @@ A calibração de 22/10 foi feita com o Pluto do professor. Em 04/11 o par foi m
 - O par **Pluto da equipe + RTL** precisa de **+84 ppm**. O valor de 77 ppm vale para o Pluto do professor: cada Pluto tem o seu próprio erro de oscilador.
 - Pelas rádios FM, o RTL sozinho erra cerca de −75 ppm depois de aquecido, e mais 2 a 3 ppm quando ainda está frio. Logo, o Pluto da equipe erra cerca de −9,5 ppm. Ele pode ser corrigido pelo `xo_correction` (requisito CAL-03), se a equipe quiser deixar a correção do RTL igual para qualquer Pluto.
 - Mesmo com a correção, sobra um resíduo de centenas de Hz que deriva cerca de 1 Hz/s logo depois do aquecimento. O receptor precisa estimar esse resíduo.
+- Medição posterior, durante a Etapa 2: o resíduo foi de −0,36 kHz (10:06) a −1,6 kHz (10:42), cerca de 1,4 ppm em 35 min, e oscila uns 400 Hz dentro de uma transmissão de 60 s (achado A18, [etapa2_recepcao_ook.md](etapa2_recepcao_ook.md)).
 
 **Falha encontrada e corrigida:** a primeira tentativa abortou porque o Pluto sintonizou o LO 2 Hz abaixo do pedido (resolução do sintetizador), e a checagem aceitava só 1 Hz. Sem o tom no ar, a calibração travou no sinal ISM de 915,2432 MHz e deu um resultado falso; esse registro foi apagado. A tolerância do LO passou a 10 Hz. Lição: **sempre fazer a captura de controle com o Pluto desligado**.
 

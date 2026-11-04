@@ -1,0 +1,9 @@
+Message: 'HELLO WORLD MANDRIAUM' (21 bytes)
+Frame layout: preamble=16 bits, sync=13 bits, length=8 bits, payload=168 bits, crc=8 bits, guard=16 bits
+Total frame: 229 bits (~22.90 ms per loop)
+CRC-8: 0x44
+
+Transmitting at 915.000 MHz + 200 kHz (i.e. 915.200 MHz), gain=-20 dB
+Press Ctrl+C to stop.
+
+Stopping transmission...
