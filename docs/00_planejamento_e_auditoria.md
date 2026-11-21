@@ -140,6 +140,7 @@ Quadro de referência: `[preâmbulo 16][Barker-13][comprimento 8][payload 8·N][
 | A18 | Alto | enlace Pluto da equipe → RTL | Mesmo com +84 ppm, o offset residual não é fixo: foi de −0,36 a −1,62 kHz em 35 min e andou 440 Hz dentro de uma transmissão de 60 s (até cerca de −35 Hz/s); a temperatura do chip do Pluto ficou parada | Na BPSK, 2 kHz giram a fase 20 voltas por pacote de 10 ms: o receptor tem de estimar o offset em cada pacote, com busca de pelo menos ±3 kHz | CAL-02, MOD-03 |
 | A19 | Baixo | `sdrlink.hw.rtl_rx` (leitura assíncrona) | Em cerca de 5% das capturas a librtlsdr acusa erro de I2C ao pôr o sintonizador em repouso no fechamento; nunca com leitura síncrona | Não afeta os dados (captura sempre completa e a seguinte funciona); fica sob observação | RX-02 |
 | A20 | Médio | ensaios de 04/11 e referência (`CENTER_FREQ = 915e6`) | O LO do Pluto ficou em 915,000 MHz, exatamente na borda da faixa autorizada; o vazamento do LO fica na borda e a imagem IQ (LO − 200 kHz = 914,8 MHz) cai fora dela. O sinal útil (915,2 MHz) estava dentro | Nos próximos ensaios o LO vai para perto do meio da faixa; o código do projeto recusa transmitir se sinal, LO ou imagem saírem de 915 a 928 MHz | PLT-05 |
+| A21 | Médio | medição da banda no RTL | A 2,048 MS/s o RTL enxerga só ±1,02 MHz, com as bordas atenuadas pelo filtro anti-aliasing: a banda a 99% de um sinal de caudas largas (pulso retangular) sai sempre subestimada | Medir a banda só com pulsos RRC ou gaussiano e com o sinal longe do DC e das bordas ([etapa3_modulacoes.md](etapa3_modulacoes.md), seção 4) | MET-04 |
 
 Conclusão da auditoria: a referência é uma **boa base didática** (quadro, Barker, limiar pelo preâmbulo, CRC), mas atende só MOD-01 e parte de PKT-01. O restante tem de ser construído. Os achados A1 a A4 são o núcleo do trabalho de engenharia.
 
@@ -200,9 +201,9 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | PLT-03 | 🟡 | Referência em Python; 2-FSK e BPSK ainda não existem | 3 |
 | PLT-05 | 🟡 | Faixa definida (915 a 928 MHz) e conferida no código (`conferir_faixa_autorizada`: sinal, vazamento do LO e imagem IQ); os ensaios de 04/11 usaram o LO em 915,0 MHz, na borda (A20); próximos ensaios no meio da faixa | 2, 3 |
 | MOD-01 | ✅ | Enlace real em 04/11: 8 de 8 recepções da referência com CRC OK; 698 de 698 quadros em 16 s, PER 0%, BER 0 em 117 264 bits ([etapa2_recepcao_ook.md](etapa2_recepcao_ook.md), [auditoria_etapas_1_2.md](auditoria_etapas_1_2.md)) | 2 |
-| MOD-02, MOD-03 | ❌ | | 3 |
+| MOD-02, MOD-03 | 🟡 | 2-FSK (CPFSK e GFSK) e BPSK/DBPSK implementadas e validadas em simulação: ida e volta, quadro v2 com CRC, BER contra a teoria ([etapa3_modulacoes.md](etapa3_modulacoes.md)); falta o enlace real (3e) | 3 |
 | MOD-04 | ❌ (opcional) | Avaliar na Etapa 6 | 6 |
-| PUL-01 | 🟡 | Só a rampa de cosseno levantado da OOK | 3 |
+| PUL-01 | ✅ (simulação) | RRC β = 0,35 e gaussiano BT = 0,5 escolhidos pela banda a 99% simulada contra a teoria: pulso retangular limitaria a BPSK a cerca de 49 kbit/s em 1 MHz, o RRC permite cerca de 860 kbit/s; falta medir no RTL | 3 |
 | PKT-01 a PKT-03 | ✅ (código) | Quadro v2 com sequência de 16 bits e CRC-16 sobre cabeçalho e payload; CRC justificado com contagem exata de erros não detectados ([etapa3_quadro.md](etapa3_quadro.md)); A3 e A9 tratados; falta usar no enlace (3c a 3e) | 3 |
 | PKT-04 | 🟡 | Quadro aceita os 128 bytes da prova; falta o TX ler os payloads de arquivo (A4, sub-bloco 3d) | 3 |
 | RX-01, RX-03 | ❌ | Achados A1, A2 | 3, 5 |
