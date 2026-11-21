@@ -1,0 +1,97 @@
+{
+  "ensaio": "modulações do sub-bloco 3b em simulação",
+  "versao_do_codigo": "bloco-03a-sujo",
+  "semente": 20261121,
+  "banda_99": {
+    "sps_usado": 256,
+    "tabela": {
+      "OOK, retangular": {
+        "b99_sobre_rb": 9.636,
+        "rb_max_para_1MHz_kbps": 103.8,
+        "b99_a_10kbps_kHz": 96.4,
+        "b99_a_100kbps_kHz": 963.6
+      },
+      "OOK, RRC β = 0,35": {
+        "b99_sobre_rb": 1.114,
+        "rb_max_para_1MHz_kbps": 897.8,
+        "b99_a_10kbps_kHz": 11.1,
+        "b99_a_100kbps_kHz": 111.4
+      },
+      "BPSK, retangular": {
+        "b99_sobre_rb": 20.218,
+        "rb_max_para_1MHz_kbps": 49.5,
+        "b99_a_10kbps_kHz": 202.2,
+        "b99_a_100kbps_kHz": 2021.8
+      },
+      "BPSK, RRC β = 0,35": {
+        "b99_sobre_rb": 1.165,
+        "rb_max_para_1MHz_kbps": 858.7,
+        "b99_a_10kbps_kHz": 11.6,
+        "b99_a_100kbps_kHz": 116.5
+      },
+      "DBPSK, retangular": {
+        "b99_sobre_rb": 20.316,
+        "rb_max_para_1MHz_kbps": 49.2,
+        "b99_a_10kbps_kHz": 203.2,
+        "b99_a_100kbps_kHz": 2031.6
+      },
+      "DBPSK, RRC β = 0,35": {
+        "b99_sobre_rb": 1.164,
+        "rb_max_para_1MHz_kbps": 859.2,
+        "b99_a_10kbps_kHz": 11.6,
+        "b99_a_100kbps_kHz": 116.4
+      },
+      "2-FSK (h = 1), retangular": {
+        "b99_sobre_rb": 2.127,
+        "rb_max_para_1MHz_kbps": 470.1,
+        "b99_a_10kbps_kHz": 21.3,
+        "b99_a_100kbps_kHz": 212.7
+      },
+      "2-FSK (h = 1), gaussiano BT = 0,5": {
+        "b99_sobre_rb": 1.641,
+        "rb_max_para_1MHz_kbps": 609.5,
+        "b99_a_10kbps_kHz": 16.4,
+        "b99_a_100kbps_kHz": 164.1
+      }
+    }
+  },
+  "pacotes": {
+    "payload_bytes": 128,
+    "pacotes_por_ponto": 200,
+    "sincronismo": "ideal",
+    "resultado": {
+      "OOK, retangular": {
+        "Eb/N0 8 dB": "0/200 CRC OK, PER 100.0%",
+        "Eb/N0 12 dB": "174/200 CRC OK, PER 13.0%"
+      },
+      "OOK, RRC β = 0,35": {
+        "Eb/N0 8 dB": "0/200 CRC OK, PER 100.0%",
+        "Eb/N0 12 dB": "181/200 CRC OK, PER 9.5%"
+      },
+      "BPSK, retangular": {
+        "Eb/N0 8 dB": "159/200 CRC OK, PER 20.5%",
+        "Eb/N0 12 dB": "200/200 CRC OK, PER 0.0%"
+      },
+      "BPSK, RRC β = 0,35": {
+        "Eb/N0 8 dB": "167/200 CRC OK, PER 16.5%",
+        "Eb/N0 12 dB": "200/200 CRC OK, PER 0.0%"
+      },
+      "DBPSK, retangular": {
+        "Eb/N0 8 dB": "99/200 CRC OK, PER 50.5%",
+        "Eb/N0 12 dB": "200/200 CRC OK, PER 0.0%"
+      },
+      "DBPSK, RRC β = 0,35": {
+        "Eb/N0 8 dB": "94/200 CRC OK, PER 53.0%",
+        "Eb/N0 12 dB": "200/200 CRC OK, PER 0.0%"
+      },
+      "2-FSK (h = 1), retangular": {
+        "Eb/N0 8 dB": "0/200 CRC OK, PER 100.0%",
+        "Eb/N0 12 dB": "166/200 CRC OK, PER 17.0%"
+      },
+      "2-FSK (h = 1), gaussiano BT = 0,5": {
+        "Eb/N0 8 dB": "0/200 CRC OK, PER 100.0%",
+        "Eb/N0 12 dB": "115/200 CRC OK, PER 42.5%"
+      }
+    }
+  }
+}
