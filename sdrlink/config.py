@@ -67,6 +67,7 @@ class Perfil:
         deslocamento_hz: posição do sinal em relação ao LO.
         lo_hz: frequência do LO do Pluto e do centro do RTL.
         fec: código convolucional no corpo dos quadros (sdrlink.codigo, bloco 09).
+        emendar_caudas: TX com as caudas do RRC somadas entre quadros (bloco 12).
         descricao: para que serve o perfil.
     """
 
@@ -81,6 +82,7 @@ class Perfil:
     deslocamento_hz: float = 250e3
     lo_hz: float = 919.5e6
     fec: bool = False
+    emendar_caudas: bool = False
     descricao: str = ""
 
     def __post_init__(self) -> None:
@@ -106,7 +108,14 @@ class Perfil:
 
 
 CAMPOS_PERFIL = tuple(c.name for c in dataclasses.fields(Perfil) if c.name != "nome")
-_TIPOS = {"modulacao": str, "pulso": str, "descricao": str, "sps": int, "fec": bool}
+_TIPOS = {
+    "modulacao": str,
+    "pulso": str,
+    "descricao": str,
+    "sps": int,
+    "fec": bool,
+    "emendar_caudas": bool,
+}
 Valor = str | float | bool  # valor de um campo de perfil (int é aceito como float)
 
 
@@ -214,6 +223,12 @@ def argumentos_de_enlace(p: argparse.ArgumentParser) -> None:
         default=None,
         help="código convolucional no corpo dos quadros (--no-fec desliga o do perfil)",
     )
+    p.add_argument(
+        "--emendar-caudas",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="TX com as caudas do RRC somadas entre quadros (--no-emendar-caudas desliga)",
+    )
 
 
 def perfil_dos_argumentos(p: argparse.ArgumentParser, args: argparse.Namespace) -> Perfil:
@@ -227,6 +242,7 @@ def perfil_dos_argumentos(p: argparse.ArgumentParser, args: argparse.Namespace) 
         "deslocamento_hz",
         "lo_hz",
         "fec",
+        "emendar_caudas",
     )
     try:
         return montar_perfil(args.perfil, {c: getattr(args, c) for c in campos})

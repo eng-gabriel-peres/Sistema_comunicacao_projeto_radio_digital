@@ -50,15 +50,18 @@ def test_sequencia_volta_a_zero() -> None:
     assert maximo == 2**24 - 1  # quadro v3: 60 s de DQPSK (70 400 pacotes) não dão a volta
 
 
-def test_fluxo_em_blocos_fixos_com_fase_continua() -> None:
+@pytest.mark.parametrize("bloco", [5000, 8950, 997])
+def test_fluxo_em_blocos_fixos_com_fase_continua(bloco: int) -> None:
+    # 8950: a borda do 1º bloco cai dentro da sobreposição do 2º quadro (que começa em 8944):
+    # um bloco que saísse antes de o quadro seguinte somar a sua parte ficaria errado ali
     config = ConfigTransmissor(DBPSK, FS, 250e3, emendar_caudas=True)
     pacotes = transmissor.numerar(_payloads(3))
-    saida = list(transmissor.fluxo(pacotes, config, duracao_s=1.0, tamanho_bloco=5000))
-    assert all(len(b) == 5000 for b, _ in saida)
+    saida = list(transmissor.fluxo(pacotes, config, duracao_s=1.0, tamanho_bloco=bloco))
+    assert all(len(b) == bloco for b, _ in saida)
     registros = [r for _, rs in saida for r in rs]
     assert [r.pacote for r in registros] == pacotes  # todos, em ordem, cada um uma vez
     for k, (_, rs) in enumerate(saida):  # cada registro no bloco em que o quadro começa
-        assert all(k * 5000 <= r.amostra_inicio < (k + 1) * 5000 for r in rs)
+        assert all(k * bloco <= r.amostra_inicio < (k + 1) * bloco for r in rs)
     # o mesmo sinal montado de uma vez: cada quadro começa um período depois do anterior e
     # as caudas do pulso se somam (bloco 12); tudo deslocado de 250 kHz
     ondas = [modem.modular(quadro.montar_quadro(p), DBPSK) for p in pacotes]
@@ -223,3 +226,21 @@ def test_fluxo_dqpsk_do_tx_e_recebido_pelo_rx() -> None:
     x = np.concatenate([np.zeros(5000, dtype=complex), sinal / config.amplitude])
     d = receptor.receber(x, ConfigReceptor(cm, FS, 425e3))
     assert receptor.pacotes_aceitos(d) == pacotes
+
+
+def test_emenda_nao_vale_para_a_2fsk() -> None:
+    # na 2-FSK a fase é contínua dentro do quadro: somar as caudas não seria uma modulação
+    # contínua, então os quadros continuam encostados, com ou sem a opção
+    gfsk = ConfigModem("fsk", "gaussiano", 16)
+    assert transmissor.amostras_por_quadro(gfsk, emendar_caudas=True) == (
+        transmissor.amostras_por_quadro(gfsk)
+    )
+    pacotes = transmissor.numerar(_payloads(3))
+    com = [
+        b
+        for b, _ in transmissor.fluxo(
+            pacotes, ConfigTransmissor(gfsk, FS, emendar_caudas=True), 1.0
+        )
+    ]
+    sem = [b for b, _ in transmissor.fluxo(pacotes, ConfigTransmissor(gfsk, FS), 1.0)]
+    np.testing.assert_array_equal(np.concatenate(com), np.concatenate(sem))
