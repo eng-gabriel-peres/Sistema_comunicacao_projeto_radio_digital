@@ -67,15 +67,19 @@ def _arquivo(tmp_path: Path, conteudo: str) -> Path:
 
 def test_perfis_do_projeto_sao_validos_e_a_prova_a_cabe_em_1_mhz() -> None:
     perfis = config.ler_perfis(config.ARQUIVO_PERFIS)
-    assert {"prova-a", "dbpsk-256k", "gfsk-128k", "ook-128k"} <= set(perfis)
-    a = perfis["prova-a"]
-    assert (a.modulacao, a.pulso, a.sps, a.beta) == ("dbpsk", "rrc", 3, 0.25)
-    assert a.taxa_bits == pytest.approx(2.048e6 / 3)
-    baixo, alto = ConfigTransmissor(a.modem(), a.taxa_sps, a.deslocamento_hz).banda_99_hz()
-    assert a.modem() == ConfigModem("dbpsk", "rrc", 3, beta=0.25)  # o beta chega ao modem
-    assert alto - baixo == pytest.approx(749e3, abs=5e3)  # com beta = 0,35 seriam 792 kHz
-    assert baixo > 25e3  # longe do DC do RTL
-    assert alto < 850e3  # dentro da faixa plana do RTL (±1 dB até 850 kHz)
+    assert {"prova-a", "prova-a-dbpsk", "dbpsk-256k", "gfsk-128k", "ook-128k"} <= set(perfis)
+    for nome, modulacao, bits_por_simbolo in (
+        ("prova-a", "dqpsk", 2),
+        ("prova-a-dbpsk", "dbpsk", 1),
+    ):
+        a = perfis[nome]
+        assert (a.modulacao, a.pulso, a.sps, a.beta) == (modulacao, "rrc", 3, 0.25)
+        assert a.taxa_bits == pytest.approx(bits_por_simbolo * 2.048e6 / 3)
+        baixo, alto = ConfigTransmissor(a.modem(), a.taxa_sps, a.deslocamento_hz).banda_99_hz()
+        assert a.modem() == ConfigModem(modulacao, "rrc", 3, beta=0.25)  # o beta chega ao modem
+        assert alto - baixo == pytest.approx(749e3, abs=5e3)  # com beta = 0,35 seriam 792 kHz
+        assert baixo > 25e3  # longe do DC do RTL
+        assert alto < 850e3  # dentro da faixa plana do RTL (±1 dB até 850 kHz)
     assert perfis["dbpsk-256k"].taxa_bits == 256e3
 
 
@@ -224,9 +228,9 @@ def test_perfil_dqpsk_converte_a_taxa_de_bits_em_simbolos() -> None:
         None, {"modulacao": "dqpsk", "pulso": "rrc", "taxa_bits": 2 * 2.048e6 / 3}
     )
     assert perfil.sps == 3 and perfil.taxa_bits == pytest.approx(2 * 2.048e6 / 3)
-    trocado = config.montar_perfil("prova-a", {"modulacao": "dqpsk"})  # mesmo sps, o dobro dos bits
+    trocado = config.montar_perfil("prova-a-dbpsk", {"modulacao": "dqpsk"})  # mesmo sps
     assert trocado.sps == 3 and trocado.taxa_bits == pytest.approx(
-        2 * config.perfil("prova-a").taxa_bits
+        2 * config.perfil("prova-a-dbpsk").taxa_bits
     )
 
 

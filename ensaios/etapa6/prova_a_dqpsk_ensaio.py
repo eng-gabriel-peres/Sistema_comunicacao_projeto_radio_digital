@@ -37,6 +37,7 @@ RAIZ = Path(__file__).resolve().parents[2]
 FS = base.FS
 QUADROS = 1000
 EBN0_DB = np.arange(6.0, 16.5, 1.0)
+EBN0_FEC_DB = np.arange(2.0, 10.5, 1.0)  # com FEC a PER já é zero a 6 dB (primeira rodada)
 DESLOCAMENTO = 425e3  # o do perfil prova-a
 BITS_UTEIS = 1024
 CANDIDATAS = [
@@ -80,20 +81,21 @@ def main():
         rb_ar = FS / cm.sps * cm.bits_por_simbolo
         baixo, alto = ConfigTransmissor(cm, FS, DESLOCAMENTO).banda_99_hz()
         goodput = FS * BITS_UTEIS / transmissor.amostras_por_quadro(cm, fec=fec)
+        grade = EBN0_FEC_DB if fec else EBN0_DB
         pontos, per = [], []
-        for e in EBN0_DB:  # para depois de dois pontos sem nenhum erro
+        for e in grade:  # para depois de dois pontos sem nenhum erro
             pontos.append(per_do_receptor(cm, fec, e, rng))
             per.append(pontos[-1][0])
             if len(per) >= 2 and per[-1] == 0 and per[-2] == 0:
                 break
-        necessario = base.ebn0_para_per(EBN0_DB, per)
+        necessario = base.ebn0_para_per(grade, per)
         cn0_necessario = None if necessario is None else necessario + 10 * np.log10(rb_ar)
         linha = {
             "nome": nome, "modulacao": cm.modulacao, "sps": cm.sps, "fec": fec,
             "taxa_no_ar": round(rb_ar, 1), "banda_99_khz": round((alto - baixo) / 1e3, 1),
             "faixa_khz": [round(baixo / 1e3, 1), round(alto / 1e3, 1)],
             "goodput_sem_perda_kbps": round(goodput / 1e3, 1),
-            "per_por_ebn0_no_ar": {f"{e:.0f}": round(p[0], 4) for e, p in zip(EBN0_DB, pontos)},
+            "per_por_ebn0_no_ar": {f"{e:.0f}": round(p[0], 4) for e, p in zip(grade, pontos)},
             "errados_aceitos": int(sum(p[1] for p in pontos)),
             "ebn0_no_ar_per_1pct_db": None if necessario is None else round(necessario, 2),
             "cn0_necessario_dbhz": None if cn0_necessario is None else round(cn0_necessario, 2),

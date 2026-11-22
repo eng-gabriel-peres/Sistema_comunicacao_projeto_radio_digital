@@ -11,7 +11,9 @@ processamento do RX (limite de 10 min). A captura tem 1 s de ruído antes do TX 
 A captura de 60 s ocupa cerca de 1 GB em complex64; o canal trabalha em blocos e
 grava direto no arquivo. Os .npy são apagados no fim; logs e saídas ficam.
 
-Uso: python ensaios/etapa6/prova_a_60s_ensaio.py [Eb/N0 em dB, padrão 11]
+Uso: python ensaios/etapa6/prova_a_60s_ensaio.py [Eb/N0 em dB, padrão 11] [perfil, padrão prova-a]
+
+O Eb/N0 é por bit no ar: na DQPSK, Eb = Es/2.
 """
 
 import json
@@ -49,13 +51,13 @@ def rodar(*comando):
     return time.perf_counter() - t0
 
 
-def canal_em_blocos(entrada, saida, ebn0_db, sps, fs, rng):
+def canal_em_blocos(entrada, saida, ebn0_db, amostras_por_bit, fs, rng):
     """Canal com os defeitos medidos do RTL, bloco a bloco, com fase contínua."""
     tx = np.load(entrada, mmap_mode="r")
     ativos = np.flatnonzero(np.abs(tx[-BLOCO:]) > 0)  # o fim do fluxo é completado com zeros
     fim = len(tx) - BLOCO + int(ativos[-1]) + 1 if len(ativos) else len(tx)
     potencia = float(np.mean([np.mean(np.abs(tx[k : min(k + BLOCO, fim)]) ** 2) for k in range(0, fim, BLOCO)]))
-    n0 = potencia * sps / 10 ** (ebn0_db / 10)
+    n0 = potencia * amostras_por_bit / 10 ** (ebn0_db / 10)
     antes, depois = int(ANTES_S * fs), int(DEPOIS_S * fs)
     total = antes + fim + depois
     y = np.lib.format.open_memmap(saida, mode="w+", dtype=np.complex64, shape=(total,))
@@ -77,20 +79,23 @@ def canal_em_blocos(entrada, saida, ebn0_db, sps, fs, rng):
 
 def main():
     ebn0 = float(sys.argv[1]) if len(sys.argv) > 1 else 11.0
-    perfil = config.perfil(PERFIL)
+    nome_perfil = sys.argv[2] if len(sys.argv) > 2 else PERFIL
+    perfil = config.perfil(nome_perfil)
     rng = np.random.default_rng(SEMENTE)
     PASTA.mkdir(parents=True, exist_ok=True)
     logs = PASTA / "logs"
-    payloads, tx, cap = PASTA / "payloads.bin", PASTA / "tx.npy", PASTA / f"prova_a_{ebn0:.0f}dB.npy"
-    print(f"perfil {PERFIL}: {perfil.taxa_bits / 1e3:.1f} kbit/s, Eb/N0 {ebn0} dB", flush=True)
+    payloads, tx = PASTA / "payloads.bin", PASTA / "tx.npy"
+    cap = PASTA / f"{nome_perfil.replace('-', '_')}_{ebn0:.0f}dB.npy"
+    print(f"perfil {nome_perfil}: {perfil.taxa_bits / 1e3:.1f} kbit/s, Eb/N0 {ebn0} dB", flush=True)
     rodar("scripts/gerar_payloads.py", "--aleatorios", str(PAYLOADS), str(payloads), "--semente", str(SEMENTE))
-    t_tx = rodar("scripts/transmitir.py", str(payloads), "--perfil", PERFIL, "--duracao-s", str(DURACAO_S),
+    t_tx = rodar("scripts/transmitir.py", str(payloads), "--perfil", nome_perfil, "--duracao-s", str(DURACAO_S),
                  "--simular", str(tx), "--pasta", str(logs))
     log_tx = sorted(logs.glob("tx_*.txt"), key=lambda p: p.stat().st_mtime)[-1]
     t0 = time.perf_counter()
-    duracao_captura = canal_em_blocos(tx, cap, ebn0, perfil.sps, perfil.taxa_sps, rng)
+    amostras_por_bit = perfil.sps / perfil.modem().bits_por_simbolo
+    duracao_captura = canal_em_blocos(tx, cap, ebn0, amostras_por_bit, perfil.taxa_sps, rng)
     t_canal = time.perf_counter() - t0
-    t_rx = rodar("scripts/receber.py", str(cap), "--perfil", PERFIL)
+    t_rx = rodar("scripts/receber.py", str(cap), "--perfil", nome_perfil)
     saida_rx = cap.with_name(cap.stem + "_saida.txt")
     rodar("scripts/avaliar.py", str(log_tx), str(saida_rx), "--duracao-s", str(DURACAO_S))
     avaliacao = json.loads(saida_rx.with_name(saida_rx.stem + "_avaliacao.json").read_text(encoding="utf-8"))
@@ -113,7 +118,7 @@ def main():
         "versao_do_codigo": versao_do_codigo(ignorar=("dados/", "docs/")),  # saídas e texto: não mudam o que roda
     }
     print(json.dumps(resultado, indent=2, ensure_ascii=False))
-    saida = RAIZ / "dados" / "logs" / f"prova_a_60s_{ebn0:.0f}dB_{carimbo_de_tempo()}.json"
+    saida = RAIZ / "dados" / "logs" / f"{nome_perfil.replace('-', '_')}_60s_{ebn0:.0f}dB_{carimbo_de_tempo()}.json"
     saida.write_text(json.dumps(resultado, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     for arquivo in (tx, cap):
         arquivo.unlink()
