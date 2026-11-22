@@ -16,9 +16,12 @@ import numpy as np
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from sdrlink import quadro
+
 RAIZ = Path(__file__).resolve().parents[2]
 LOGS = RAIZ / "dados" / "logs"
-UTIL_POR_AR_DB = 10 * np.log10(2152 / 1064)  # bits no ar / bits úteis depois do sync (taxa 1/2 + cauda)
+# bits no ar / bits úteis depois do sync (taxa 1/2 + cauda), pelo formato do quadro em vigor
+UTIL_POR_AR_DB = 10 * np.log10(quadro.bits_no_ar_apos_sync(128, fec=True) / quadro.bits_apos_sync(128))
 
 
 def ultimo(padrao):

@@ -33,7 +33,7 @@ def _captura(
     ]
     partes, inicios, pos = [np.zeros(2000, dtype=complex)], [], 2000.37
     for p in pacotes:
-        onda = modem.modular(quadro.montar_quadro(p, fec), config)
+        onda = modem.modular(quadro.montar_quadro(p, fec), config, quadro.BITS_PREFIXO)
         intervalo = int(rng.integers(300, 3000))
         inicios.append(pos)
         partes += [onda, np.zeros(intervalo, dtype=complex)]
@@ -51,11 +51,12 @@ def _bloco_pequeno(config: ConfigReceptor) -> int:
     "config",
     [
         ConfigModem("dbpsk", "rrc", 8),
+        ConfigModem("dqpsk", "rrc", 8),
         ConfigModem("ook", "rrc", 16),
         ConfigModem("fsk", "gaussiano", 16),
         ConfigModem("fsk", "retangular", 32),
     ],
-    ids=["dbpsk-256k", "ook-128k", "gfsk-128k", "cpfsk-64k"],
+    ids=["dbpsk-256k", "dqpsk-512k", "ook-128k", "gfsk-128k", "cpfsk-64k"],
 )
 def test_todos_os_quadros_com_offset_atraso_e_emendas(config: ConfigModem) -> None:
     rng = np.random.default_rng(1)
@@ -66,7 +67,12 @@ def test_todos_os_quadros_com_offset_atraso_e_emendas(config: ConfigModem) -> No
     certas = [d for d in deteccoes if d.situacao == "ok"]
     for d, i in zip(certas, inicios, strict=True):
         assert abs(d.inicio - i) < 0.05 * config.sps  # instante: menos de 5% do bit (Etapa 4)
-        assert abs(d.offset_hz - OFFSET) < 300  # offset estimado pelo preâmbulo
+    # offset estimado pelo preâmbulo: a 14 dB o erro tem desvio de cerca de 150 Hz em DBPSK e
+    # DQPSK (medido em 40 quadros, bloco 10). O limite antigo, 300 Hz em cada quadro, era
+    # de 2 desvios e passava por sorte da semente; agora: mediana e pior caso.
+    erros = np.abs(np.array([d.offset_hz for d in certas]) - OFFSET)
+    assert np.median(erros) < 150
+    assert np.max(erros) < 500
     if config.pulso != "retangular":  # a CPFSK tem falsos raros (rejeitados pelo CRC)
         assert len(deteccoes) == len(pacotes)  # nenhuma detecção falsa nos dados
 
@@ -174,11 +180,17 @@ def test_resumo_da_recepcao() -> None:
 def test_2fsk_rejeita_um_pico_de_dc_do_tamanho_do_sinal() -> None:
     # o correlator da 2-FSK precisa do filtro de banda antes: sem ele, um pico de DC do tamanho
     # do sinal (o do RTL, ou outro sinal forte na banda) multiplicava a BER por 25
+    # O critério é "o pico não causa nenhuma perda além das do ruído": a 13 dB o ruído sozinho
+    # derruba cerca de 1 quadro em 80, e o teste antigo (todos os quadros com o pico) passava
+    # ou não conforme a semente (bloco 10)
     config = ConfigModem("fsk", "gaussiano", 16)
-    x, pacotes, _ = _captura(config, 8, np.random.default_rng(14), ebn0_db=13.0)
-    pico = np.sqrt(np.mean(np.abs(x[len(x) // 2 :]) ** 2))  # da ordem da amplitude do sinal
     rx = ConfigReceptor(config, FS, deslocamento_hz=DESLOCAMENTO)
-    assert receptor.pacotes_aceitos(receptor.receber(x + pico, rx)) == pacotes
+    for semente in (14, 15, 16):
+        x, pacotes, _ = _captura(config, 8, np.random.default_rng(semente), ebn0_db=13.0)
+        pico = np.sqrt(np.mean(np.abs(x[len(x) // 2 :]) ** 2))  # da ordem da amplitude do sinal
+        sem_pico = set(receptor.pacotes_aceitos(receptor.receber(x, rx)))
+        com_pico = set(receptor.pacotes_aceitos(receptor.receber(x + pico, rx)))
+        assert com_pico == sem_pico and len(sem_pico & set(pacotes)) >= 7
 
 
 def test_fasor_rapido_igual_ao_exp() -> None:
@@ -218,7 +230,8 @@ def test_le_o_quadro_da_prova_mesmo_com_o_comprimento_corrompido() -> None:
     d = receptor.receber(x, ConfigReceptor(config, FS, guardar_bits=True))
     assert len(d) == 1 and d[0].situacao == "crc"
     assert d[0].bits is not None and len(d[0].bits) >= quadro.bits_apos_sync(128)
-    np.testing.assert_array_equal(d[0].bits[24 : 24 + 1024], bits[29 + 24 : 29 + 24 + 1024])
+    cab = quadro.BITS_CABECALHO
+    np.testing.assert_array_equal(d[0].bits[cab : cab + 1024], bits[29 + cab : 29 + cab + 1024])
 
 
 def test_pulso_em_cache_e_so_leitura() -> None:
@@ -235,7 +248,11 @@ def test_fec_le_quadros_de_varios_tamanhos_com_offset_e_emendas() -> None:
     config = ConfigReceptor(cm, FS, DESLOCAMENTO, fec=True)
     d = receptor.receber(x, config, tamanho_bloco=_bloco_pequeno(config))
     assert receptor.pacotes_aceitos(d) == pacotes
-    assert all(abs(a.inicio - b) < 0.4 for a, b in zip(d, inicios, strict=True))
+    # instante dos quadros certos: a 9 dB no ar o erro chega a 0,57 amostra (7% do símbolo) em
+    # 10 sementes; o limite antigo, 0,4, passava pela semente. Uma detecção falsa (CRC falho)
+    # pode aparecer e não entra na conta
+    certas = [a for a in d if a.situacao == "ok"]
+    assert all(abs(a.inicio - b) < 0.1 * cm.sps for a, b in zip(certas, inicios, strict=True))
 
 
 def test_fec_recebe_onde_sem_codigo_falha() -> None:
@@ -263,6 +280,18 @@ def test_fec_com_captura_curta_nao_le_o_quadro() -> None:
     assert [a.situacao for a in d] == ["curto"]
 
 
+def test_dqpsk_da_prova_a_com_3_amostras_e_com_fec() -> None:
+    # 1365 kbit/s no corpo: offset, atraso e emendas, com e sem código
+    cm = ConfigModem("dqpsk", "rrc", 3, beta=0.25)
+    for fec, semente in ((False, 41), (True, 42)):
+        x, pacotes, _ = _captura(cm, 8, np.random.default_rng(semente), 14.0, fec, (128, 60))
+        config = ConfigReceptor(cm, FS, 425e3, fec=fec)
+        y = canal.girar(x, 425e3 - DESLOCAMENTO, FS)  # o sinal no deslocamento do perfil prova-a
+        d = receptor.receber(y, config, tamanho_bloco=_bloco_pequeno(config))
+        assert receptor.pacotes_aceitos(d) == pacotes
+        assert config.taxa_bits == pytest.approx(2 * FS / 3)
+
+
 def test_fec_le_quadro_curto_no_fim_da_captura() -> None:
     # a janela padrão (128 bytes) passaria do fim do arquivo; a de 60 bytes cabe
     cm = ConfigModem("dbpsk", "rrc", 8)
@@ -271,3 +300,12 @@ def test_fec_le_quadro_curto_no_fim_da_captura() -> None:
     x = np.concatenate([np.zeros(3000), onda, np.zeros(400)]).astype(complex)
     d = receptor.receber(x, ConfigReceptor(cm, FS, fec=True))
     assert receptor.pacotes_aceitos(d) == [p]
+
+
+def test_dqpsk_usa_a_taxa_de_simbolos_no_filtro_e_no_modelo() -> None:
+    # a banda vem dos símbolos: DQPSK e DBPSK com o mesmo sps têm o mesmo filtro e o mesmo prefixo
+    dq = ConfigReceptor(ConfigModem("dqpsk", "rrc", 8), FS, DESLOCAMENTO)
+    db = ConfigReceptor(ConfigModem("dbpsk", "rrc", 8), FS, DESLOCAMENTO)
+    np.testing.assert_array_equal(dq.filtro_deteccao(), db.filtro_deteccao())
+    np.testing.assert_allclose(dq.modelo(), db.modelo(), atol=1e-12)
+    assert dq.taxa_bits == 2 * db.taxa_bits

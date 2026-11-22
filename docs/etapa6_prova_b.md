@@ -4,6 +4,8 @@ Requisito: CMP-B. Em cada posição, goodput de pelo menos 10 kbit/s, PER de at�
 
 Feito em 22/11/2026, sem hardware (bloco 08). O bloco 09 acrescenta o FEC sobre esta escolha ([etapa6_fec.md](etapa6_fec.md)).
 
+> **Nota (bloco 10): quadro v3.** A sequência passou a ter 24 bits ([etapa3_quadro.md](etapa3_quadro.md)), e o quadro de 128 bytes passou de 1 122 para 1 130 tempos de bit no fluxo. Os goodputs desta página caem 0,7%: a folga sobre os 10 kbit/s (com PER de 1%) fica em **14,8%** a 12,8 kbit/s e **4,3%** a 11,6 kbit/s. Eb/N0 e C/N0 necessários não mudam de forma mensurável (8 bits a mais em 1 117).
+
 ## 1. Resultado
 
 | Item | Resultado |

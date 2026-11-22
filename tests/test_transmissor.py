@@ -41,11 +41,13 @@ def test_ler_payloads_nos_dois_formatos(tmp_path: Path) -> None:
 
 
 def test_sequencia_volta_a_zero() -> None:
-    assert [p.sequencia for p in transmissor.numerar([b"a", b"b", b"c"], 65534)] == [
-        65534,
-        65535,
+    maximo = quadro.SEQUENCIA_MAX
+    assert [p.sequencia for p in transmissor.numerar([b"a", b"b", b"c"], maximo - 1)] == [
+        maximo - 1,
+        maximo,
         0,
     ]
+    assert maximo == 2**24 - 1  # quadro v3: 60 s de DQPSK (70 400 pacotes) não dão a volta
 
 
 def test_fluxo_em_blocos_fixos_com_fase_continua() -> None:
@@ -184,9 +186,29 @@ def test_registro_vai_com_o_bloco_em_que_o_quadro_comeca() -> None:
 
 def test_fluxo_com_fec_e_periodo_do_quadro_codificado() -> None:
     cm = ConfigModem("dbpsk", "rrc", 8)
-    assert transmissor.amostras_por_quadro(cm) == 1122 * 8
-    assert transmissor.amostras_por_quadro(cm, fec=True) == (2185 + 13) * 8
+    assert transmissor.amostras_por_quadro(cm) == (1117 + 13) * 8
+    assert transmissor.amostras_por_quadro(cm, fec=True) == (2201 + 13) * 8
     config = ConfigTransmissor(cm, FS, 250e3, fec=True)
     pacotes = transmissor.numerar([bytes(128)] * 3)
     registros = [r for _, rs in transmissor.fluxo(pacotes, config, 1.0) for r in rs]
-    assert [r.amostra_inicio for r in registros] == [k * (2185 + 13) * 8 for k in range(3)]
+    assert [r.amostra_inicio for r in registros] == [k * (2201 + 13) * 8 for k in range(3)]
+
+
+def test_dqpsk_dobra_a_taxa_e_encurta_o_quadro() -> None:
+    cm = ConfigModem("dqpsk", "rrc", 3, beta=0.25)
+    assert ConfigTransmissor(cm, FS, 425e3).taxa_bits == pytest.approx(2 * FS / 3)
+    # 29 símbolos do prefixo + 544 do resto (1088 bits / 2) + 13 da cauda do RRC
+    assert transmissor.amostras_por_quadro(cm) == (29 + 544 + 13) * 3
+    baixo, alto = ConfigTransmissor(cm, FS, 425e3).banda_99_hz()
+    assert alto - baixo == pytest.approx(749e3, abs=10e3)  # mesma banda da DBPSK do prova-a
+
+
+def test_fluxo_dqpsk_do_tx_e_recebido_pelo_rx() -> None:
+    # o TX manda o prefixo um bit por símbolo; sem isso o RX não acha nenhum quadro
+    cm = ConfigModem("dqpsk", "rrc", 3, beta=0.25)
+    pacotes = transmissor.numerar([bytes([k]) * 128 for k in range(6)])
+    config = ConfigTransmissor(cm, FS, 425e3)
+    sinal = np.concatenate([b for b, _ in transmissor.fluxo(pacotes, config, 1.0)])
+    x = np.concatenate([np.zeros(5000, dtype=complex), sinal / config.amplitude])
+    d = receptor.receber(x, ConfigReceptor(cm, FS, 425e3))
+    assert receptor.pacotes_aceitos(d) == pacotes

@@ -5,12 +5,22 @@
 # Um parâmetro dado na linha de comando substitui só aquele campo, e o registro
 # JSON de cada script guarda o perfil completo que foi usado.
 #
-# Campos: modulacao, pulso, sps (amostras por bit), beta (RRC), bt (gaussiano),
+# Campos: modulacao, pulso, sps (amostras por símbolo), beta (RRC), bt (gaussiano),
 # h (2-FSK), taxa_sps, deslocamento_hz (sinal em relação ao LO), lo_hz, fec, descricao.
-# Taxa de bits = taxa_sps / sps.
+# Taxa de bits = taxa_sps / sps (o dobro na DQPSK).
 
 [prova-a]
-descricao = "Prova A: DBPSK RRC a 682,7 kbit/s, banda a 99% de 0,75 MHz (docs/etapa6_prova_a.md)"
+descricao = "Prova A: DQPSK RRC a 1365 kbit/s, banda a 99% de 0,75 MHz, margem de 5 dB na bancada (docs/etapa6_dqpsk.md)"
+modulacao = "dqpsk"
+pulso = "rrc"
+sps = 3  # amostras por símbolo; 2 bits por símbolo no corpo do quadro
+beta = 0.25
+taxa_sps = 2.048e6
+deslocamento_hz = 425e3  # sinal de +50 a +800 kHz: longe do DC e dentro da faixa plana do RTL
+lo_hz = 919.5e6
+
+[prova-a-dbpsk]
+descricao = "Reserva da prova A: DBPSK RRC a 682,7 kbit/s, 4,3 dB mais robusta (docs/etapa6_prova_a.md)"
 modulacao = "dbpsk"
 pulso = "rrc"
 sps = 3

@@ -142,15 +142,20 @@ class ConfigReceptor:
     def _calcular_modelo(self) -> Sinal:
         """Corpo de modelo(), sem cache."""
         prefixo = np.concatenate([quadro.PREAMBULO, quadro.SYNC])
-        sinal = modem.modular(prefixo, self.modem)
+        sinal = modem.modular(prefixo, self.modem, prefixo=BITS_PREFIXO)
         if self.decimacao > 1:
             sinal = np.asarray(resample_poly(sinal, 1, self.decimacao), dtype=np.complex128)
         return sinal[: BITS_PREFIXO * self.modem_interno.sps]
 
     @property
-    def taxa_bits(self) -> float:
-        """Taxa de bits (um bit por símbolo em todas as modulações)."""
+    def taxa_simbolos(self) -> float:
+        """Taxa de símbolos: é ela que define a banda do pulso."""
         return self.taxa_sps / self.modem.sps
+
+    @property
+    def taxa_bits(self) -> float:
+        """Taxa de bits do corpo (o dobro da de símbolos na DQPSK)."""
+        return self.taxa_simbolos * self.modem.bits_por_simbolo
 
     def filtro_deteccao(self) -> NDArray[np.float64]:
         """Passa-baixas da detecção na taxa interna, com a meia banda do pulso usado."""
@@ -161,7 +166,7 @@ class ConfigReceptor:
         meia_banda = MEIA_BANDA_DETECCAO_RB[self.modem.pulso]
         if self.modem.modulacao == "fsk" and self.modem.pulso == "retangular":
             meia_banda = MEIA_BANDA_FSK_RETANGULAR_RB
-        corte = min(meia_banda * self.taxa_bits, 0.45 * self.taxa_interna)
+        corte = min(meia_banda * self.taxa_simbolos, 0.45 * self.taxa_interna)
         coeficientes = COEFICIENTES_POR_BIT * self.modem_interno.sps + 1
         return np.asarray(firwin(coeficientes, corte, fs=self.taxa_interna), dtype=np.float64)
 
@@ -184,7 +189,8 @@ class ConfigReceptor:
     def amostras_por_quadro_max(self) -> int:
         """Duração do maior quadro possível (255 bytes) na taxa interna, com folga para a cauda."""
         bits = quadro.bits_por_quadro(quadro.PAYLOAD_MAX_BYTES, self.fec)
-        return (bits + 2 * self.modem.span) * self.modem_interno.sps
+        n_simbolos = modem.simbolos(bits, self.modem, BITS_PREFIXO)
+        return (n_simbolos + 2 * self.modem.span) * self.modem_interno.sps
 
 
 @functools.cache
@@ -390,7 +396,7 @@ def demodular_quadro(
     )
     n_max = min(
         quadro.bits_por_quadro(quadro.PAYLOAD_MAX_BYTES, config.fec),
-        (disponivel - cauda) // cm.sps - 2,
+        modem.bits_em((disponivel - cauda) // cm.sps - 2, cm, BITS_PREFIXO),
     )
     n_cabecalho = BITS_PREFIXO + quadro.BITS_CABECALHO
     if n_max <= n_cabecalho:
@@ -398,7 +404,8 @@ def demodular_quadro(
 
     def preparar(n_bits: int) -> Sinal:
         """Alinha e tira o offset só das amostras que a leitura de n_bits usa."""
-        z = _alinhar(x, inicio, (n_bits + 2) * cm.sps + cauda)
+        n_simbolos = modem.simbolos(n_bits, cm, BITS_PREFIXO)
+        z = _alinhar(x, inicio, (n_simbolos + 2) * cm.sps + cauda)
         return np.asarray(z * _fasor(-offset_hz / config.taxa_interna, len(z)))
 
     # primeiro só o cabeçalho, para saber o tamanho; depois exatamente o quadro (antes a
@@ -411,11 +418,15 @@ def demodular_quadro(
     limiar = _limiar_do_prefixo(cabecalho, cm) if cm.modulacao == "ook" else None
     if config.fec:
         return _decodificar_quadro(preparar, cm, n_max, fase, limiar)
-    bits = modem.demodular(cabecalho, cm, n_cabecalho, fase=fase, limiar=limiar)
+    bits = modem.demodular(
+        cabecalho, cm, n_cabecalho, fase=fase, limiar=limiar, prefixo=BITS_PREFIXO
+    )
     campo = bits[BITS_PREFIXO : BITS_PREFIXO + quadro.BITS_COMPRIMENTO]
     n_bytes = max(int(quadro.bits_para_bytes(campo)[0]), PAYLOAD_MINIMO_LIDO)
     n_bits = min(n_max, BITS_PREFIXO + quadro.bits_apos_sync(n_bytes))
-    bits = modem.demodular(preparar(n_bits), cm, n_bits, fase=fase, limiar=limiar)
+    bits = modem.demodular(
+        preparar(n_bits), cm, n_bits, fase=fase, limiar=limiar, prefixo=BITS_PREFIXO
+    )
     return bits[BITS_PREFIXO:]
 
 
@@ -444,7 +455,9 @@ def _decodificar_quadro(
     for _ in range(2):  # no máximo uma releitura com o comprimento decodificado
         n_info = quadro.bits_apos_sync(n_bytes)
         n_ar = BITS_PREFIXO + codigo.bits_codificados(n_info)
-        suaves = modem.demodular_suave(preparar(n_ar), cm, n_ar, fase=fase, limiar=limiar)
+        suaves = modem.demodular_suave(
+            preparar(n_ar), cm, n_ar, fase=fase, limiar=limiar, prefixo=BITS_PREFIXO
+        )
         bits = codigo.decodificar(suaves[BITS_PREFIXO:], n_info)
         declarado = int(quadro.bits_para_bytes(bits[: quadro.BITS_COMPRIMENTO])[0])
         if declarado <= n_bytes or n_bytes == cabe:

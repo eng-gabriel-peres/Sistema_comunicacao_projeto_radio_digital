@@ -72,8 +72,8 @@ class ConfigTransmissor:
 
     @property
     def taxa_bits(self) -> float:
-        """Taxa de bits (um bit por símbolo em todas as modulações)."""
-        return self.taxa_sps / self.modem.sps
+        """Taxa de bits do corpo (o dobro da de símbolos na DQPSK)."""
+        return self.taxa_sps / self.modem.sps * self.modem.bits_por_simbolo
 
     def _referencia(self) -> NDArray[np.complex128]:
         """Sinal de referência (bits aleatórios fixos) para medir pico e banda."""
@@ -133,7 +133,7 @@ def ler_payloads(caminho: Path, tamanho: int = TAMANHO_PAYLOAD) -> list[bytes]:
 
 
 def numerar(payloads: list[bytes], sequencia_inicial: int = 0) -> list[Pacote]:
-    """Pacotes numerados em ordem; a sequência volta a 0 depois de 65535."""
+    """Pacotes numerados em ordem; a sequência volta a 0 depois de 2^24 - 1."""
     return [
         Pacote((sequencia_inicial + k) % (quadro.SEQUENCIA_MAX + 1), p)
         for k, p in enumerate(payloads[:MAX_PACOTES])
@@ -166,7 +166,8 @@ def fluxo(
     for p in pacotes:
         if posicao >= limite:
             break
-        onda = modem.modular(quadro.montar_quadro(p, config.fec), config.modem) * escala
+        bits = quadro.montar_quadro(p, config.fec)
+        onda = modem.modular(bits, config.modem, quadro.BITS_PREFIXO) * escala
         deslocada = onda * np.exp(giro * np.arange(posicao, posicao + len(onda)))  # fase contínua
         acumulado = np.concatenate([acumulado, deslocada])
         pendentes.append(RegistroTx(p, posicao))
@@ -202,4 +203,4 @@ def amostras_por_quadro(
 ) -> int:
     """Duração de um quadro no fluxo do TX, em amostras: o período entre quadros consecutivos."""
     vazio = quadro.montar_quadro(Pacote(0, bytes(tamanho_payload)), fec)
-    return len(modem.modular(vazio, config))
+    return len(modem.modular(vazio, config, quadro.BITS_PREFIXO))

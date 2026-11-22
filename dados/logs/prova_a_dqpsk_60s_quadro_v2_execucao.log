@@ -1,0 +1,50 @@
+perfil prova-a: 1365.3 kbit/s, Eb/N0 13.0 dB
+    100000 payloads de 128 bytes em C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\wt_dqpsk\dados\capturas\prova_a_60s\payloads.bin
+    70379 pacotes (simulado), banda a 99%: 52 a 799 kHz do LO
+    Log do TX: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\wt_dqpsk\dados\capturas\prova_a_60s\logs\tx_20261122_110514.txt
+    70327 pacotes aceitos em 75.4 s
+    Banda a 99%: 748.8 kHz; Eb/N0: 13.0 dB
+    Saída: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\wt_dqpsk\dados\capturas\prova_a_60s\prova_a_13dB_saida.txt
+    Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\wt_dqpsk\dados\capturas\prova_a_60s\prova_a_13dB_rx.json
+    65488/70379 certos | PER 6.95% | goodput 1117.7 kbit/s | conteúdo diferente 4839 | espúrios 0 | duplicados 0
+    Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\wt_dqpsk\dados\capturas\prova_a_60s\prova_a_13dB_saida_avaliacao.json
+{
+  "ensaio": "prova A simulada de ponta a ponta, 60 s, comandos da prova",
+  "perfil": {
+    "nome": "prova-a",
+    "modulacao": "dqpsk",
+    "pulso": "rrc",
+    "sps": 3,
+    "beta": 0.25,
+    "bt": 0.5,
+    "h": 1.0,
+    "taxa_sps": 2048000.0,
+    "deslocamento_hz": 425000.0,
+    "lo_hz": 919500000.0,
+    "fec": false,
+    "descricao": "Prova A: DQPSK RRC a 1365 kbit/s, banda a 99% de 0,75 MHz, margem de 5 dB na bancada (docs/etapa6_dqpsk.md)"
+  },
+  "ebn0_db": 13.0,
+  "offset_hz": -1400.0,
+  "dc_relativo": 0.008,
+  "imagem_dbc": -45.0,
+  "semente": 20261122,
+  "duracao_da_captura_s": 61.5,
+  "transmitidos": 70379,
+  "recebidos_certos": 65488,
+  "per": 0.0694951619090922,
+  "goodput_kbps": 1117.7,
+  "conteudo_diferente": 4839,
+  "espurios": 0,
+  "banda_99_medida_khz": 748.8,
+  "ebn0_medido_db": 13.0,
+  "tempo_tx_simulado_s": 49.1,
+  "tx_tempo_real_registrado_s": 47.44,
+  "tempo_canal_s": 13.4,
+  "tempo_rx_total_s": 78.3,
+  "tempo_rx_processamento_s": 75.4,
+  "dentro_dos_10_min": true,
+  "passa_na_prova_a": false,
+  "versao_do_codigo": "bloco-09-8-geef9b32"
+}
+registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\wt_dqpsk\dados\logs\prova_a_60s_13dB_20261122_110647.json

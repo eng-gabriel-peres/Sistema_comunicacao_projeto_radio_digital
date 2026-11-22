@@ -8,7 +8,7 @@ Feito em 22/11/2026, sem hardware. Falta confirmar na bancada (seção 6).
 
 | Item | Resultado |
 |---|---|
-| Configuração escolhida | **DBPSK, RRC com β = 0,25, 3 amostras por bit a 2,048 MS/s: 682,7 kbit/s**, sinal deslocado de +425 kHz do LO (perfil `prova-a`) |
+| Configuração escolhida | **DBPSK, RRC com β = 0,25, 3 amostras por bit a 2,048 MS/s: 682,7 kbit/s**, sinal deslocado de +425 kHz do LO (perfil `prova-a` até o bloco 09). **Atualização (bloco 10):** o perfil `prova-a` passou a ser a DQPSK a 1 365 kbit/s, com quase o dobro do goodput ([etapa6_dqpsk.md](etapa6_dqpsk.md)); esta configuração ficou como `prova-a-dbpsk`, a reserva |
 | Goodput sem perdas | **623 kbit/s**, 2,7 vezes os 234 kbit/s da configuração da Etapa 5 (256 kbit/s) e cerca de 85 vezes a OOK de referência (7,3 kbit/s com o quadro dela, medido na captura de 04/11) |
 | Goodput na prova de 60 s simulada | **622,1 kbit/s** com PER de 0,15% (seção 4) |
 | Banda a 99% | **749 kHz** (limite: 1 MHz), de +50 a +800 kHz do LO: longe do DC do RTL e dentro da faixa em que a resposta dele é plana |
