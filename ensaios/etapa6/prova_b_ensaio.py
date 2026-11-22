@@ -59,15 +59,19 @@ BLOCO = 2**22
 
 
 def captura(cm, ebn0_db, rng):
-    """0,1 s de ruído e os quadros, com offset que deriva, imagem IQ, ruído e DC (em blocos)."""
+    """Os quadros entre 0,1 s de ruído antes e depois, com offset que deriva, imagem IQ e DC.
+
+    O ruído depois importa na OOK: o fluxo termina em bits 0, que são silêncio, e cortar
+    a captura na última amostra não nula deixava o último quadro incompleto.
+    """
     pacotes = transmissor.numerar([metricas.payload_conhecido(k) for k in range(QUADROS)])
     s = np.concatenate([b for b, _ in transmissor.fluxo(pacotes, ConfigTransmissor(cm, FS, DESLOCAMENTO), 1e4)])
     s = s[: np.flatnonzero(s)[-1] + 1]  # complex64
     potencia = float(np.mean(np.abs(s) ** 2))
     n0 = potencia * cm.sps / 10 ** (ebn0_db / 10)
-    antes = int(0.1 * FS)
-    x = np.zeros(antes + len(s), dtype=np.complex64)
-    x[antes:] = s
+    antes = depois = int(0.1 * FS)  # ruído antes e depois, como numa gravação real
+    x = np.zeros(antes + len(s) + depois, dtype=np.complex64)
+    x[antes : antes + len(s)] = s
     del s
     fase0 = rng.uniform(0, 2 * np.pi)
     dc = DC_RELATIVO * np.sqrt(potencia + n0)
