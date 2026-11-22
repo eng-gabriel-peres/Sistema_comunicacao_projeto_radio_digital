@@ -186,7 +186,7 @@ python scripts/gerar_payloads.py --conhecidos 20000 dados/capturas/payloads_ber.
 ```
 
 **Cada ponto de medida** (configuração, ganho de TX e distância):
-1. RX: gravar **12 s** (`scripts/gravar_iq.py --perfil dbpsk-256k --segundos 12`), começando pelo menos 1 s antes do TX. Os perfis (`configs/perfis.toml`, bloco 07) garantem os mesmos parâmetros no TX e no RX; para as outras modulações, `gfsk-128k` e `ook-128k`.
+1. RX: gravar **12 s** (`scripts/gravar_iq.py --perfil dbpsk-256k --segundos 12 --pasta dados/capturas/sessao_<data>`), todas as capturas da sessão na mesma pasta, começando pelo menos 1 s antes do TX. Os perfis (`configs/perfis.toml`, bloco 07) garantem os mesmos parâmetros no TX e no RX; para as outras modulações, `gfsk-128k` e `ook-128k`.
 2. TX, logo depois de a gravação começar:
 
    ```
@@ -207,6 +207,14 @@ python scripts/gerar_payloads.py --conhecidos 20000 dados/capturas/payloads_ber.
    ```
 
 5. Anotar o ponto em `dados/README.md`.
+
+**Fim da sessão** (bloco 20, [etapa5_analise_bancada.md](etapa5_analise_bancada.md)):
+
+```
+python scripts/analisar_bancada.py dados/capturas/sessao_<data>
+```
+
+Junta os registros de todos os pontos numa tabela (ganho do RX, Eb/N0 medido, BER, PER, goodput, banda, offset) e calcula a **perda do enlace**: quantos dB a mais que a teoria cada ponto precisou para a BER medida. Grava `analise_bancada.md` e `analise_bancada.png` (BER e PER × Eb/N0 medido, com a teoria) na pasta da sessão.
 
 **Varreduras (sensibilidade aos parâmetros):**
 

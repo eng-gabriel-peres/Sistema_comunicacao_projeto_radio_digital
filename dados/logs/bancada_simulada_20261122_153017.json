@@ -1,0 +1,155 @@
+{
+  "ensaio": "sessão de bancada simulada (scripts da bancada de ponta a ponta)",
+  "duracao_por_ponto_s": 2.0,
+  "pontos": [
+    {
+      "captura": "dbpsk-256k_07.0dB.npy",
+      "perfil": "dbpsk-256k",
+      "ebn0_verdadeiro_db": 7.0,
+      "ebn0_medido_db": 6.98,
+      "ber": 0.0036051073788546254,
+      "bits_comparados": 464896,
+      "per": 0.9515418502202643,
+      "goodput_bps": 11264.0,
+      "banda_khz": 296.4,
+      "perda_db": 0.05
+    },
+    {
+      "captura": "dbpsk-256k_09.0dB.npy",
+      "perfil": "dbpsk-256k",
+      "ebn0_verdadeiro_db": 9.0,
+      "ebn0_medido_db": 9.01,
+      "ber": 0.00020219575991189427,
+      "bits_comparados": 464896,
+      "per": 0.17180616740088106,
+      "goodput_bps": 192512.0,
+      "banda_khz": 297.7,
+      "perda_db": 0.08
+    },
+    {
+      "captura": "dbpsk-256k_11.0dB.npy",
+      "perfil": "dbpsk-256k",
+      "ebn0_verdadeiro_db": 11.0,
+      "ebn0_medido_db": 11.0,
+      "ber": 6.453056167400881e-06,
+      "bits_comparados": 464896,
+      "per": 0.006607929515418502,
+      "goodput_bps": 230912.0,
+      "banda_khz": 294.8,
+      "perda_db": null
+    },
+    {
+      "captura": "gfsk-128k_10.0dB.npy",
+      "perfil": "gfsk-128k",
+      "ebn0_verdadeiro_db": 10.0,
+      "ebn0_medido_db": 10.0,
+      "ber": 0.0023618185572687224,
+      "bits_comparados": 232448,
+      "per": 0.920704845814978,
+      "goodput_bps": 9216.0,
+      "banda_khz": 211.0,
+      "perda_db": -0.3
+    },
+    {
+      "captura": "gfsk-128k_12.0dB.npy",
+      "perfil": "gfsk-128k",
+      "ebn0_verdadeiro_db": 12.0,
+      "ebn0_medido_db": 12.01,
+      "ber": 0.0001462692731277533,
+      "bits_comparados": 232448,
+      "per": 0.14096916299559473,
+      "goodput_bps": 99840.0,
+      "banda_khz": 217.7,
+      "perda_db": -0.1
+    },
+    {
+      "captura": "gfsk-128k_14.0dB.npy",
+      "perfil": "gfsk-128k",
+      "ebn0_verdadeiro_db": 14.0,
+      "ebn0_medido_db": 14.0,
+      "ber": 0.0,
+      "bits_comparados": 232448,
+      "per": 0.0,
+      "goodput_bps": 116224.0,
+      "banda_khz": 212.3,
+      "perda_db": null
+    },
+    {
+      "captura": "ook-128k_10.0dB.npy",
+      "perfil": "ook-128k",
+      "ebn0_verdadeiro_db": 10.0,
+      "ebn0_medido_db": 9.85,
+      "ber": 0.0030802588105726873,
+      "bits_comparados": 232448,
+      "per": 0.9295154185022027,
+      "goodput_bps": 8192.0,
+      "banda_khz": 143.7,
+      "perda_db": 0.27
+    },
+    {
+      "captura": "ook-128k_12.0dB.npy",
+      "perfil": "ook-128k",
+      "ebn0_verdadeiro_db": 12.0,
+      "ebn0_medido_db": 11.86,
+      "ber": 0.0002280079845814978,
+      "bits_comparados": 232448,
+      "per": 0.19823788546255505,
+      "goodput_bps": 93184.0,
+      "banda_khz": 143.8,
+      "perda_db": 0.37
+    },
+    {
+      "captura": "ook-128k_14.0dB.npy",
+      "perfil": "ook-128k",
+      "ebn0_verdadeiro_db": 14.0,
+      "ebn0_medido_db": 13.82,
+      "ber": 4.302037444933921e-06,
+      "bits_comparados": 232448,
+      "per": 0.004405286343612335,
+      "goodput_bps": 115712.0,
+      "banda_khz": 141.9,
+      "perda_db": null
+    },
+    {
+      "captura": "prova-b_04.0dB.npy",
+      "perfil": "prova-b",
+      "ebn0_verdadeiro_db": 4.0,
+      "ebn0_medido_db": 3.9,
+      "ber": 0.00020345052083333334,
+      "bits_comparados": 24576,
+      "per": 0.041666666666666664,
+      "goodput_bps": 11776.0,
+      "banda_khz": 186.0,
+      "perda_db": null
+    },
+    {
+      "captura": "prova-b_05.0dB.npy",
+      "perfil": "prova-b",
+      "ebn0_verdadeiro_db": 5.0,
+      "ebn0_medido_db": 5.26,
+      "ber": 0.0,
+      "bits_comparados": 24576,
+      "per": 0.0,
+      "goodput_bps": 12288.0,
+      "banda_khz": 1721.6,
+      "perda_db": null
+    },
+    {
+      "captura": "prova-b_06.0dB.npy",
+      "perfil": "prova-b",
+      "ebn0_verdadeiro_db": 6.0,
+      "ebn0_medido_db": 5.96,
+      "ber": 0.0,
+      "bits_comparados": 24576,
+      "per": 0.0,
+      "goodput_bps": 12288.0,
+      "banda_khz": 208.4,
+      "perda_db": null
+    }
+  ],
+  "erro_do_ebn0_medido_db": {
+    "mediana": -0.01,
+    "maximo_absoluto": 0.26
+  },
+  "versao_do_codigo": "bloco-19-2-gbbfa41b"
+}

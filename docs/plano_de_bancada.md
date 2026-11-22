@@ -40,7 +40,7 @@ Protocolo completo em [etapa5_software.md](etapa5_software.md), seção 6. Cada 
 | 2.2 | Taxa: DBPSK a 64, 128 e 256 kbit/s com a mesma potência | 3 | goodput cresce com a taxa até a PER subir | 15 min |
 | 2.3 | **Banda a 99% medida no RTL** com sinal forte, em cada perfil | 6 perfis | prova A abaixo de 1 MHz (esperado: 750 kHz); justifica o pulso (PUL-01) | 20 min |
 | 2.4 | Offset residual e deriva ao longo da sessão | junto com 2.1 | dentro de ±3 kHz (a grade do RX) | (junto) |
-| 2.5 | Relatório parcial da Etapa 5 | | simulação × teoria × medição com as diferenças explicadas (CMP-04) | fora da bancada |
+| 2.5 | `scripts/analisar_bancada.py` na pasta da sessão, depois o relatório parcial da Etapa 5 | | tabela e gráficos gerados dos registros; perda do enlace pequena e explicada; simulação × teoria × medição (CMP-04) | 5 min + fora da bancada |
 
 ## 4. Sessão 3: prova A na bancada (2 a 3 h)
 

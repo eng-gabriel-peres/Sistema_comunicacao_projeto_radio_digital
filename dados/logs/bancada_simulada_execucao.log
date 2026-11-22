@@ -1,0 +1,41 @@
+22/454 certos | PER 95.15% | goodput 11.3 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\dbpsk-256k_07.0dB_saida_avaliacao.json
+376/454 certos | PER 17.18% | goodput 192.5 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\dbpsk-256k_09.0dB_saida_avaliacao.json
+451/454 certos | PER 0.66% | goodput 230.9 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\dbpsk-256k_11.0dB_saida_avaliacao.json
+18/227 certos | PER 92.07% | goodput 9.2 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\gfsk-128k_10.0dB_saida_avaliacao.json
+195/227 certos | PER 14.10% | goodput 99.8 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\gfsk-128k_12.0dB_saida_avaliacao.json
+227/227 certos | PER 0.00% | goodput 116.2 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\gfsk-128k_14.0dB_saida_avaliacao.json
+16/227 certos | PER 92.95% | goodput 8.2 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\ook-128k_10.0dB_saida_avaliacao.json
+182/227 certos | PER 19.82% | goodput 93.2 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\ook-128k_12.0dB_saida_avaliacao.json
+226/227 certos | PER 0.44% | goodput 115.7 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\ook-128k_14.0dB_saida_avaliacao.json
+23/24 certos | PER 4.17% | goodput 11.8 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\prova-b_04.0dB_saida_avaliacao.json
+24/24 certos | PER 0.00% | goodput 12.3 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\prova-b_05.0dB_saida_avaliacao.json
+24/24 certos | PER 0.00% | goodput 12.3 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\prova-b_06.0dB_saida_avaliacao.json
+12 pontos; perda do enlace em relação à teoria: mediana de +0.07 dB (6 pontos com BER)
+Análise: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\sessao_simulada_20261122_153017\analise_bancada.md
+dbpsk-256k_07.0dB.npy: Eb/N0 7.0 -> 6.98 dB, BER 0.0036051073788546254, PER 0.9515418502202643, perda 0.05
+dbpsk-256k_09.0dB.npy: Eb/N0 9.0 -> 9.01 dB, BER 0.00020219575991189427, PER 0.17180616740088106, perda 0.08
+dbpsk-256k_11.0dB.npy: Eb/N0 11.0 -> 11.0 dB, BER 6.453056167400881e-06, PER 0.006607929515418502, perda None
+gfsk-128k_10.0dB.npy: Eb/N0 10.0 -> 10.0 dB, BER 0.0023618185572687224, PER 0.920704845814978, perda -0.3
+gfsk-128k_12.0dB.npy: Eb/N0 12.0 -> 12.01 dB, BER 0.0001462692731277533, PER 0.14096916299559473, perda -0.1
+gfsk-128k_14.0dB.npy: Eb/N0 14.0 -> 14.0 dB, BER 0.0, PER 0.0, perda None
+ook-128k_10.0dB.npy: Eb/N0 10.0 -> 9.85 dB, BER 0.0030802588105726873, PER 0.9295154185022027, perda 0.27
+ook-128k_12.0dB.npy: Eb/N0 12.0 -> 11.86 dB, BER 0.0002280079845814978, PER 0.19823788546255505, perda 0.37
+ook-128k_14.0dB.npy: Eb/N0 14.0 -> 13.82 dB, BER 4.302037444933921e-06, PER 0.004405286343612335, perda None
+prova-b_04.0dB.npy: Eb/N0 4.0 -> 3.9 dB, BER 0.00020345052083333334, PER 0.041666666666666664, perda None
+prova-b_05.0dB.npy: Eb/N0 5.0 -> 5.26 dB, BER 0.0, PER 0.0, perda None
+prova-b_06.0dB.npy: Eb/N0 6.0 -> 5.96 dB, BER 0.0, PER 0.0, perda None
+{"mediana": -0.01, "maximo_absoluto": 0.26}
+registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\bancada_simulada_20261122_153017.json
+evidências da sessão: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\bancada_simulada_20261122_153017

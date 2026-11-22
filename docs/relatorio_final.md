@@ -12,7 +12,7 @@ Estado em 22/11/2026, depois do bloco 18: **tudo o que dá para fazer sem hardwa
 | Reservas da prova A | `prova-a-fec` (DQPSK com FEC: 626 kbit/s com 12,9 dB de margem estimada na bancada) e `prova-a-dbpsk` (625 kbit/s, 9,6 dB); regra de troca objetiva no roteiro |
 | Perfil experimental | `prova-a-24`: DQPSK com o RTL a 2,4 MS/s, **1 427 kbit/s** na prova de 60 s simulada (+17%); depende de dois testes de bancada ([etapa6_taxa_24.md](etapa6_taxa_24.md)) |
 | Robustez | todos os perfis aguentam **±50 ppm** de diferença de relógio entre o Pluto e o RTL (esperado depois da calibração: cerca de 2 ppm); opção `--pre-gerar` contra o risco de o Python não alimentar o Pluto a tempo ([etapa6_robustez.md](etapa6_robustez.md)) |
-| Prova B (maior alcance) | perfil `prova-b`: **DBPSK com código convolucional K = 7, 25,6 kbit/s no ar**: goodput de 11,8 kbit/s, 500 pacotes em 43 s, **C/N0 necessário de 48,4 dB-Hz**, 25,0 dB menos que o `prova-a` com DQPSK (20,2 dB menos que o `prova-a-dbpsk`): cerca de 18 vezes a distância no espaço livre |
+| Prova B (maior alcance) | perfil `prova-b`: **DBPSK com código convolucional K = 7, 25,6 kbit/s no ar**: goodput de 11,8 kbit/s, 500 pacotes em 43 s, **C/N0 necessário de 48,2 dB-Hz** com o limiar de detecção de 0,4 (bloco 19), cerca de 25 dB menos que o `prova-a` com DQPSK (cerca de 20 dB menos que o `prova-a-dbpsk`): cerca de 18 vezes a distância no espaço livre |
 | Comparação com a OOK de referência | a referência entrega **7,3 kbit/s** no ar (21 bytes por quadro, 10 kbit/s, pulso retangular; captura real de 04/11). O `prova-a` chega a **1 218 kbit/s em simulação**, na mesma banda de 1 MHz. **Os dois números não vêm das mesmas condições** (um é medido, o outro simulado), e o enunciado pede a melhoria medida nas mesmas condições: essa medição é da bancada |
 | Simulação × teoria | BER de BPSK, DBPSK, DQPSK e 2-FSK a menos de 0,08 dB das fórmulas; a DQPSK bate com a fórmula exata (Marcum) a 0,5% |
 | Qualidade | 246 testes automáticos; portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; 25 tags, uma ou mais por bloco (de `bloco-00` a `bloco-18`); toda evidência com a versão do código que a gerou |
@@ -67,6 +67,7 @@ arquivo do avaliador ─► transmitir.py ─► Pluto ─► ar ─► RTL ─�
 | 17 | `bloco-17` | perfil experimental a 2,4 MS/s: 1 427 kbit/s (+17%) em simulação; ferramenta da faixa plana do RTL | [etapa6_taxa_24.md](etapa6_taxa_24.md) |
 | 18 | `bloco-18` | fechamento: relatório final e PDFs atualizados | este documento |
 | 19 | `bloco-19` | limiar de detecção de 0,4 na prova B com FEC: de 0,4 a 1 dB a mais de alcance | [etapa6_limiar.md](etapa6_limiar.md) |
+| 20 | `bloco-20` | análise automática da sessão de bancada: tabela, gráfico e perda do enlace; sessão simulada com os scripts da bancada (perda mediana de +0,07 dB) | [etapa5_analise_bancada.md](etapa5_analise_bancada.md) |
 
 ## 4. Resultados finais (ensaio geral, sem hardware)
 
@@ -87,7 +88,7 @@ A prova de 60 s simulada com cada perfil final, pelos comandos da prova, no cana
 | DBPSK 682,7 kbit/s (`prova-a-dbpsk`) | 68,7 dB-Hz | 9,6 dB |
 | DQPSK com FEC (`prova-a-fec`) | 65,4 dB-Hz | 12,9 dB |
 | DBPSK 12,8 kbit/s sem código (`prova-b-sem-fec`) | 51,3 dB-Hz | |
-| **DBPSK com FEC, 25,6 kbit/s no ar (`prova-b`)** | **48,4 dB-Hz** | |
+| **DBPSK com FEC, 25,6 kbit/s no ar (`prova-b`)** | **48,2 dB-Hz** (limiar 0,4; 48,4 com o limiar 0,5 no bloco 09) | |
 
 ## 5. O que funcionou
 

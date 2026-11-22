@@ -218,11 +218,11 @@ Legenda: ✅ atendido com evidência; 🟡 atendido em simulação ou em parte, 
 | CAL-03 | ⏳ | Erro do Pluto estimado em −9,5 ppm; decidir se ajusta o `xo_correction` (P3) | bancada |
 | MET-01, MET-02 | 🟡 | PER e goodput pela regra da seção 7 (`metricas.avaliar`, `scripts/avaliar.py`), validados em simulação; **falta medir** | 5, bancada |
 | MET-03 a MET-05 | 🟡 | BER com sequência conhecida, banda a 99% (com marcação de confiança) e Eb/N0 da captura; registro com perfil, contagens, offset e o ganho do RX da gravação; **falta medir** | 5, bancada |
-| CMP-01 | ❌ | Comparação **experimental** das três modulações: protocolo pronto (perfis `dbpsk-256k`, `gfsk-128k`, `ook-128k`) | bancada |
+| CMP-01 | ❌ | Comparação **experimental** das três modulações: protocolo pronto (perfis `dbpsk-256k`, `gfsk-128k`, `ook-128k`) e análise automática da sessão (`scripts/analisar_bancada.py`, bloco 20) | bancada |
 | CMP-02, CMP-03 | ✅ | BER × Eb/N0 simuladas contra a teoria; AWGN, fase, offset e temporização nas três modulações ([etapa4_canal.md](etapa4_canal.md)); diferença de relógio de amostragem: ±50 ppm sem perda ([etapa6_robustez.md](etapa6_robustez.md)) | 4 |
-| CMP-04 | 🟡 | Simulação × teoria pronto; **falta a medição** e a explicação das diferenças | 5, bancada |
+| CMP-04 | 🟡 | Simulação × teoria pronto; a análise da sessão já calcula a perda do enlace em relação à teoria ponto a ponto (+0,07 dB na sessão simulada, bloco 20); **falta a medição** e a explicação das diferenças | 5, bancada |
 | CMP-A | 🟡 | DQPSK a 1 365 kbit/s (`prova-a`): **1 217,8 kbit/s** de goodput e PER de 0,003% na prova de 60 s simulada; reservas `prova-a-fec` e `prova-a-dbpsk` com regra de troca ([roteiro_da_prova.md](roteiro_da_prova.md)) | 6, 7 |
-| CMP-B | 🟡 | DBPSK com FEC a 25,6 kbit/s no ar (`prova-b`): 11,8 kbit/s, 500 pacotes em 43 s, C/N0 necessário de 48,4 dB-Hz, **25,0 dB** abaixo do `prova-a` (20,2 dB abaixo do `prova-a-dbpsk`) | 6, 7 |
+| CMP-B | 🟡 | DBPSK com FEC a 25,6 kbit/s no ar (`prova-b`): 11,8 kbit/s, 500 pacotes em 43 s, C/N0 necessário de 48,2 dB-Hz com o limiar de detecção de 0,4 (bloco 19), **cerca de 25 dB** abaixo do `prova-a` (cerca de 20 dB abaixo do `prova-a-dbpsk`) | 6, 7 |
 | CMP-C | ⏳ | Tags por bloco (`bloco-00` a `bloco-15`); falta a tag da prova | 7 |
 | PRC-01 | ✅ | git, portão de qualidade em todo commit, perfis de configuração (A14) | todas |
 | PRC-02 | ❌ | **Registro de uso de IA vazio em todas as etapas**; tem de ser texto da equipe (P1) | todas |

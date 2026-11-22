@@ -1,0 +1,88 @@
+{
+  "captura": "dbpsk-256k_09.0dB.npy",
+  "versao_do_codigo": "bloco-19-2-gbbfa41b-sujo",
+  "parametros": {
+    "captura": "C:\\Users\\User\\Documents\\IFSC\\SISTEMA_COMUNICACAO\\Trabalho_SiSCOM\\Sistema_comunicacao_projeto_radio_digital\\dados\\capturas\\sessao_simulada_20261122_153017\\dbpsk-256k_09.0dB.npy",
+    "perfil": "dbpsk-256k",
+    "modulacao": "None",
+    "pulso": "None",
+    "taxa_bits": "None",
+    "beta": "None",
+    "taxa_sps": "None",
+    "deslocamento_hz": "None",
+    "lo_hz": "None",
+    "fec": "None",
+    "emendar_caudas": "None",
+    "limiar": "None",
+    "offset_max_hz": "3000.0",
+    "pasta": "None",
+    "ber": "True"
+  },
+  "perfil": {
+    "nome": "dbpsk-256k",
+    "modulacao": "dbpsk",
+    "pulso": "rrc",
+    "sps": 8,
+    "beta": 0.35,
+    "bt": 0.5,
+    "h": 1.0,
+    "taxa_sps": 2048000.0,
+    "deslocamento_hz": 250000.0,
+    "lo_hz": 919500000.0,
+    "fec": false,
+    "emendar_caudas": false,
+    "limiar": 0.5,
+    "descricao": "Bancada da Etapa 5: DBPSK RRC a 256 kbit/s"
+  },
+  "decimacao": 1,
+  "tempo_de_processamento_s": 2.3,
+  "duracao_s": 2.548,
+  "deteccoes": 460,
+  "crc_ok": 376,
+  "crc_falho": 84,
+  "cortados": 0,
+  "pacotes_aceitos": 376,
+  "repeticoes_descartadas": 0,
+  "offset_residual_mediano_hz": -1359.4,
+  "offset_residual_p5_p95_hz": [
+    -1931.9,
+    -815.9
+  ],
+  "metrica_minima_aceitos": 0.703,
+  "medidas_da_captura": {
+    "medido": true,
+    "banda_99_khz": 297.7,
+    "banda_99_limites_khz": [
+      99.3,
+      397.0
+    ],
+    "snr_na_captura_db": -0.4,
+    "banda_99_confiavel": true,
+    "ebn0_estimado_db": 9.01,
+    "amostras_de_ruido": 1021952,
+    "amostras_de_sinal": 4104158
+  },
+  "ber": {
+    "quadros_comparados": 454,
+    "quadros_com_crc_falho_comparados": 78,
+    "deteccoes_fora_de_posicao": 6,
+    "segmentos": 1,
+    "bits_comparados": 464896,
+    "bits_errados": 94,
+    "ber": 0.00020219575991189427
+  },
+  "gravacao": {
+    "encontrada": true,
+    "arquivo": "dbpsk-256k_09.0dB.json",
+    "metadados": {
+      "simulada": true,
+      "ebn0_verdadeiro_db": 9.0,
+      "centro_hz": 919500000.0,
+      "taxa_sps": 2048000.0,
+      "ganho_db": null,
+      "fracao_saturada": 0.0,
+      "amostras": 5218304
+    },
+    "avisos": []
+  }
+}
