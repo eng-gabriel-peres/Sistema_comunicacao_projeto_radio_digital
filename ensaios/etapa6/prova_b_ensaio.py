@@ -8,7 +8,13 @@ modulação mais sensível com a menor taxa que ainda dá 10 kbit/s de goodput.
 Candidatas a 2,048 MS/s: DBPSK RRC em 16, 12,8 e 11,6 kbit/s; GFSK e OOK a 12,8 kbit/s.
 Cada ponto: 400 quadros de 128 bytes um atrás do outro, receptor completo, com os
 defeitos medidos do enlace real (offset de −1,4 kHz que deriva 35 Hz/s, achado A18;
-atraso fracionário; DC de 0,008 do valor eficaz; imagem IQ a −45 dBc).
+DC de 0,008 do valor eficaz; imagem IQ a −45 dBc).
+
+A 12,8 kbit/s cada ponto tem cerca de 35 s de sinal (72 milhões de amostras): o canal
+é aplicado em blocos, direto num vetor complex64, para o pico de memória ficar perto
+de 1 GB. O atraso fracionário dos outros ensaios (0,37 amostra) ficou de fora: a 160
+amostras por bit ele é 0,2% de um bit, e o receptor estima o instante de qualquer
+jeito, porque a decimação por 20 deixa o início de cada quadro fracionário.
 
 Uso: python ensaios/etapa6/prova_b_ensaio.py
 """
@@ -20,7 +26,7 @@ from pathlib import Path
 
 import numpy as np
 
-from sdrlink import canal, metricas, receptor, transmissor
+from sdrlink import metricas, receptor, transmissor
 from sdrlink.modem import ConfigModem
 from sdrlink.receptor import ConfigReceptor
 from sdrlink.registro import carimbo_de_tempo, versao_do_codigo
@@ -49,25 +55,35 @@ CANDIDATAS = [
 ]
 
 
-def defeitos(x, rng):
-    """Atraso fracionário, offset com deriva linear, imagem IQ."""
-    t = np.arange(len(x)) / FS
-    fase = 2 * np.pi * (OFFSET_HZ * t + 0.5 * DERIVA_HZ_POR_S * t**2) + rng.uniform(0, 2 * np.pi)
-    y = canal.atrasar(x, 0.37) * np.exp(1j * fase)
-    return y + 10 ** (IMAGEM_DBC / 20) * np.conj(y)
+BLOCO = 2**22
+
+
+def captura(cm, ebn0_db, rng):
+    """0,1 s de ruído e os quadros, com offset que deriva, imagem IQ, ruído e DC (em blocos)."""
+    pacotes = transmissor.numerar([metricas.payload_conhecido(k) for k in range(QUADROS)])
+    s = np.concatenate([b for b, _ in transmissor.fluxo(pacotes, ConfigTransmissor(cm, FS, DESLOCAMENTO), 1e4)])
+    s = s[: np.flatnonzero(s)[-1] + 1]  # complex64
+    potencia = float(np.mean(np.abs(s) ** 2))
+    n0 = potencia * cm.sps / 10 ** (ebn0_db / 10)
+    antes = int(0.1 * FS)
+    x = np.zeros(antes + len(s), dtype=np.complex64)
+    x[antes:] = s
+    del s
+    fase0 = rng.uniform(0, 2 * np.pi)
+    dc = DC_RELATIVO * np.sqrt(potencia + n0)
+    for k in range(0, len(x), BLOCO):
+        t = np.arange(k, min(k + BLOCO, len(x))) / FS
+        fase = 2 * np.pi * (OFFSET_HZ * t + 0.5 * DERIVA_HZ_POR_S * t**2) + fase0
+        y = x[k : k + len(t)] * np.exp(1j * fase)
+        y = y + 10 ** (IMAGEM_DBC / 20) * np.conj(y)
+        y = y + np.sqrt(n0 / 2) * (rng.standard_normal(len(t)) + 1j * rng.standard_normal(len(t))) + dc
+        x[k : k + len(t)] = y
+    return x
 
 
 def per_do_receptor(cm, ebn0_db, rng):
     """PER, pacotes errados aceitos e tempo do RX por segundo de captura."""
-    pacotes = transmissor.numerar([metricas.payload_conhecido(k) for k in range(QUADROS)])
-    s = np.concatenate([b for b, _ in transmissor.fluxo(pacotes, ConfigTransmissor(cm, FS, DESLOCAMENTO), 1e4)])
-    s = s[: np.flatnonzero(s)[-1] + 1].astype(complex)
-    potencia = np.mean(np.abs(s) ** 2)
-    x = defeitos(np.concatenate([np.zeros(int(0.1 * FS)), s]), rng)
-    n0 = potencia * cm.sps / 10 ** (ebn0_db / 10)
-    x = x + np.sqrt(n0 / 2) * (rng.standard_normal(len(x)) + 1j * rng.standard_normal(len(x)))
-    x = (x + DC_RELATIVO * np.sqrt(np.mean(np.abs(x) ** 2))).astype(np.complex64)
-    del s
+    x = captura(cm, ebn0_db, rng)
     t0 = time.perf_counter()
     aceitos = receptor.pacotes_aceitos(receptor.receber(x, ConfigReceptor(cm, FS, DESLOCAMENTO)))
     tempo = (time.perf_counter() - t0) / (len(x) / FS)
