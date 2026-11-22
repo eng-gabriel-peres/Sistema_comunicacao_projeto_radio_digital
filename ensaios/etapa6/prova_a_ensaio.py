@@ -132,7 +132,7 @@ def main():
                 "ebn0_per_1pct_db": None if necessario is None else round(necessario, 2),
                 "ebn0_na_bancada_db": round(disponivel, 1),
                 "margem_db": None if necessario is None else round(disponivel - necessario, 1),
-                # período real do quadro no fluxo: 1 109 bits mais a cauda do pulso (13 bits no RRC)
+                # período real do quadro no fluxo: os bits do quadro mais 13 tempos de bit (referência e cauda do RRC)
                 "bits_por_quadro_no_fluxo": round(transmissor.amostras_por_quadro(cm) / sps, 1),
                 "goodput_sem_perda_kbps": round(FS * BITS_UTEIS / transmissor.amostras_por_quadro(cm) / 1e3, 1),
                 "rx_s_por_s": round(float(np.median([t for _, _, t in pontos])), 2),

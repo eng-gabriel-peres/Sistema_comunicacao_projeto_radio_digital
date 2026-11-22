@@ -30,7 +30,7 @@ from sdrlink.hw.pluto_tx import FUNDO_ESCALA_DAC
 from sdrlink.modem import ConfigModem
 from sdrlink.quadro import Pacote
 
-TAMANHO_PAYLOAD = 128  # bytes, payload da prova (seção 12)
+TAMANHO_PAYLOAD = quadro.PAYLOAD_PROVA_BYTES  # 128 bytes, payload da prova (seção 12)
 AMPLITUDE_PADRAO = 0.7 * 2**15  # pico do sinal: 70% do fundo de escala do DAC de 16 bits do Pluto
 
 BLOCO_PADRAO = 2**18  # amostras por bloco entregue ao Pluto (128 ms a 2,048 MS/s)
@@ -44,7 +44,7 @@ class ConfigTransmissor:
     """Parâmetros do transmissor de prova.
 
     Attributes:
-        modem: modulação e pulso (sps = amostras por bit na taxa do DAC).
+        modem: modulação e pulso (sps = amostras por símbolo na taxa do DAC).
         taxa_sps: taxa de amostragem do DAC (a mesma do RX, para sps inteiro dos dois lados).
         deslocamento_hz: posição do sinal em relação ao LO.
         amplitude: pico desejado do sinal, em unidades do DAC.
@@ -58,7 +58,7 @@ class ConfigTransmissor:
     deslocamento_hz: float = 250e3
     amplitude: float = AMPLITUDE_PADRAO
     fec: bool = False
-    emendar_caudas: bool = False  # o ensaio do bloco 12 decide se vale ligar
+    emendar_caudas: bool = False  # ligada pelos perfis da prova A (bloco 12)
 
     def __post_init__(self) -> None:
         """Rejeita parâmetros incoerentes.
@@ -152,11 +152,12 @@ def fluxo(
     """Blocos de tamanho fixo do sinal transmitido e os pacotes que começaram em cada bloco.
 
     Os quadros vão um atrás do outro (a guarda de 16 bits do quadro separa um do
-    outro). Nas modulações lineares o quadro seguinte começa logo depois do último
-    símbolo do anterior, e as caudas do pulso se somam (bloco 12): o sinal fica igual
-    ao de uma modulação contínua, e os 12 símbolos de cauda por quadro deixam de ser
-    tempo morto. Na 2-FSK a fase é contínua dentro do quadro, e somar as caudas não
-    teria o mesmo efeito: os quadros continuam encostados, sem sobreposição. Um pacote
+    outro). Com config.emendar_caudas, nas modulações lineares, o quadro seguinte
+    começa logo depois do último símbolo do anterior e as caudas do pulso se somam
+    (bloco 12): o sinal fica igual ao de uma modulação contínua, e os 12 símbolos de
+    cauda por quadro deixam de ser tempo morto. Sem a opção, e sempre na 2-FSK (a
+    fase é contínua dentro do quadro, e somar as caudas não teria o mesmo efeito), os
+    quadros vão encostados, sem sobreposição. Um pacote
     só começa se a sua primeira amostra cair antes de duracao_s; o último bloco é
     completado com zeros.
 
@@ -244,8 +245,10 @@ def amostras_por_quadro(
 ) -> int:
     """Período entre quadros consecutivos no fluxo do TX, em amostras.
 
-    Nas modulações lineares a cauda do pulso se sobrepõe ao quadro seguinte (fluxo):
-    o período é o número de símbolos do quadro, mais o de referência, vezes sps.
+    Sem emenda, é a forma de onda inteira de um quadro: os símbolos, o de referência
+    da modulação diferencial e os 12 da cauda do pulso, vezes sps. Com emendar_caudas
+    (só nas modulações lineares) a cauda se sobrepõe ao quadro seguinte e o período
+    perde os 12 símbolos de cauda.
     """
     vazio = quadro.montar_quadro(Pacote(0, bytes(tamanho_payload)), fec)
     onda = modem.modular(vazio, config, quadro.BITS_PREFIXO)

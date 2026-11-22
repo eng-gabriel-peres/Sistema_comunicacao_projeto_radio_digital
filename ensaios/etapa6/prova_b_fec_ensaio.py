@@ -6,8 +6,9 @@ DC de 0,008 do valor eficaz, imagem IQ a −45 dBc. O Eb/N0 da varredura é por 
 no ar; o C/N0 necessário é Eb/N0 (no ar) para PER de 1% + 10 log10(taxa no ar).
 
 Candidatas (DBPSK RRC com FEC, a 2,048 MS/s), as duas taxas que dão 10 kbit/s:
-    25,6 kbit/s no ar (80 amostras por bit): goodput sem perdas de 11,9 kbit/s
+    25,6 kbit/s no ar (80 amostras por bit): goodput sem perdas de 11,8 kbit/s
     23,3 kbit/s no ar (88 amostras por bit): goodput sem perdas de 10,8 kbit/s
+(com o quadro v3; o registro de 22/11 foi feito com o v2: 11,9 e 10,8 kbit/s)
 A comparação sem código vem do registro mais recente de prova_b_ensaio.py.
 
 Uso: python ensaios/etapa6/prova_b_fec_ensaio.py

@@ -37,7 +37,8 @@ Sinal = NDArray[np.complex128]
 MODULACOES = ("ook", "bpsk", "dbpsk", "dqpsk", "fsk")
 # DQPSK, Gray: o par (b1, b2) gira a fase de GIROS_DQPSK[2 b1 + b2]
 GIROS_DQPSK = np.exp(1j * np.pi / 2 * np.array([0, 1, 3, 2]))  # 00: 0, 01: 90, 10: 270, 11: 180
-PULSOS_LINEARES = ("retangular", "rrc")  # OOK, BPSK, DBPSK: pulso de símbolo
+PULSOS_LINEARES = ("retangular", "rrc")  # OOK, BPSK, DBPSK, DQPSK: pulso de símbolo
+BITS_POR_SIMBOLO = {"dqpsk": 2}  # as outras levam 1 bit por símbolo
 PULSOS_FSK = ("retangular", "gaussiano")  # 2-FSK: pulso de frequência
 ITERACOES_LIMIAR = 20
 H_MAX = 2.0  # índice de modulação máximo aceito
@@ -48,7 +49,7 @@ class ConfigModem:
     """Escolha da modulação e do pulso.
 
     Attributes:
-        modulacao: "ook", "bpsk", "dbpsk" ou "fsk".
+        modulacao: "ook", "bpsk", "dbpsk", "dqpsk" ou "fsk".
         pulso: "retangular" ou "rrc" (lineares); "retangular" ou "gaussiano" (fsk).
         sps: amostras por símbolo.
         beta: fator de rolagem do RRC.
@@ -92,7 +93,12 @@ class ConfigModem:
     @property
     def bits_por_simbolo(self) -> int:
         """Bits levados por símbolo no corpo: 2 na DQPSK, 1 nas outras."""
-        return 2 if self.modulacao == "dqpsk" else 1
+        return bits_por_simbolo_de(self.modulacao)
+
+
+def bits_por_simbolo_de(modulacao: str) -> int:
+    """Bits por símbolo no corpo do quadro: 2 na DQPSK, 1 nas outras."""
+    return BITS_POR_SIMBOLO.get(modulacao, 1)
 
 
 def simbolos(n_bits: int, config: ConfigModem, prefixo: int = 0) -> int:
@@ -183,7 +189,7 @@ def _limiar_dois_niveis(valores: NDArray[np.float64]) -> float:
 
 
 def saida_casada(amostras: Sinal, config: ConfigModem, n_simbolos: int) -> Sinal:
-    """Saída do filtro casado no instante ótimo de cada símbolo (OOK, BPSK, DBPSK).
+    """Saída do filtro casado no instante ótimo de cada símbolo (OOK, BPSK, DBPSK, DQPSK).
 
     Raises:
         ValueError: sinal curto demais para n_simbolos.

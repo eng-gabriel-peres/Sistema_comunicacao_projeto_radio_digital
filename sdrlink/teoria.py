@@ -99,5 +99,6 @@ BER_TEORICA = {
     "ook": ber_ook_nao_coerente,
     "bpsk": ber_bpsk,
     "dbpsk": ber_dbpsk,
+    "dqpsk": ber_dqpsk,
     "fsk": ber_fsk_nao_coerente,
 }

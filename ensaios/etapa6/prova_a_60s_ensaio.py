@@ -36,7 +36,7 @@ OFFSET_HZ = -1400.0
 DC_RELATIVO = 0.008
 IMAGEM_DBC = -45.0
 BLOCO = 2**22
-PAYLOADS = 100_000  # mais do que cabe em 60 s: 36 500 na DBPSK, 70 400 na DQPSK (com 60 000 o TX
+PAYLOADS = 100_000  # mais do que cabe em 60 s: 36 637 na DBPSK, 71 359 na DQPSK (perfis com emenda) (com 60 000 o TX
 # da DQPSK ficou sem payloads aos 51 s; na prova, conferir o tamanho do arquivo do avaliador)
 SEMENTE = 20261122
 LIMITE_RX_S = 600.0

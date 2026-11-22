@@ -149,7 +149,7 @@ O Eb/N0 de 11 dB fica 0,7 dB acima do necessário para PER de 1% e 8,9 dB abaixo
 
 **Correção feita durante esta etapa:** a primeira versão da varredura calculava o goodput sem perdas com 1 109 bits por quadro e dava 630,3 kbit/s. A prova de 60 s mostrou 36 507 quadros em 60 s, menos que os cerca de 36 930 que essa conta previa. A diferença é a cauda do RRC (13 tempos de bit por quadro, 1,2%). O ensaio passou a usar o período real do quadro no fluxo (`transmissor.amostras_por_quadro`).
 
-**Ganho possível (não feito):** emendar a cauda do RRC de um quadro no começo do seguinte, em vez de esperar ela terminar, recupera esses 1,2% (cerca de 7 kbit/s). Fica para depois de confirmar a configuração no ar.
+**Ganho possível (feito no bloco 12, [etapa6_emenda.md](etapa6_emenda.md)):** emendar a cauda do RRC de um quadro no começo do seguinte, em vez de esperar ela terminar, recupera esses 1,2% (cerca de 7 kbit/s). Fica para depois de confirmar a configuração no ar.
 
 ## 5. Testes
 
@@ -182,6 +182,8 @@ Testes de mutante (cada decisão desligada de propósito):
 O último mutante sobreviveu na primeira versão dos testes. Com β = 0,35 a banda do `prova-a` é de 792 kHz, e o teste só exigia menos de 800 kHz. O teste passou a conferir o modem montado pelo perfil e a banda de 749 kHz com tolerância de 5 kHz.
 
 ## 6. O que falta na bancada
+
+> **Atualização (blocos 10 a 13):** o `prova-a` hoje é a DQPSK, e a regra de troca na bancada é a do [roteiro da prova](roteiro_da_prova.md), seção 3.1 (DQPSK, depois DQPSK com FEC, depois a DBPSK desta página, que virou o `prova-a-dbpsk`). Os itens abaixo continuam valendo para a DBPSK.
 
 1. Medir a banda a 99% do perfil `prova-a` no RTL (`receber.py` já calcula) e conferir os 749 kHz.
 2. Transmitir 60 s com o perfil `prova-a` na distância da prova e avaliar PER e goodput. Se a PER passar de 1%, descer para 512 kbit/s (`--taxa-bits 512e3`) ou para o perfil `dbpsk-256k`.

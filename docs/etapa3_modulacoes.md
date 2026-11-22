@@ -129,9 +129,9 @@ Leituras:
 
 | # | Achado | O que foi feito |
 |:-:|---|---|
-| — | O RRC truncado em 8 símbolos deixava até 3,4% de interferência entre símbolos no instante ótimo (encontrado por um teste novo) | Duração padrão passou a 12 símbolos: 0,4% |
+| (sem número) | O RRC truncado em 8 símbolos deixava até 3,4% de interferência entre símbolos no instante ótimo (encontrado por um teste novo) | Duração padrão passou a 12 símbolos: 0,4% |
 | A21 | A banda a 99% medida no RTL é limitada a cerca de ±1 MHz pela taxa de amostragem e atenuada nas bordas pelo filtro anti-aliasing | Medir só sinais de banda estreita (RRC e gaussiano) e posicioná-los longe do DC e das bordas; registrado para a Etapa 5 |
-| — | Com pulso retangular, nenhuma modulação passa de cerca de 104 kbit/s em 1 MHz | Pulso retangular descartado para as provas; RRC e gaussiano adotados |
+| (sem número) | Com pulso retangular, nenhuma modulação passa de cerca de 104 kbit/s em 1 MHz | Pulso retangular descartado para as provas; RRC e gaussiano adotados |
 
 ## 8. Testes
 
@@ -141,7 +141,7 @@ São 24 testes em `tests/test_modem.py`. O total do projeto passou a 109.
 |---|---|
 | `test_pulsos_tem_energia_ou_area_unitaria_e_rrc_casado_sem_isi` | normalização dos pulsos e RRC casado sem interferência entre símbolos |
 | `test_ida_e_volta_sem_ruido` (8 combinações) | modular e demodular devolve os mesmos bits |
-| `test_quadro_v2_passa_pela_cadeia_com_ruido` (8 combinações) | quadro v2 com 128 bytes passa pela cadeia com ruído e o CRC confere |
+| `test_quadro_passa_pela_cadeia_com_ruido` (8 combinações; chamava-se `test_quadro_v2_...` até o bloco 15) | quadro v2 com 128 bytes passa pela cadeia com ruído e o CRC confere |
 | `test_ber_da_bpsk_coerente_bate_com_a_teoria` | 200 000 bits a 6 dB: BER dentro de 15% de Q(√(2Eb/N0)) |
 | `test_bpsk_coerente_precisa_da_fase_e_dbpsk_nao` | com 90° de erro de fase a BPSK falha e a DBPSK não |
 | `test_ook_independe_da_amplitude_e_da_fase` | limiar da OOK se adapta ao nível do sinal |

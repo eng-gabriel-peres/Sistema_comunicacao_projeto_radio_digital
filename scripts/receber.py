@@ -5,7 +5,7 @@ Saídas, ao lado da captura (ou na pasta --pasta):
     <nome>_rx.json    parâmetros, versão do código e números da recepção (seção 7 do enunciado)
 
 O registro traz também a banda a 99% e o Eb/N0 medidos na captura, quando há pelo
-menos uns 20 ms de ruído antes do primeiro quadro (comece a gravar antes do TX), e,
+menos 0,2 s de ruído antes do primeiro quadro (comece a gravar antes do TX), e,
 com --ber, a BER com sequência conhecida (o TX precisa usar os payloads de
 scripts/gerar_payloads.py --conhecidos).
 
@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import json
 import sys
 import time
 from pathlib import Path
@@ -46,6 +47,39 @@ def _argumentos() -> tuple[argparse.Namespace, Perfil]:
     )
     args = p.parse_args()
     return args, perfil_dos_argumentos(p, args)
+
+
+TOLERANCIA_FREQUENCIA_HZ = 1.0
+
+
+def _gravacao(captura: Path, perfil: Perfil) -> dict[str, object]:
+    """Metadados da gravação (o JSON que o gravar_iq.py deixa ao lado da captura).
+
+    O enunciado (seção 7) pede o ganho do RX e os parâmetros no registro do ensaio:
+    eles vêm daqui. Avisa se a captura foi gravada com outro centro ou outra taxa que
+    não os do perfil, ou com amostras saturadas.
+    """
+    arquivo = captura.with_suffix(".json")
+    if not arquivo.exists():
+        return {"encontrada": False, "arquivo": arquivo.name}
+    metadados = json.loads(arquivo.read_text(encoding="utf-8"))
+    avisos = []
+    centro, taxa = metadados.get("centro_hz"), metadados.get("taxa_sps")
+    if isinstance(centro, int | float) and abs(centro - perfil.lo_hz) > TOLERANCIA_FREQUENCIA_HZ:
+        avisos.append(
+            f"gravada com centro em {centro / 1e6:.6f} MHz; "
+            f"o perfil usa LO em {perfil.lo_hz / 1e6:.6f} MHz"
+        )
+    if isinstance(taxa, int | float) and abs(taxa - perfil.taxa_sps) > TOLERANCIA_FREQUENCIA_HZ:
+        avisos.append(
+            f"gravada a {taxa / 1e6:.4f} MS/s; o perfil usa {perfil.taxa_sps / 1e6:.4f} MS/s"
+        )
+    saturada = metadados.get("fracao_saturada")
+    if isinstance(saturada, int | float) and saturada > 0:
+        avisos.append(f"{100 * saturada:.3f}% das amostras saturadas: baixar o ganho do RX")
+    for aviso in avisos:
+        print(f"AVISO: {aviso}")
+    return {"encontrada": True, "arquivo": arquivo.name, "metadados": metadados, "avisos": avisos}
 
 
 def _mostrar_medidas(medidas: dict[str, object]) -> None:
@@ -107,6 +141,7 @@ def main() -> int:
         **receptor.resumo(deteccoes, len(amostras) / perfil.taxa_sps),
         "medidas_da_captura": medidas,
         "ber": ber,
+        "gravacao": _gravacao(args.captura, perfil),
     }
     caminho = salvar_json(pasta / f"{nome}_rx.json", registro)
     print(f"{registro['pacotes_aceitos']} pacotes aceitos em {tempo:.1f} s")

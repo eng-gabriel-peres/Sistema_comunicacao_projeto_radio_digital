@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from sdrlink import config, transmissor
@@ -285,3 +286,93 @@ def test_transmitir_avisa_quando_faltam_payloads(tmp_path: Path) -> None:
     assert (
         registro["payloads_suficientes"] is False and registro["pacotes_que_cabem_na_janela"] == 48
     )
+
+
+@pytest.mark.parametrize("perfil", ["prova-a", "prova-b"])
+def test_receber_mede_ber_banda_e_ebn0_com_os_perfis_da_prova(tmp_path: Path, perfil: str) -> None:
+    # de ponta a ponta: payloads conhecidos, TX do perfil, ruído antes e depois, receber --ber;
+    # cobre o período com emenda (prova-a, DQPSK) e com FEC (prova-b) na BER e na medida
+    escolhido = config.perfil(perfil)
+    payloads = tmp_path / "conhecidos.bin"
+    gerado = _rodar("gerar_payloads.py", "--conhecidos", "200", str(payloads))
+    assert gerado.returncode == 0, gerado.stderr
+    sinal = tmp_path / "tx.npy"
+    duracao = "0.06" if perfil == "prova-a" else "0.3"
+    tx = _rodar(
+        "transmitir.py",
+        str(payloads),
+        "--perfil",
+        perfil,
+        "--duracao-s",
+        duracao,
+        "--simular",
+        str(sinal),
+        "--pasta",
+        str(tmp_path),
+    )
+    assert tx.returncode == 0, tx.stderr
+    s = np.load(sinal).astype(complex)
+    s = s[: np.flatnonzero(s)[-1] + 1]
+    ebn0_por_bit = 14.0
+    amostras_por_bit = escolhido.taxa_sps / escolhido.taxa_bits
+    n0 = np.mean(np.abs(s) ** 2) * amostras_por_bit / 10 ** (ebn0_por_bit / 10)
+    margem = np.zeros(int(0.3 * escolhido.taxa_sps), dtype=complex)
+    x = np.concatenate([margem, s, margem])
+    rng = np.random.default_rng(5)
+    x = x + np.sqrt(n0 / 2) * (rng.standard_normal(len(x)) + 1j * rng.standard_normal(len(x)))
+    captura = tmp_path / "cap.npy"
+    np.save(captura, x.astype(np.complex64))
+    rx = _rodar("receber.py", str(captura), "--perfil", perfil, "--ber")
+    assert rx.returncode == 0, rx.stderr
+    registro = json.loads((tmp_path / "cap_rx.json").read_text(encoding="utf-8"))
+    enviados = next(tmp_path.glob("tx_*.txt")).read_text(encoding="utf-8").count("\n")
+    assert registro["ber"]["quadros_comparados"] == enviados
+    assert registro["ber"]["bits_errados"] == 0
+    medidas = registro["medidas_da_captura"]
+    assert medidas["ebn0_estimado_db"] == pytest.approx(ebn0_por_bit, abs=0.6)  # por bit no ar
+    assert "snr_na_captura_db" in medidas
+    if perfil == "prova-a":  # na B, a 14 dB por bit, a SNR na captura fica em -5,0 dB: no limite
+        assert medidas["banda_99_confiavel"] is True
+    if escolhido.fec:  # por bit útil: o código de taxa 1/2 com cauda soma cerca de 3 dB
+        assert medidas["ebn0_por_bit_util_db"] == pytest.approx(ebn0_por_bit + 3.03, abs=0.6)
+    else:
+        assert "ebn0_por_bit_util_db" not in medidas
+
+
+def test_receber_junta_os_metadados_da_gravacao_e_avisa_divergencias(tmp_path: Path) -> None:
+    # o ganho do RX vem do JSON do gravar_iq.py (seção 7 do enunciado); centro errado vira aviso
+    payloads = tmp_path / "p.bin"
+    payloads.write_bytes(bytes(128) * 60)
+    captura = tmp_path / "cap.npy"
+    tx = _rodar(
+        "transmitir.py",
+        str(payloads),
+        "--perfil",
+        "prova-a",
+        "--duracao-s",
+        "0.02",
+        "--simular",
+        str(captura),
+        "--pasta",
+        str(tmp_path),
+    )
+    assert tx.returncode == 0, tx.stderr
+    metadados = {
+        "centro_hz": 919.6e6,
+        "taxa_sps": 2.048e6,
+        "ganho_db": 30.0,
+        "correcao_ppm": 84,
+        "fracao_saturada": 0.0,
+    }
+    captura.with_suffix(".json").write_text(json.dumps(metadados), encoding="utf-8")
+    rx = _rodar("receber.py", str(captura), "--perfil", "prova-a")
+    assert rx.returncode == 0, rx.stderr
+    assert "AVISO: gravada com centro em 919.600000 MHz" in rx.stdout
+    registro = json.loads((tmp_path / "cap_rx.json").read_text(encoding="utf-8"))
+    assert registro["gravacao"]["metadados"]["ganho_db"] == 30.0
+    assert len(registro["gravacao"]["avisos"]) == 1
+    captura.with_suffix(".json").unlink()
+    sem = _rodar("receber.py", str(captura), "--perfil", "prova-a")
+    assert sem.returncode == 0, sem.stderr
+    registro = json.loads((tmp_path / "cap_rx.json").read_text(encoding="utf-8"))
+    assert registro["gravacao"]["encontrada"] is False

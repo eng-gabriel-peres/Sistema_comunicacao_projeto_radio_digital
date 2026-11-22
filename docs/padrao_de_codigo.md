@@ -70,3 +70,14 @@ Exemplo: `feat(quadro): adiciona número de sequência de 16 bits (PKT-01)`.
 4. Evidência guardada (gráfico, log, captura) quando o bloco envolve medição.
 5. Uso de IA anotado em `docs/registro_ia.md`.
 6. Merge na `main` e tag do bloco.
+
+## 6. Onde o projeto se desviou deste padrão (auditoria do bloco 15)
+
+| Regra | O que aconteceu | Situação |
+|---|---|---|
+| Tag `etapaN` em cada entrega (seção 3) | só foram criadas tags `bloco-NN`; cada PDF de entrega traz na capa a versão do código de quando foi gerado (`git describe`) | desvio aceito; a tag obrigatória antes da prova continua valendo |
+| Formato `tipo(área): ...` (seção 4) | a maioria dos commits usa uma frase descritiva em português, sem o prefixo | desvio aceito; as mensagens descrevem o que mudou e por quê |
+| Uso de IA anotado em `registro_ia.md` (seção 5, item 5) | **não foi feito em nenhum bloco** | **pendente**: é exigência do enunciado (PRC-02) e tem de ser texto da equipe |
+| Matriz de rastreabilidade atualizada a cada bloco (seção 5, item 3) | ficou desatualizada entre 04/11 e 22/11 | corrigida no bloco 15 |
+| Portão de qualidade em todo commit | um commit intermediário do bloco 10 foi feito sem o portão (`--no-verify`) | corrigido no commit seguinte; registrado no relatório final |
+

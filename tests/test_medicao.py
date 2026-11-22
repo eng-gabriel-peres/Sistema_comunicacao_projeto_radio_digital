@@ -159,3 +159,19 @@ def test_banda_de_sinal_estreito_e_fraco_vem_marcada_como_nao_confiavel() -> Non
     assert resultados[6.0]["snr_na_captura_db"] == pytest.approx(-13.0, abs=0.7)
     assert resultados[20.0]["banda_99_confiavel"] is True
     assert resultados[20.0]["banda_99_khz"] == pytest.approx((alto - baixo) / 1e3, rel=0.05)
+
+
+def test_ebn0_da_captura_e_por_bit_tambem_na_dqpsk() -> None:
+    # na DQPSK a taxa de bits é o dobro da de símbolos: a medida usa a taxa de bits
+    cm = ConfigModem("dqpsk", "rrc", 4)
+    tx = ConfigTransmissor(cm, FS, 250e3)
+    pacotes = transmissor.numerar([metricas.payload_conhecido(k) for k in range(80)])
+    sinal = np.concatenate([b for b, _ in transmissor.fluxo(pacotes, tx, 10.0)]).astype(complex)
+    sinal = sinal[: np.flatnonzero(sinal)[-1] + 1]
+    ruido = int(0.3 * FS)
+    rng = np.random.default_rng(12)
+    n0 = np.mean(np.abs(sinal) ** 2) * (cm.sps / 2) / 10 ** (9.0 / 10)  # 9 dB por bit
+    x = np.concatenate([np.zeros(ruido), sinal])
+    x = x + np.sqrt(n0 / 2) * (rng.standard_normal(len(x)) + 1j * rng.standard_normal(len(x)))
+    r = medicao.medir_captura(x, ruido, len(x), FS, tx.taxa_bits)
+    assert r["ebn0_estimado_db"] == pytest.approx(9.0, abs=0.3)

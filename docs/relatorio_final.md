@@ -10,8 +10,8 @@ Estado em 22/11/2026: **tudo o que dá para fazer sem hardware está feito e val
 |---|---|
 | Prova A (maior goodput) | perfil `prova-a`: **DQPSK, RRC β = 0,25, 1 365 kbit/s no ar**, caudas emendadas. Na prova de 60 s simulada com os comandos da prova: **1 217,8 kbit/s de goodput**, PER de 0,003%, banda a 99% de 748,6 kHz, RX em 75 s |
 | Reservas da prova A | `prova-a-fec` (DQPSK com FEC: 626 kbit/s com 12,9 dB de margem estimada na bancada) e `prova-a-dbpsk` (625 kbit/s, 9,6 dB); regra de troca objetiva no roteiro |
-| Prova B (maior alcance) | perfil `prova-b`: **DBPSK com código convolucional K = 7, 25,6 kbit/s no ar**: goodput de 11,8 kbit/s, 500 pacotes em 43 s, **C/N0 necessário de 48,4 dB-Hz**, 20,2 dB menos que o `prova-a` (cerca de 10 vezes a distância no espaço livre) |
-| Comparação com a OOK de referência | a referência entrega **7,3 kbit/s** (21 bytes por quadro, 10 kbit/s, pulso retangular; captura real de 04/11). O `prova-a` chega a **1 218 kbit/s em simulação, cerca de 167 vezes**, na mesma banda de 1 MHz |
+| Prova B (maior alcance) | perfil `prova-b`: **DBPSK com código convolucional K = 7, 25,6 kbit/s no ar**: goodput de 11,8 kbit/s, 500 pacotes em 43 s, **C/N0 necessário de 48,4 dB-Hz**, 25,0 dB menos que o `prova-a` com DQPSK (20,2 dB menos que o `prova-a-dbpsk`): cerca de 18 vezes a distância no espaço livre |
+| Comparação com a OOK de referência | a referência entrega **7,3 kbit/s** no ar (21 bytes por quadro, 10 kbit/s, pulso retangular; captura real de 04/11). O `prova-a` chega a **1 218 kbit/s em simulação**, na mesma banda de 1 MHz. **Os dois números não vêm das mesmas condições** (um é medido, o outro simulado), e o enunciado pede a melhoria medida nas mesmas condições: essa medição é da bancada |
 | Simulação × teoria | BER de BPSK, DBPSK, DQPSK e 2-FSK a menos de 0,08 dB das fórmulas; a DQPSK bate com a fórmula exata (Marcum) a 0,5% |
 | Qualidade | 235 testes automáticos; portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; 21 tags, uma ou mais por bloco (de `bloco-00` a `bloco-14-rev2`); toda evidência com a versão do código que a gerou |
 | Falta | bancada: o enlace no ar com o quadro v3, as medições da Etapa 5, e as provas (seção 8) |
@@ -60,6 +60,7 @@ arquivo do avaliador ─► transmitir.py ─► Pluto ─► ar ─► RTL ─�
 | 12 | `bloco-12` | caudas do RRC emendadas: +2,1% de goodput na DQPSK | [etapa6_emenda.md](etapa6_emenda.md) |
 | 13 | `bloco-13` | roteiro da prova e ensaio geral com os quatro perfis finais | [roteiro_da_prova.md](roteiro_da_prova.md) |
 | 14 | `bloco-14-rev2` | este relatório final consolidado | este documento |
+| 15 | `bloco-15` | auditoria completa contra o enunciado, do código e dos documentos; correções; plano de bancada | [auditoria_final.md](auditoria_final.md), [plano_de_bancada.md](plano_de_bancada.md) |
 
 ## 4. Resultados finais (ensaio geral, sem hardware)
 
@@ -118,7 +119,7 @@ A prova de 60 s simulada com cada perfil final, pelos comandos da prova, no cana
 | B5 | 10 | **a sequência de 16 bits dava a volta em 60 s** na DQPSK: 4 839 pacotes com "conteúdo diferente", PER de 6,9% (desclassificação) | prova de 60 s simulada | **quadro v3, sequência de 24 bits** |
 | B6 | 10 | o ensaio gerava 60 000 payloads, menos do que a DQPSK manda em 60 s | prova de 60 s simulada | 100 000 payloads; o TX passou a **avisar** quando o arquivo não enche a janela |
 | B7 | 10 | quatro testes passavam pela semente (offset a 300 Hz por quadro, centro da banda, GFSK com DC, instante com FEC) | mudança de formato que trocou todos os bits | testes reescritos a partir da distribuição em várias sementes |
-| B8 | 13 | **banda medida de 1 884 kHz** num sinal de 30 kHz, com SNR de −13 dB na captura | ensaio geral da prova B | a medida marca "não confiável" abaixo de −5 dB; medir na posição mais próxima |
+| B8 | 13 | **banda medida de 266 kHz** num sinal de 30 kHz, com SNR de −13 dB na captura; na mesma condição, com outras sementes, de 27 a 1 884 kHz | ensaio geral da prova B; depois o ensaio `banda_snr` (bloco 15) | a medida marca "não confiável" abaixo de −5 dB; medir na posição mais próxima |
 
 E falhas de processo, registradas nos blocos: um commit intermediário feito sem o portão (bloco 10, corrigido no commit seguinte); dois ensaios disparados sem aviso de término e vigiados depois; o computador desligou no meio de uma varredura (bloco 08), refeita com pico de memória de 1,1 GB. No bloco 14 uma cadeia de comandos seguiu depois de o lint barrar o commit, e a tag `bloco-14` foi criada e publicada no commit do bloco 13; como tag publicada não se move, a do bloco 14 é a `bloco-14-rev2` (a mesma convenção de `bloco-01-rev2` e `bloco-02-rev3`). Depois, a pedido, a `bloco-14` errada foi apagada, junto com a `bloco-06-rx-rapido` (uma tag leve do bloco 06, que o `git describe` ignorava; a anotada é a `bloco-06`).
 
@@ -151,7 +152,7 @@ E falhas de processo, registradas nos blocos: um commit intermediário feito sem
 | Implementação e comparação das modulações (20%) | OOK, 2-FSK, DBPSK e DQPSK implementadas; simulação × teoria a menos de 0,08 dB; BPSK coerente comparada e justificada | a **medição** de cada uma no ar e a comparação simulação × teoria × medição |
 | Confiabilidade da recepção e desafios do enlace (15%) | offset, fase e instante estimados por quadro; calibração registrada; 31 defeitos diagnosticados com evidência (seção 6) | confirmar no ar |
 | Caracterização experimental e métricas (20%) | ferramentas de PER, goodput, BER, banda e Eb/N0 validadas contra o valor verdadeiro; protocolo pronto | as medições |
-| Otimização e desempenho (15%) | 1 218 kbit/s contra 7,3 kbit/s da referência em simulação; prova B com 20 dB a menos de C/N0 que a prova A; limites de banda e de tempo atendidos | a melhoria **medida** nas mesmas condições da referência |
+| Otimização e desempenho (15%) | 1 218 kbit/s contra 7,3 kbit/s da referência em simulação; prova B com 25 dB a menos de C/N0 que a prova A; limites de banda e de tempo atendidos | a melhoria **medida** nas mesmas condições da referência |
 | Processo e entregas (10%) | entregas por etapa com relatório; 235 testes, portão e mutantes; tags por bloco | **registro de IA vazio**; Etapas 1, 2 e 3 entregues fora do prazo |
 | Relatório técnico e análise de falhas (10%) | este documento e os de cada bloco, com as falhas e as correções | a parte medida |
 | Defesa oral individual (10%) | cada documento explica o porquê de cada escolha | estudar os blocos (seção 10) |
@@ -168,7 +169,7 @@ Perguntas prováveis, com o ponto central da resposta e onde está o detalhe:
 | Por que CRC-16 e por que ele cobre o cabeçalho? | CRC-8 deixa passar 1 em 256 quadros ruins; com o cabeçalho coberto um comprimento errado não gera pacote falso | 3a |
 | Por que a sequência tem 24 bits? | a 1,2 Mbit/s a de 16 bits dava a volta dentro dos 60 s e o avaliador contaria os pacotes da 2ª volta como errados | bloco 10 |
 | Como o FEC ganha alcance se dobra a taxa? | a taxa no ar dobra (−3 dB), mas o código ganha cerca de 5,9 dB; sobram 2,9 dB no receptor completo | bloco 09 |
-| Por que DQPSK e não QPSK? | o mesmo motivo da DBPSK: detecção diferencial, imune à fase; custa cerca de 1,4 dB sobre a DBPSK | bloco 10 |
+| Por que DQPSK e não QPSK? | o mesmo motivo da DBPSK: detecção diferencial, imune à fase; custa cerca de 1,4 dB sobre a DBPSK na teoria, 1,7 dB medidos no receptor completo | bloco 10 |
 | O que é o Eb/N0 medido na captura? | potência do sinal sobre N0 medido num trecho só de ruído antes do 1º quadro, dentro da banda do sinal | Etapa 5 |
 
 ## 11. Como reproduzir

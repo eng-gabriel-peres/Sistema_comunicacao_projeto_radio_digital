@@ -82,6 +82,8 @@ Testes de mutante feitos à mão em 04/11:
 
 Nos dois casos o código original foi restaurado e os 9 testes voltaram a passar.
 
+> **Nota (bloco 10):** com o quadro v3 (sequência de 24 bits) os testes desta tabela passaram a se chamar e a conferir os tamanhos novos: `test_quadro_da_prova_tem_1117_bits_...`, sequência até 2²⁴ − 1, corpo de 1 072 bits. A lógica testada é a mesma.
+
 ## 5. Evidências
 
 | Evidência | Onde |

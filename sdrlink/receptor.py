@@ -7,7 +7,7 @@ A18 (offset residual de até 1,6 kHz).
 
 Etapas, para cada bloco da captura:
     1. desloca o sinal para a banda base (o TX transmite em LO + deslocamento);
-    2. filtro de canal e decimação até cerca de 8 amostras por bit: sem isso o
+    2. filtro de canal e decimação até cerca de 8 amostras por símbolo: sem isso o
        ruído da banda inteira capturada (2 MHz) afoga um sinal estreito;
     3. correlação coerente com o preâmbulo + Barker-13 modulados (29 bits
        inteiros), numa grade de hipóteses de frequência que cobre o offset
@@ -25,7 +25,7 @@ Etapas, para cada bloco da captura:
 A captura é processada em blocos com sobreposição de um quadro máximo, e um
 quadro que cai na emenda é lido uma vez só.
 
-Restrição: a taxa de amostragem dividida pela taxa de bits tem de ser inteira.
+Restrição: a taxa de amostragem dividida pela taxa de símbolos tem de ser inteira.
 """
 
 from __future__ import annotations
@@ -48,19 +48,23 @@ from sdrlink.quadro import Pacote
 Sinal = NDArray[np.complex128]
 Interpretador = Callable[[NDArray[np.uint8]], quadro.Leitura]  # bits depois do sync -> leitura
 
-BITS_PREFIXO = len(quadro.PREAMBULO) + len(quadro.SYNC)  # 29 bits conhecidos
+BITS_PREFIXO = quadro.BITS_PREFIXO  # 29 bits conhecidos, um por símbolo em toda modulação
 LIMIAR_PADRAO = (
     0.5  # medido: quadros reais acima de 0,59 a partir de 8 dB; falsos 99,99% abaixo de 0,43
 )
 OFFSET_MAX_PADRAO_HZ = 3000.0
-SPS_INTERNO_MIN = 8  # o receptor decima até ficar com pelo menos 8 amostras por bit
+SPS_INTERNO_MIN = 8  # o receptor decima até ficar com pelo menos 8 amostras por símbolo
 TRECHOS_ESTIMATIVA = 4  # o offset é medido entre pelo menos 4 trechos do preâmbulo
-# meia banda do filtro de detecção, em múltiplos da taxa de bits: um pouco acima da banda a 99%
+# meia banda do filtro de detecção, em múltiplos da taxa de símbolos: um pouco acima da banda
+# a 99%
 # de cada pulso (etapa3_modulacoes.md); tira da normalização o ruído fora da banda do sinal
 MEIA_BANDA_DETECCAO_RB = {"rrc": 0.75, "gaussiano": 1.0, "retangular": 1.0}
 MEIA_BANDA_FSK_RETANGULAR_RB = 1.25
-COEFICIENTES_POR_BIT = 8  # duração do filtro de detecção: 8 bits
-DISTANCIA_MIN_BITS = 60  # dois sincronismos não ficam mais perto que isso (quadro mínimo: 85 bits)
+COEFICIENTES_POR_SIMBOLO = 8  # duração do filtro de detecção: 8 símbolos
+# dois sincronismos não ficam mais perto que isso. O menor quadro possível (payload vazio) tem
+# 93 símbolos a um bit por símbolo e 61 na DQPSK; com as caudas emendadas, o período dele é de
+# 62 símbolos, ainda acima deste limite
+DISTANCIA_MIN_SIMBOLOS = 60
 MAX_DETECCOES_POR_BLOCO = 100_000
 PISO_RELATIVO = 1e-9  # energia centrada mínima da janela, em relação à média do bloco
 MEIO_FIR = 16  # interpolador do instante fracionário: 33 coeficientes
@@ -78,7 +82,7 @@ class ConfigReceptor:
     """Parâmetros do receptor.
 
     Attributes:
-        modem: modulação e pulso do TX, com sps = amostras por bit na taxa da captura.
+        modem: modulação e pulso do TX, com sps = amostras por símbolo na taxa da captura.
         taxa_sps: taxa de amostragem da captura.
         deslocamento_hz: posição do sinal em relação ao centro da captura.
         limiar: valor mínimo da métrica de correlação normalizada (0 a 1).
@@ -115,7 +119,7 @@ class ConfigReceptor:
 
     @property
     def decimacao(self) -> int:
-        """Maior divisor de sps que deixa pelo menos SPS_INTERNO_MIN amostras por bit."""
+        """Maior divisor de sps que deixa pelo menos SPS_INTERNO_MIN amostras por símbolo."""
         sps = self.modem.sps
         candidatos = [d for d in range(1, sps + 1) if sps % d == 0 and sps // d >= SPS_INTERNO_MIN]
         return max(candidatos, default=1)
@@ -127,7 +131,7 @@ class ConfigReceptor:
 
     @property
     def modem_interno(self) -> ConfigModem:
-        """A mesma modulação, com as amostras por bit depois da decimação."""
+        """A mesma modulação, com as amostras por símbolo depois da decimação."""
         return dataclasses.replace(self.modem, sps=self.modem.sps // self.decimacao)
 
     def modelo(self) -> Sinal:
@@ -141,7 +145,7 @@ class ConfigReceptor:
 
     def _calcular_modelo(self) -> Sinal:
         """Corpo de modelo(), sem cache."""
-        prefixo = np.concatenate([quadro.PREAMBULO, quadro.SYNC])
+        prefixo = quadro.PREFIXO
         sinal = modem.modular(prefixo, self.modem, prefixo=BITS_PREFIXO)
         if self.decimacao > 1:
             sinal = np.asarray(resample_poly(sinal, 1, self.decimacao), dtype=np.complex128)
@@ -167,7 +171,7 @@ class ConfigReceptor:
         if self.modem.modulacao == "fsk" and self.modem.pulso == "retangular":
             meia_banda = MEIA_BANDA_FSK_RETANGULAR_RB
         corte = min(meia_banda * self.taxa_simbolos, 0.45 * self.taxa_interna)
-        coeficientes = COEFICIENTES_POR_BIT * self.modem_interno.sps + 1
+        coeficientes = COEFICIENTES_POR_SIMBOLO * self.modem_interno.sps + 1
         return np.asarray(firwin(coeficientes, corte, fs=self.taxa_interna), dtype=np.float64)
 
     def modelo_deteccao(self) -> Sinal:
@@ -377,7 +381,7 @@ def _alinhar(x: Sinal, inicio: float, n: int) -> Sinal:
 
 def _limiar_do_prefixo(trecho: Sinal, cm: ConfigModem) -> float:
     """Limiar da OOK no meio dos níveis medidos nos "1" e nos "0" conhecidos do prefixo."""
-    prefixo = np.concatenate([quadro.PREAMBULO, quadro.SYNC])
+    prefixo = quadro.PREFIXO
     modulo = np.abs(modem.saida_casada(trecho, cm, BITS_PREFIXO))
     return float(np.mean(modulo[prefixo == 1]) + np.mean(modulo[prefixo == 0])) / 2
 
@@ -456,7 +460,7 @@ def demodular_quadro(
         n_info = quadro.bits_apos_sync(primeira.n_bytes)
         return _concluir(primeira, codigo.decodificar(primeira.suaves, n_info))
     # primeiro só o cabeçalho, para saber o tamanho; depois exatamente o quadro (antes a
-    # janela era sempre a do maior quadro possível, 2093 bits, quase o dobro do da prova)
+    # janela era sempre a do maior quadro possível, 2133 bits, quase o dobro do da prova)
     cm, fase, limiar, n_max = ctx.cm, ctx.fase, ctx.limiar, ctx.n_max
     n_cabecalho = BITS_PREFIXO + quadro.BITS_CABECALHO
     bits = modem.demodular(
@@ -527,22 +531,6 @@ def _decodificar_em_lote(
     return [None if p is None else _concluir(p, decodificados[k]) for k, p in enumerate(primeiras)]
 
 
-def ler_quadro(
-    x: Sinal,
-    inicio: float,
-    offset_hz: float,
-    config: ConfigReceptor,
-    interpretador: Interpretador = quadro.interpretar,
-) -> quadro.Leitura:
-    """Demodula um quadro e interpreta os bits depois do sync.
-
-    O interpretador padrão é o do quadro v2; o ensaio com a captura da referência
-    passa o do quadro antigo (comprimento, payload e CRC-8).
-    """
-    bits = demodular_quadro(x, inicio, offset_hz, config)
-    return quadro.Leitura(None, "curto", 0) if bits is None else interpretador(bits)
-
-
 def receber_bloco(
     x: Sinal,
     config: ConfigReceptor,
@@ -563,12 +551,12 @@ def receber_bloco(
     metrica, grosso = metrica_de_correlacao(filtrado, config)
     # a 2-FSK demodula do sinal já filtrado na banda do pulso: o correlator dela não
     # rejeita sinais fortes fora da banda (pico de DC do RTL, outros sinais ISM), e um
-    # pico de DC do tamanho do sinal multiplicava a BER por 25 (21/11/2026); OOK e
-    # DBPSK passam pelo filtro casado RRC, que já os rejeita
+    # pico de DC do tamanho do sinal multiplicava a BER por 25 (21/11/2026); as modulações
+    # lineares passam pelo filtro casado do pulso, que já os rejeita
     entrada = filtrado if config.modem.modulacao == "fsk" else base
     achados = [
         (p, estimar_offset(filtrado, p, float(grosso[p]), config), _refinar(metrica, p))
-        for p in picos(metrica, config.limiar, DISTANCIA_MIN_BITS * config.modem_interno.sps)
+        for p in picos(metrica, config.limiar, DISTANCIA_MIN_SIMBOLOS * config.modem_interno.sps)
     ]
     if config.fec:  # Viterbi em lote: todos os quadros do bloco de uma vez
         contextos = [_contexto(entrada, inicio, offset, config) for _, offset, inicio in achados]
@@ -622,7 +610,7 @@ def receber(
         bloco = np.asarray(x[origem : origem + tamanho_bloco], dtype=np.complex128)
         lidas = receber_bloco(bloco, config, origem, interpretador)
         deteccoes.extend(d for d in lidas if ultimo or d.inicio < origem + passo)
-    return _sem_repeticao(deteccoes, DISTANCIA_MIN_BITS * config.modem.sps)
+    return _sem_repeticao(deteccoes, DISTANCIA_MIN_SIMBOLOS * config.modem.sps)
 
 
 def _sem_repeticao(deteccoes: list[Deteccao], distancia: float) -> list[Deteccao]:
