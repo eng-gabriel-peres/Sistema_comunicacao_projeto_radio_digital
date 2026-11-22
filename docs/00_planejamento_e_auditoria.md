@@ -217,7 +217,7 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | MET-03 a MET-05 | 🟡 | BER com sequência conhecida (inclusive quadros com CRC falho, sequência por votação, tolerante à diferença de relógio), banda a 99% e Eb/N0 medidos na captura e registro completo no `scripts/receber.py`; validados contra a verdade em simulação ([etapa5_software.md](etapa5_software.md)); falta medir no ar | 5 |
 | CMP-01 a CMP-04 | ❌ | | 4, 5 |
 | CMP-A | 🟡 (simulação) | Configuração escolhida em simulação: DBPSK RRC β = 0,25 a 682,7 kbit/s, banda a 99% de 749 kHz, PER de 0,15% e goodput de 622 kbit/s numa prova de 60 s simulada com os comandos da prova, RX em 67 a 80 s; margem estimada de 9,6 dB na bancada de 04/11 ([etapa6_prova_a.md](etapa6_prova_a.md)); falta confirmar no ar | 6 |
-| CMP-B | ❌ | Perfis prontos para registrar cada configuração; falta escolher a configuração de alcance | 6, 7 |
+| CMP-B | 🟡 (simulação) | DBPSK a 12,8 kbit/s (perfil `prova-b`): goodput de 11,7 kbit/s, 500 pacotes em 44 s, C/N0 necessário de 51,3 dB-Hz, 17,3 dB abaixo do `prova-a` (cerca de 7 vezes a distância no espaço livre); GFSK e OOK perdem 4,3 e 3,3 dB ([etapa6_prova_b.md](etapa6_prova_b.md)); falta medir no ar | 6, 7 |
 | CMP-C | ❌ | Tags por bloco já existem; falta a tag da prova | 7 |
 | PRC-01 | ✅ | Repositório git e portão de qualidade (Bloco 0); configuração centralizada em `configs/` com perfis de enlace usados pelo TX, pela gravação e pelo RX (`--perfil`), achado A14 tratado no bloco 07 ([etapa6_prova_a.md](etapa6_prova_a.md)) | 1, 6 |
 | PRC-02 | ⏳ | Abrir o registro de IA já na Etapa 1 | todas |

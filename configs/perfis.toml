@@ -19,6 +19,24 @@ taxa_sps = 2.048e6
 deslocamento_hz = 425e3  # sinal de +50 a +800 kHz: longe do DC e dentro da faixa plana do RTL
 lo_hz = 919.5e6
 
+[prova-b]
+descricao = "Prova B: DBPSK RRC a 12,8 kbit/s, 17,3 dB mais sensível que o prova-a (docs/etapa6_prova_b.md)"
+modulacao = "dbpsk"
+pulso = "rrc"
+sps = 160  # goodput sem perdas de 11,68 kbit/s: 15,7% de folga sobre os 10 kbit/s com PER de 1%
+beta = 0.35
+deslocamento_hz = 250e3
+lo_hz = 919.5e6
+
+[prova-b-limite]
+descricao = "Prova B no limite: DBPSK RRC a 11,6 kbit/s, +0,4 dB, só 5,1% de folga no goodput"
+modulacao = "dbpsk"
+pulso = "rrc"
+sps = 176
+beta = 0.35
+deslocamento_hz = 250e3
+lo_hz = 919.5e6
+
 [dbpsk-256k]
 descricao = "Bancada da Etapa 5: DBPSK RRC a 256 kbit/s"
 modulacao = "dbpsk"
