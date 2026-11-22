@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pytest
+from scipy import signal
 
 from sdrlink import canal, medicao, metricas, quadro, receptor, teoria, transmissor
 from sdrlink.modem import ConfigModem
@@ -175,3 +176,17 @@ def test_ebn0_da_captura_e_por_bit_tambem_na_dqpsk() -> None:
     x = x + np.sqrt(n0 / 2) * (rng.standard_normal(len(x)) + 1j * rng.standard_normal(len(x)))
     r = medicao.medir_captura(x, ruido, len(x), FS, tx.taxa_bits)
     assert r["ebn0_estimado_db"] == pytest.approx(9.0, abs=0.3)
+
+
+def test_faixa_plana_acha_onde_o_filtro_derruba_o_piso() -> None:
+    # ruído branco passado por um passa-baixas que começa a cair em 0,8 da metade da taxa
+    rng = np.random.default_rng(13)
+    ruido = rng.standard_normal(2**20) + 1j * rng.standard_normal(2**20)
+    filtro = signal.firwin(257, 0.86, width=0.08, fs=2.0)  # banda de transição de 0,82 a 0,90
+    filtrado = np.convolve(ruido, filtro, mode="same")
+    baixo, alto = medicao.faixa_plana(filtrado, 2.0)
+    assert 0.74 < alto < 0.9 and -0.9 < baixo < -0.74
+    baixo, alto = medicao.faixa_plana(ruido, 2.0)  # sem filtro, plano até a borda
+    assert alto > 0.98 and baixo < -0.98
+    with pytest.raises(ValueError, match="pelo menos"):
+        medicao.faixa_plana(ruido[:100], 2.0)

@@ -149,3 +149,47 @@ def medir_captura(
         "amostras_de_ruido": len(ruido),
         "amostras_de_sinal": len(trecho),
     }
+
+
+TOLERANCIA_PLANA_DB = 1.0
+FAIXA_REFERENCIA = 0.2  # a referência do piso é a mediana em ±20% da metade da taxa
+LARGURA_MEDIANA = 15  # pontos da DEP na mediana móvel (o piso de ruído é irregular)
+
+
+def faixa_plana(
+    ruido: NDArray[np.complexfloating], taxa_sps: float, tolerancia_db: float = TOLERANCIA_PLANA_DB
+) -> tuple[float, float]:
+    """Faixa em que o piso de ruído do RTL não cai mais que tolerancia_db abaixo do centro.
+
+    É a resposta em frequência do receptor vista pelo ruído: o filtro anti-aliasing
+    derruba as bordas. Os perfis põem o sinal dentro dessa faixa (bloco 07: ±850 kHz a
+    2,048 MS/s). Só a queda conta: a resposta do nosso RTL tem uma elevação de +1 dB
+    perto de ±650 kHz, que não atrapalha o sinal. A referência é a mediana do piso perto
+    do centro, sem o pico de DC; a DEP passa por uma mediana móvel antes da comparação.
+    Captura com o Pluto desligado: um sinal na faixa vira um degrau e confunde a medida.
+    Devolve (baixo, alto) em Hz: as frequências mais afastadas do centro, de cada lado,
+    ainda dentro da tolerância.
+
+    Raises:
+        ValueError: captura curta demais.
+    """
+    if len(ruido) < AMOSTRAS_MIN:
+        raise ValueError(f"a captura precisa de pelo menos {AMOSTRAS_MIN} amostras")
+    f, dep = espectro.densidade(np.asarray(ruido) - np.mean(ruido), taxa_sps, NPERSEG)
+    db = 10 * np.log10(np.maximum(dep, np.finfo(float).tiny))
+    meio = LARGURA_MEDIANA // 2
+    janelas = np.lib.stride_tricks.sliding_window_view(
+        np.pad(db, meio, mode="edge"), LARGURA_MEDIANA
+    )
+    suave = np.median(janelas, axis=1)
+    perto = (np.abs(f) < FAIXA_REFERENCIA * taxa_sps / 2) & (np.abs(f) > 2 * taxa_sps / NPERSEG)
+    referencia = float(np.median(suave[perto]))
+    dentro = suave >= referencia - tolerancia_db
+    centro = int(np.argmin(np.abs(f)))
+    alto = centro
+    while alto + 1 < len(f) and dentro[alto + 1]:
+        alto += 1
+    baixo = centro
+    while baixo - 1 >= 0 and dentro[baixo - 1]:
+        baixo -= 1
+    return float(f[baixo]), float(f[alto])
