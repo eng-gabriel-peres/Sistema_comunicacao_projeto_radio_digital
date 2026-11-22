@@ -5,6 +5,8 @@ Requisito: Etapa 4 (curvas BER × Eb/N0 simuladas comparadas às teóricas).
 Todas as fórmulas usam Eb médio por bit, a mesma definição de sdrlink.canal:
     BPSK coerente        Q(sqrt(2 Eb/N0))
     DBPSK diferencial    1/2 exp(-Eb/N0)
+    DQPSK diferencial    Gray: Q1(a, b) - 1/2 I0(a b) exp(-(a² + b²)/2), com
+                         a² = 2 Eb/N0 (1 - 1/sqrt 2) e b² = 2 Eb/N0 (1 + 1/sqrt 2)
     2-FSK não coerente   1/2 exp(-Eb/(2 N0))          (tons ortogonais, h = 1)
     2-FSK coerente       Q(sqrt(Eb/N0))               (só referência: não implementada)
     OOK não coerente     exata, detector de envoltória com limiar T:
@@ -20,7 +22,7 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy.optimize import minimize_scalar
-from scipy.special import erfc
+from scipy.special import erfc, i0e
 from scipy.stats import ncx2
 
 
@@ -42,6 +44,18 @@ def ber_bpsk(ebn0_db: ArrayLike, erro_fase_rad: float = 0.0) -> NDArray[np.float
 def ber_dbpsk(ebn0_db: ArrayLike) -> NDArray[np.float64]:
     """DBPSK com detecção diferencial."""
     return np.asarray(0.5 * np.exp(-_linear(ebn0_db)), dtype=np.float64)
+
+
+def ber_dqpsk(ebn0_db: ArrayLike) -> NDArray[np.float64]:
+    """DQPSK com mapa de Gray e detecção diferencial (exata, com a função Q de Marcum).
+
+    Q1(a, b) = ncx2.sf(b², 2, a²); I0 entra escalado (i0e) para não estourar em Eb/N0 alto.
+    """
+    g = _linear(ebn0_db)
+    a = np.sqrt(2 * g * (1 - 1 / np.sqrt(2)))
+    b = np.sqrt(2 * g * (1 + 1 / np.sqrt(2)))
+    marcum = ncx2.sf(b**2, 2, a**2)
+    return np.asarray(marcum - 0.5 * i0e(a * b) * np.exp(-((a - b) ** 2) / 2), dtype=np.float64)
 
 
 def ber_fsk_nao_coerente(ebn0_db: ArrayLike) -> NDArray[np.float64]:

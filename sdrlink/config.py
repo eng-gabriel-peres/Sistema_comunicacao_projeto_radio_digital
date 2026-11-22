@@ -97,8 +97,8 @@ class Perfil:
 
     @property
     def taxa_bits(self) -> float:
-        """Taxa de bits (um bit por símbolo em todas as modulações)."""
-        return self.taxa_sps / self.sps
+        """Taxa de bits do corpo (na DQPSK, dois bits por símbolo)."""
+        return self.taxa_sps / self.sps * self.modem().bits_por_simbolo
 
     def modem(self) -> ConfigModem:
         """Configuração do modulador e do demodulador."""
@@ -185,7 +185,9 @@ def montar_perfil(
         raise ValueError("sem --perfil, informe --modulacao, --pulso e --taxa-bits")
     if taxa_bits is not None:
         taxa_sps = float(dados.get("taxa_sps", base.taxa_sps if base else Perfil.taxa_sps))
-        sps = taxa_sps / float(taxa_bits)
+        modulacao = str(dados.get("modulacao", base.modulacao if base else ""))
+        bits_por_simbolo = 2 if modulacao == "dqpsk" else 1
+        sps = taxa_sps * bits_por_simbolo / float(taxa_bits)
         if abs(sps - round(sps)) > TOLERANCIA_SPS:
             raise ValueError(f"taxa de amostragem / taxa de bits = {sps:.4f}: precisa ser inteiro")
         dados["sps"] = round(sps)

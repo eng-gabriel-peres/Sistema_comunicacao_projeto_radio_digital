@@ -190,3 +190,12 @@ def test_fluxo_com_fec_e_periodo_do_quadro_codificado() -> None:
     pacotes = transmissor.numerar([bytes(128)] * 3)
     registros = [r for _, rs in transmissor.fluxo(pacotes, config, 1.0) for r in rs]
     assert [r.amostra_inicio for r in registros] == [k * (2185 + 13) * 8 for k in range(3)]
+
+
+def test_dqpsk_dobra_a_taxa_e_encurta_o_quadro() -> None:
+    cm = ConfigModem("dqpsk", "rrc", 3, beta=0.25)
+    assert ConfigTransmissor(cm, FS, 425e3).taxa_bits == pytest.approx(2 * FS / 3)
+    # 29 símbolos do prefixo + 540 do resto (1080 bits / 2) + 13 da cauda do RRC
+    assert transmissor.amostras_por_quadro(cm) == (29 + 540 + 13) * 3
+    baixo, alto = ConfigTransmissor(cm, FS, 425e3).banda_99_hz()
+    assert alto - baixo == pytest.approx(749e3, abs=10e3)  # mesma banda da DBPSK do prova-a

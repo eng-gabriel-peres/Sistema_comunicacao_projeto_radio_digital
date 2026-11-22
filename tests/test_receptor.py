@@ -33,7 +33,7 @@ def _captura(
     ]
     partes, inicios, pos = [np.zeros(2000, dtype=complex)], [], 2000.37
     for p in pacotes:
-        onda = modem.modular(quadro.montar_quadro(p, fec), config)
+        onda = modem.modular(quadro.montar_quadro(p, fec), config, quadro.BITS_PREFIXO)
         intervalo = int(rng.integers(300, 3000))
         inicios.append(pos)
         partes += [onda, np.zeros(intervalo, dtype=complex)]
@@ -51,11 +51,12 @@ def _bloco_pequeno(config: ConfigReceptor) -> int:
     "config",
     [
         ConfigModem("dbpsk", "rrc", 8),
+        ConfigModem("dqpsk", "rrc", 8),
         ConfigModem("ook", "rrc", 16),
         ConfigModem("fsk", "gaussiano", 16),
         ConfigModem("fsk", "retangular", 32),
     ],
-    ids=["dbpsk-256k", "ook-128k", "gfsk-128k", "cpfsk-64k"],
+    ids=["dbpsk-256k", "dqpsk-512k", "ook-128k", "gfsk-128k", "cpfsk-64k"],
 )
 def test_todos_os_quadros_com_offset_atraso_e_emendas(config: ConfigModem) -> None:
     rng = np.random.default_rng(1)
@@ -66,7 +67,12 @@ def test_todos_os_quadros_com_offset_atraso_e_emendas(config: ConfigModem) -> No
     certas = [d for d in deteccoes if d.situacao == "ok"]
     for d, i in zip(certas, inicios, strict=True):
         assert abs(d.inicio - i) < 0.05 * config.sps  # instante: menos de 5% do bit (Etapa 4)
-        assert abs(d.offset_hz - OFFSET) < 300  # offset estimado pelo preâmbulo
+    # offset estimado pelo preâmbulo: a 14 dB o erro tem desvio de cerca de 150 Hz em DBPSK e
+    # DQPSK (medido em 40 quadros, bloco 10). O limite antigo, 300 Hz em cada quadro, era
+    # de 2 desvios e passava por sorte da semente; agora: mediana e pior caso.
+    erros = np.abs(np.array([d.offset_hz for d in certas]) - OFFSET)
+    assert np.median(erros) < 150
+    assert np.max(erros) < 500
     if config.pulso != "retangular":  # a CPFSK tem falsos raros (rejeitados pelo CRC)
         assert len(deteccoes) == len(pacotes)  # nenhuma detecção falsa nos dados
 
@@ -261,3 +267,15 @@ def test_fec_com_captura_curta_nao_le_o_quadro() -> None:
     x = np.concatenate([np.zeros(3000), onda[: 40 * 8 * 8]]).astype(complex)  # só 320 bits
     d = receptor.receber(x, ConfigReceptor(cm, FS, fec=True))
     assert [a.situacao for a in d] == ["curto"]
+
+
+def test_dqpsk_da_prova_a_com_3_amostras_e_com_fec() -> None:
+    # 1365 kbit/s no corpo: offset, atraso e emendas, com e sem código
+    cm = ConfigModem("dqpsk", "rrc", 3, beta=0.25)
+    for fec, semente in ((False, 41), (True, 42)):
+        x, pacotes, _ = _captura(cm, 8, np.random.default_rng(semente), 14.0, fec, (128, 60))
+        config = ConfigReceptor(cm, FS, 425e3, fec=fec)
+        y = canal.girar(x, 425e3 - DESLOCAMENTO, FS)  # o sinal no deslocamento do perfil prova-a
+        d = receptor.receber(y, config, tamanho_bloco=_bloco_pequeno(config))
+        assert receptor.pacotes_aceitos(d) == pacotes
+        assert config.taxa_bits == pytest.approx(2 * FS / 3)

@@ -198,9 +198,10 @@ def test_ber_da_gfsk_na_referencia_da_etapa_4() -> None:
         ConfigModem("ook", "rrc", 8),
         ConfigModem("bpsk", "rrc", 8),
         ConfigModem("dbpsk", "rrc", 8),
+        ConfigModem("dqpsk", "rrc", 8),
         ConfigModem("fsk", "gaussiano", 16),
     ],
-    ids=["ook", "bpsk", "dbpsk", "gfsk"],
+    ids=["ook", "bpsk", "dbpsk", "dqpsk", "gfsk"],
 )
 def test_saida_suave_tem_o_sinal_da_decisao_dura(config: ConfigModem) -> None:
     rng = np.random.default_rng(41)
@@ -213,3 +214,57 @@ def test_saida_suave_tem_o_sinal_da_decisao_dura(config: ConfigModem) -> None:
     assert 0.75 < np.mean(duros == bits) < 1  # erra alguns, acerta a maioria
     errados = duros != bits
     assert np.mean(np.abs(suaves[errados])) < np.mean(np.abs(suaves[~errados]))  # menos certeza
+
+
+# ---- DQPSK (bloco 10) ----
+
+
+@pytest.mark.parametrize("n", [1, 2, 3, 28, 29, 30, 31, 1109])
+@pytest.mark.parametrize("prefixo", [0, 29])
+def test_dqpsk_ida_e_volta_e_numero_de_simbolos(n: int, prefixo: int) -> None:
+    config = ConfigModem("dqpsk", "rrc", 4)
+    bits = _bits(n, n)
+    um_por_simbolo = min(prefixo, n)
+    sinal = modem.modular(bits, config, prefixo)
+    simbolos = um_por_simbolo + (n - um_por_simbolo + 1) // 2  # corpo ímpar ganha um bit
+    assert modem.simbolos(n, config, prefixo) == simbolos
+    assert modem.bits_em(simbolos, config, prefixo) in (n, n + 1)
+    assert len(sinal) == (simbolos + 1) * 4 + len(config.formato()) - 1  # +1: referência
+    np.testing.assert_array_equal(modem.demodular(sinal, config, n, prefixo=prefixo), bits)
+
+
+def test_dqpsk_mapa_de_gray_e_prefixo_igual_ao_da_dbpsk() -> None:
+    # giro de cada par: 00 -> 0, 01 -> 90, 11 -> 180, 10 -> 270 graus; vizinhos diferem em 1 bit
+    graus = np.degrees(np.angle(modem.GIROS_DQPSK)) % 360
+    assert np.allclose(graus, [0, 90, 270, 180])
+    ordem = [0b00, 0b01, 0b11, 0b10]  # pela fase crescente
+    assert all(bin(ordem[k] ^ ordem[(k + 1) % 4]).count("1") == 1 for k in range(4))
+    bits = quadro.montar_quadro(quadro.Pacote(9, bytes(range(128))))
+    dq = modem.modular(bits, ConfigModem("dqpsk", "rrc", 4), quadro.BITS_PREFIXO)
+    db = modem.modular(bits, ConfigModem("dbpsk", "rrc", 4))
+    np.testing.assert_allclose(dq[: 29 * 4], db[: 29 * 4], atol=1e-12)  # o RX acha os dois igual
+    assert modem.simbolos(len(bits), ConfigModem("dqpsk", "rrc", 4), 29) == 29 + 540
+
+
+def test_dqpsk_nao_precisa_da_fase_e_bate_com_a_teoria() -> None:
+    config = ConfigModem("dqpsk", "rrc", 4)
+    bits = _bits(400_000, 5)
+    sinal = modem.modular(bits, config)
+    girado = np.exp(1j * 1.234) * sinal
+    np.testing.assert_array_equal(modem.demodular(girado, config, len(bits)), bits)
+    # Eb/N0 de 9 dB: com 2 bits por símbolo, o Eb é o de 2 amostras (sps / 2)
+    ruidoso = canal.awgn(sinal, 9.0, 2, np.random.default_rng(6))
+    ber = np.mean(modem.demodular(ruidoso, config, len(bits)) != bits)
+    assert ber == pytest.approx(float(teoria.ber_dqpsk(9.0)), rel=0.12)  # 1,27e-3
+
+
+def test_ber_teorica_da_dqpsk() -> None:
+    # valores da fórmula exata (Marcum). Abaixo de uns 2,5 dB a DQPSK erra menos bits que a
+    # DBPSK; acima, erra mais (cerca de 1,4 dB pior a 1e-4)
+    np.testing.assert_allclose(
+        teoria.ber_dqpsk([6.0, 9.0, 10.0]), [1.7236e-2, 1.2671e-3, 3.4318e-4], rtol=1e-3
+    )
+    ebn0 = np.arange(0.0, 14.0, 0.5)
+    assert np.all(np.diff(teoria.ber_dqpsk(ebn0)) < 0)
+    assert np.all(teoria.ber_dqpsk(ebn0[ebn0 >= 3]) > teoria.ber_dbpsk(ebn0[ebn0 >= 3]))
+    assert np.all(teoria.ber_dqpsk(ebn0[ebn0 <= 2]) < teoria.ber_dbpsk(ebn0[ebn0 <= 2]))

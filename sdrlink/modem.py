@@ -1,17 +1,22 @@
-"""Moduladores e demoduladores em banda base: OOK, BPSK, DBPSK e 2-FSK.
+"""Moduladores e demoduladores em banda base: OOK, BPSK, DBPSK, DQPSK e 2-FSK.
 
 Requisitos: MOD-01 a MOD-03 (OOK, 2-FSK e BPSK implementados pela equipe),
 PUL-01 (pulso retangular e alternativas).
 
-Um bit por símbolo em todas as modulações. O sinal é complexo, em banda base,
-com sps amostras por símbolo; o deslocamento para a frequência de transmissão
-fica a cargo do TX. Os demoduladores deste módulo supõem o instante de
+Um bit por símbolo em todas as modulações, menos no corpo da DQPSK (dois). O sinal
+é complexo, em banda base, com sps amostras por símbolo; o deslocamento para a
+frequência de transmissão fica a cargo do TX. Os demoduladores deste módulo supõem o instante de
 amostragem conhecido (sincronismo ideal): estimar tempo, fase e offset a partir
 do preâmbulo é tarefa do receptor (sub-bloco 3c).
 
     OOK   amplitudes 0/1, detecção não coerente (módulo) com limiar entre os dois níveis
     BPSK  amplitudes -1/+1, detecção coerente (precisa da fase da portadora)
     DBPSK bit 1 = inversão de fase; detecção diferencial, não precisa da fase
+    DQPSK 2 bits por símbolo (bloco 10): cada par de bits gira a fase de 0, 90, 180 ou
+          270 graus (Gray); detecção diferencial. Os primeiros `prefixo` bits de
+          modular/demodular vão um por símbolo, como na DBPSK: assim o preâmbulo e o
+          sync de um quadro DQPSK são idênticos aos da DBPSK e o RX acha o quadro do
+          mesmo jeito
     2-FSK fase contínua, tons em +-h*Rb/2; detecção não coerente por correlação
           com os dois tons (ortogonais com h = 1)
 """
@@ -29,7 +34,9 @@ from sdrlink import pulsos
 Bits = NDArray[np.uint8]
 Sinal = NDArray[np.complex128]
 
-MODULACOES = ("ook", "bpsk", "dbpsk", "fsk")
+MODULACOES = ("ook", "bpsk", "dbpsk", "dqpsk", "fsk")
+# DQPSK, Gray: o par (b1, b2) gira a fase de GIROS_DQPSK[2 b1 + b2]
+GIROS_DQPSK = np.exp(1j * np.pi / 2 * np.array([0, 1, 3, 2]))  # 00: 0, 01: 90, 10: 270, 11: 180
 PULSOS_LINEARES = ("retangular", "rrc")  # OOK, BPSK, DBPSK: pulso de símbolo
 PULSOS_FSK = ("retangular", "gaussiano")  # 2-FSK: pulso de frequência
 ITERACOES_LIMIAR = 20
@@ -77,6 +84,26 @@ class ConfigModem:
         """Pulso de símbolo (lineares) ou de frequência (fsk), calculado uma vez."""
         return _formato(self)
 
+    @property
+    def bits_por_simbolo(self) -> int:
+        """Bits levados por símbolo no corpo: 2 na DQPSK, 1 nas outras."""
+        return 2 if self.modulacao == "dqpsk" else 1
+
+
+def simbolos(n_bits: int, config: ConfigModem, prefixo: int = 0) -> int:
+    """Quantos símbolos levam n_bits, com os primeiros `prefixo` bits a um por símbolo.
+
+    Na DQPSK um corpo com número ímpar de bits ganha um bit 0 no fim.
+    """
+    corpo = max(n_bits - prefixo, 0)
+    return min(n_bits, prefixo) + -(-corpo // config.bits_por_simbolo)
+
+
+def bits_em(n_simbolos: int, config: ConfigModem, prefixo: int = 0) -> int:
+    """Quantos bits cabem em n_simbolos (o inverso de simbolos)."""
+    corpo = max(n_simbolos - prefixo, 0)
+    return min(n_simbolos, prefixo) + corpo * config.bits_por_simbolo
+
 
 @functools.cache
 def _formato(config: ConfigModem) -> NDArray[np.float64]:
@@ -93,25 +120,35 @@ def _formato(config: ConfigModem) -> NDArray[np.float64]:
     return forma
 
 
-def _impulsos(simbolos: NDArray[np.float64], sps: int) -> NDArray[np.float64]:
+def _impulsos(simbolos: NDArray[np.generic], sps: int) -> NDArray[np.complex128]:
     """Um impulso por símbolo, a cada sps amostras."""
-    trem = np.zeros(len(simbolos) * sps)
+    trem = np.zeros(len(simbolos) * sps, dtype=np.complex128)
     trem[::sps] = simbolos
     return trem
 
 
-def _simbolos_lineares(bits: Bits, modulacao: str) -> NDArray[np.float64]:
-    """Amplitudes dos símbolos de OOK, BPSK e DBPSK (DBPSK ganha um símbolo de referência)."""
+def _simbolos_lineares(bits: Bits, modulacao: str, prefixo: int = 0) -> NDArray[np.complex128]:
+    """Símbolos de OOK, BPSK, DBPSK e DQPSK (as diferenciais ganham um símbolo de referência)."""
     b = bits.astype(np.float64)
     if modulacao == "ook":
-        return b
+        return b.astype(np.complex128)
     if modulacao == "bpsk":
-        return 2 * b - 1
-    return np.cumprod(np.concatenate([[1.0], 1 - 2 * b]))  # dbpsk: bit 1 inverte a fase
+        return (2 * b - 1).astype(np.complex128)
+    if modulacao == "dbpsk":
+        return np.cumprod(np.concatenate([[1.0], 1 - 2 * b])).astype(np.complex128)
+    # dqpsk: os `prefixo` primeiros bits como na DBPSK, depois um giro de fase por par de bits
+    corpo = bits[prefixo:].astype(np.intp)
+    corpo = np.concatenate([corpo, np.zeros(len(corpo) % 2, dtype=np.intp)])
+    giros = GIROS_DQPSK[2 * corpo[0::2] + corpo[1::2]]
+    passos = np.concatenate([[1.0 + 0j], 1 - 2 * b[:prefixo] + 0j, giros])
+    return np.asarray(np.cumprod(passos), dtype=np.complex128)
 
 
-def modular(bits: Bits, config: ConfigModem) -> Sinal:
+def modular(bits: Bits, config: ConfigModem, prefixo: int = 0) -> Sinal:
     """Sinal complexo em banda base para a sequência de bits.
+
+    `prefixo`: só a DQPSK usa; os primeiros `prefixo` bits vão um por símbolo, como na
+    DBPSK (o preâmbulo e o sync do quadro).
 
     Raises:
         ValueError: bits vazios ou com valores diferentes de 0 e 1.
@@ -120,13 +157,13 @@ def modular(bits: Bits, config: ConfigModem) -> Sinal:
         raise ValueError("os bits devem ser uma sequência não vazia de 0 e 1")
     forma = config.formato()
     if config.modulacao == "fsk":
-        frequencia = np.convolve(_impulsos(2 * bits.astype(np.float64) - 1, config.sps), forma)
+        frequencia = np.convolve(_impulsos(2 * bits.astype(np.float64) - 1, config.sps).real, forma)
         # fase(n) = integral da frequência até n, exclusive (pi*h por símbolo); com a soma
         # inclusiva a fase ficava adiantada 1 amostra, e o alinhamento dependia da taxa
         fase = np.concatenate([[0.0], np.cumsum(frequencia)[:-1]]) * np.pi * config.h / config.sps
         return np.exp(1j * fase)
-    simbolos = _simbolos_lineares(bits, config.modulacao)
-    return np.convolve(_impulsos(simbolos, config.sps), forma).astype(np.complex128)
+    valores = _simbolos_lineares(bits, config.modulacao, prefixo)
+    return np.convolve(_impulsos(valores, config.sps), forma).astype(np.complex128)
 
 
 def _limiar_dois_niveis(valores: NDArray[np.float64]) -> float:
@@ -177,12 +214,29 @@ def _suave_fsk(amostras: Sinal, config: ConfigModem, n_bits: int) -> NDArray[np.
     return np.asarray(alto - baixo, dtype=np.float64)
 
 
+def _suave_diferencial(
+    amostras: Sinal, config: ConfigModem, n_bits: int, prefixo: int
+) -> NDArray[np.float64]:
+    """Detecção diferencial: um valor por bit nos `prefixo` primeiros, dois por símbolo depois.
+
+    w = z_k conj(z_k-1) traz o giro de fase entre símbolos. Nos bits um por símbolo, giro
+    de 180 graus é 1: -Re(w). No corpo da DQPSK, w e^(j pi/4) cai em 45, 135, 225 ou
+    315 graus para 00, 01, 11 e 10: o 1º bit é 1 com Im < 0 e o 2º com Re < 0.
+    """
+    z = saida_casada(amostras, config, simbolos(n_bits, config, prefixo) + 1)
+    w = z[1:] * np.conj(z[:-1])
+    corpo = w[prefixo:] * np.exp(1j * np.pi / 4)
+    pares = np.column_stack([-np.imag(corpo), -np.real(corpo)]).ravel()
+    return np.asarray(np.concatenate([-np.real(w[:prefixo]), pares])[:n_bits], dtype=np.float64)
+
+
 def demodular_suave(
     amostras: Sinal,
     config: ConfigModem,
     n_bits: int,
     fase: float = 0.0,
     limiar: float | None = None,
+    prefixo: int = 0,
 ) -> NDArray[np.float64]:
     """Um valor por bit, positivo quando o bit provável é 1, com módulo maior quanto mais certo.
 
@@ -190,6 +244,7 @@ def demodular_suave(
         OOK    |z| - limiar
         BPSK   Re(z e^-jfase)
         DBPSK  -Re(z_k conj(z_k-1))   (fase invertida = 1)
+        DQPSK  com w = z_k conj(z_k-1) e^(j pi/4): -Im(w) para o 1º bit, -Re(w) para o 2º
         2-FSK  |tom alto| - |tom baixo|
     onde z é a saída do filtro casado no instante de cada símbolo. A decisão dura
     (demodular) é o sinal desses valores.
@@ -200,6 +255,7 @@ def demodular_suave(
         n_bits: quantidade de bits a recuperar.
         fase: fase da portadora em radianos (só a BPSK coerente usa).
         limiar: limiar da OOK; se omitido, é ajustado pelos próprios símbolos (k-médias).
+        prefixo: só a DQPSK usa; os primeiros `prefixo` bits vêm um por símbolo.
 
     Raises:
         ValueError: n_bits não positivo ou sinal curto demais.
@@ -208,9 +264,10 @@ def demodular_suave(
         raise ValueError(f"quantidade de bits inválida: {n_bits}")
     if config.modulacao == "fsk":
         return _suave_fsk(amostras, config, n_bits)
-    if config.modulacao == "dbpsk":
-        z = saida_casada(amostras, config, n_bits + 1)
-        return np.asarray(-np.real(z[1:] * np.conj(z[:-1])), dtype=np.float64)
+    if config.modulacao in ("dbpsk", "dqpsk"):
+        # a DBPSK é a DQPSK em que todos os bits vão um por símbolo
+        um_por_simbolo = n_bits if config.modulacao == "dbpsk" else prefixo
+        return _suave_diferencial(amostras, config, n_bits, um_por_simbolo)
     z = saida_casada(amostras, config, n_bits)
     if config.modulacao == "bpsk":
         return np.asarray(np.real(z * np.exp(-1j * fase)), dtype=np.float64)
@@ -225,6 +282,7 @@ def demodular(
     n_bits: int,
     fase: float = 0.0,
     limiar: float | None = None,
+    prefixo: int = 0,
 ) -> Bits:
     """Bits a partir do sinal recebido, com o instante de amostragem conhecido.
 
@@ -236,9 +294,10 @@ def demodular(
         n_bits: quantidade de bits a recuperar.
         fase: fase da portadora em radianos (só a BPSK coerente usa).
         limiar: limiar da OOK; se omitido, é ajustado pelos próprios símbolos (k-médias).
+        prefixo: só a DQPSK usa; os primeiros `prefixo` bits vêm um por símbolo.
 
     Raises:
         ValueError: n_bits não positivo ou sinal curto demais.
     """
-    suaves = demodular_suave(amostras, config, n_bits, fase=fase, limiar=limiar)
+    suaves = demodular_suave(amostras, config, n_bits, fase=fase, limiar=limiar, prefixo=prefixo)
     return np.asarray(suaves > 0, dtype=np.uint8)

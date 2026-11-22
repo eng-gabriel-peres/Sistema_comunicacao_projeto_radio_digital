@@ -217,3 +217,14 @@ def test_tx_e_rx_com_fec_pela_linha_de_comando(tmp_path: Path) -> None:
     assert (
         registro["perfil"]["fec"] is True and registro["perfil"]["nome"] == "dbpsk-256k (alterado)"
     )
+
+
+def test_perfil_dqpsk_converte_a_taxa_de_bits_em_simbolos() -> None:
+    perfil = config.montar_perfil(
+        None, {"modulacao": "dqpsk", "pulso": "rrc", "taxa_bits": 2 * 2.048e6 / 3}
+    )
+    assert perfil.sps == 3 and perfil.taxa_bits == pytest.approx(2 * 2.048e6 / 3)
+    trocado = config.montar_perfil("prova-a", {"modulacao": "dqpsk"})  # mesmo sps, o dobro dos bits
+    assert trocado.sps == 3 and trocado.taxa_bits == pytest.approx(
+        2 * config.perfil("prova-a").taxa_bits
+    )
