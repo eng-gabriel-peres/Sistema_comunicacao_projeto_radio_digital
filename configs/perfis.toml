@@ -19,8 +19,19 @@ taxa_sps = 2.048e6
 deslocamento_hz = 425e3  # sinal de +50 a +800 kHz: longe do DC e dentro da faixa plana do RTL
 lo_hz = 919.5e6
 
+[prova-a-fec]
+descricao = "Reserva 1 da prova A: DQPSK com FEC, goodput da DBPSK com 3,3 dB a mais de margem (docs/etapa6_viterbi_lote.md)"
+modulacao = "dqpsk"
+pulso = "rrc"
+sps = 3
+beta = 0.25
+taxa_sps = 2.048e6
+deslocamento_hz = 425e3
+lo_hz = 919.5e6
+fec = true
+
 [prova-a-dbpsk]
-descricao = "Reserva da prova A: DBPSK RRC a 682,7 kbit/s, 4,3 dB mais robusta (docs/etapa6_prova_a.md)"
+descricao = "Reserva 2 da prova A: DBPSK RRC a 682,7 kbit/s, sem FEC (docs/etapa6_prova_a.md)"
 modulacao = "dbpsk"
 pulso = "rrc"
 sps = 3
