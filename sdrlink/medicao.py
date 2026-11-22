@@ -37,6 +37,11 @@ SINAL_MAX = 2**22  # amostras de sinal usadas (cerca de 2 s): mais não muda a m
 # com 49 ms a banda errou até 33% e o Eb/N0 até 1,1 dB a 8 dB; com 122 ms, até 2,7% e
 # 0,03 dB; com 244 ms ou mais, abaixo de 2% e 0,05 dB. 0,2 s dá folga sobre os 122 ms.
 RUIDO_MIN_S = 0.2
+# Abaixo disso a banda a 99% medida não é confiável. Medido no bloco 13 com o perfil
+# prova-b (sinal de 30 kHz em 2,048 MS/s): -13 dB deu 1884 kHz, -9 dB deu 764 kHz,
+# -4 dB deu 30,9 kHz. O resíduo da subtração do ruído, somado em 2 MHz, passa da
+# potência do sinal.
+SNR_MIN_BANDA_DB = -5.0
 
 
 def _densidades(
@@ -112,6 +117,11 @@ def medir_captura(
     Deixa uma margem de 1 ms antes do primeiro quadro (cauda do filtro, incerteza
     do instante) e usa no máximo SINAL_MAX amostras de sinal. Quando não há ruído
     suficiente antes do primeiro quadro, devolve o motivo em vez das medidas.
+
+    Registra também a SNR na banda inteira da captura. Com sinal estreito e fraco (a
+    prova B no alcance máximo) ela fica muito negativa, e a banda medida perde o
+    sentido: "banda_99_confiavel" fica falso. A banda não muda com a distância; nesse
+    caso, medir na posição mais próxima.
     """
     fim_ruido = int(inicio_sinal - MARGEM_S * taxa_sps)
     if fim_ruido < RUIDO_MIN_S * taxa_sps:
@@ -125,10 +135,15 @@ def medir_captura(
     if len(trecho) < AMOSTRAS_MIN:
         return {"medido": False, "motivo": f"menos de {AMOSTRAS_MIN} amostras de sinal"}
     baixo, alto = banda_99_medida(trecho, ruido, taxa_sps)
+    potencia_ruido = float(np.mean(np.abs(ruido) ** 2))
+    potencia_sinal = max(float(np.mean(np.abs(trecho) ** 2)) - potencia_ruido, np.finfo(float).tiny)
+    snr_db = float(10 * np.log10(potencia_sinal / potencia_ruido))
     return {
         "medido": True,
         "banda_99_khz": round((alto - baixo) / 1e3, 1),
         "banda_99_limites_khz": [round(baixo / 1e3, 1), round(alto / 1e3, 1)],
+        "snr_na_captura_db": round(snr_db, 1),
+        "banda_99_confiavel": snr_db >= SNR_MIN_BANDA_DB,
         "ebn0_estimado_db": round(ebn0_estimado_db(trecho, ruido, taxa_sps, taxa_bits), 2),
         "amostras_de_ruido": len(ruido),
         "amostras_de_sinal": len(trecho),

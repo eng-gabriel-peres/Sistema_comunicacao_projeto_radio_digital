@@ -48,6 +48,19 @@ def _argumentos() -> tuple[argparse.Namespace, Perfil]:
     return args, perfil_dos_argumentos(p, args)
 
 
+def _mostrar_medidas(medidas: dict[str, object]) -> None:
+    """Banda e Eb/N0 medidos na captura, com aviso se a banda não for confiável."""
+    if not medidas.get("medido"):
+        return
+    print(f"Banda a 99%: {medidas['banda_99_khz']} kHz; Eb/N0: {medidas['ebn0_estimado_db']} dB")
+    if not medidas.get("banda_99_confiavel", True):
+        snr = medidas["snr_na_captura_db"]
+        print(
+            f"AVISO: banda não confiável (SNR na captura de {snr} dB): "
+            "medir a banda numa posição com mais sinal"
+        )
+
+
 def main() -> int:
     """Lê a captura, recebe e grava a saída e o registro."""
     args, perfil = _argumentos()
@@ -97,10 +110,7 @@ def main() -> int:
     }
     caminho = salvar_json(pasta / f"{nome}_rx.json", registro)
     print(f"{registro['pacotes_aceitos']} pacotes aceitos em {tempo:.1f} s")
-    if medidas.get("medido"):
-        print(
-            f"Banda a 99%: {medidas['banda_99_khz']} kHz; Eb/N0: {medidas['ebn0_estimado_db']} dB"
-        )
+    _mostrar_medidas(medidas)
     if ber is not None:
         print(f"BER: {ber['bits_errados']}/{ber['bits_comparados']} = {ber['ber']:.2e}")
     print(f"Saída: {saida}\nRegistro: {caminho}")

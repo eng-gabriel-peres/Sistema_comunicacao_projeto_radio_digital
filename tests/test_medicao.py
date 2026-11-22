@@ -136,3 +136,26 @@ def test_ber_acompanha_a_diferenca_de_relogio() -> None:
     deteccoes = [_Det(1000.0 + k * (PERIODO + 0.5), None, _bits_do_quadro(k)) for k in range(100)]
     r = metricas.medir_ber(deteccoes, PERIODO, 16)
     assert (r["quadros_comparados"], r["segmentos"], r["bits_errados"]) == (100, 1, 0)
+
+
+def test_banda_de_sinal_estreito_e_fraco_vem_marcada_como_nao_confiavel() -> None:
+    # perfil prova-b (30 kHz de banda): a 6 dB por bit a SNR na captura de 2 MHz é de -13 dB
+    # e a banda medida passa de 1 MHz; a 20 dB (+1 dB na captura) ela bate com a do TX
+    cm = ConfigModem("dbpsk", "rrc", 80)
+    tx = ConfigTransmissor(cm, FS, 250e3, fec=True)
+    pacotes = transmissor.numerar([metricas.payload_conhecido(k) for k in range(60)])
+    sinal = np.concatenate([b for b, _ in transmissor.fluxo(pacotes, tx, 10.0)]).astype(complex)
+    sinal = sinal[: np.flatnonzero(sinal)[-1] + 1]
+    baixo, alto = tx.banda_99_hz()
+    ruido = int(0.5 * FS)
+    resultados = {}
+    for ebn0 in (6.0, 20.0):
+        rng = np.random.default_rng(9)
+        n0 = np.mean(np.abs(sinal) ** 2) * cm.sps / 10 ** (ebn0 / 10)
+        x = np.concatenate([np.zeros(ruido), sinal])
+        x = x + np.sqrt(n0 / 2) * (rng.standard_normal(len(x)) + 1j * rng.standard_normal(len(x)))
+        resultados[ebn0] = medicao.medir_captura(x, ruido, len(x), FS, FS / cm.sps)
+    assert resultados[6.0]["banda_99_confiavel"] is False
+    assert resultados[6.0]["snr_na_captura_db"] == pytest.approx(-13.0, abs=0.7)
+    assert resultados[20.0]["banda_99_confiavel"] is True
+    assert resultados[20.0]["banda_99_khz"] == pytest.approx((alto - baixo) / 1e3, rel=0.05)
