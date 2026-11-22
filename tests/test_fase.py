@@ -1,9 +1,15 @@
 """Testes das imperfeições do hardware: ruído de fase (simulado e medido num tom) e ADC do RTL."""
 
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
 import numpy as np
 import pytest
 
-from sdrlink import canal, fase
+from sdrlink import canal, config, fase
 from sdrlink.hw import rtl_rx
 
 FS = 2.048e6
@@ -84,8 +90,11 @@ def test_fase_do_tom_mede_a_frequencia_e_a_variacao_de_wiener() -> None:
 
 def test_offset_de_cada_trecho_sai_da_conta() -> None:
     """Uma deriva forte de frequência (o RX estima o offset em cada quadro) não conta como ruído."""
-    v = fase.variacao_de_fase_rad(fase.fase_do_tom(_tom(deriva_hz_por_s=2000.0), FS), ATRASO)
-    assert v == pytest.approx(_esperado(LARGURA_HZ, ATRASO), rel=0.1)
+    fraco = 5.0  # perto do tom real: sem tirar o offset de cada trecho, a deriva somaria 45%
+    tom = fase.fase_do_tom(_tom(largura_hz=fraco, deriva_hz_por_s=2000.0), FS)
+    assert fase.variacao_de_fase_rad(tom, ATRASO) == pytest.approx(
+        _esperado(fraco, ATRASO), rel=0.1
+    )
 
 
 def test_saltos_de_emenda_ficam_fora_da_conta() -> None:
@@ -161,3 +170,38 @@ def test_trajetoria_medida_sem_saltos_e_com_o_tamanho_pedido() -> None:
     sem_trecho = fase.FaseDoTom(tom.fase, np.zeros_like(tom.validas), tom.freq_hz, 0, FS)
     with pytest.raises(ValueError, match="nenhum trecho"):
         fase.trajetoria(sem_trecho, 10)
+
+
+def _rodar_medir(captura: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(  # noqa: S603 (só o script do projeto, com a gravação do teste)
+        [sys.executable, str(config.RAIZ / "scripts" / "medir_ruido_de_fase.py"), str(captura)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+        cwd=config.RAIZ,
+        env={**os.environ, "PYTHONPATH": str(config.RAIZ), "PYTHONIOENCODING": "utf-8"},
+    )
+
+
+def test_script_de_bancada_mede_o_tom_e_compara_com_a_tolerancia(tmp_path: Path) -> None:
+    bom = tmp_path / "tom_bom.npy"
+    np.save(bom, _tom(largura_hz=1.0, snr_db=30.0).astype(np.complex64))
+    r = _rodar_medir(bom)
+    assert r.returncode == 0, r.stderr
+    registro = json.loads((tmp_path / "tom_bom_ruido_de_fase.json").read_text(encoding="utf-8"))
+    assert registro["taxa_sps"] == FS and registro["saltos_de_emenda"] == 0
+    assert {v["situacao"] for v in registro["perfis"].values()} == {"ok"}
+    assert registro["perfis"]["prova-b"]["atraso_amostras"] == ATRASO
+    # ruído de fase forte demais para a prova B: o script avisa
+    ruim = tmp_path / "tom_ruim.npy"
+    np.save(ruim, _tom(largura_hz=600.0, snr_db=30.0).astype(np.complex64))
+    assert _rodar_medir(ruim).returncode == 0
+    registro = json.loads((tmp_path / "tom_ruim_ruido_de_fase.json").read_text(encoding="utf-8"))
+    assert registro["perfis"]["prova-b"]["situacao"] == "ATENÇÃO"
+    # tom fraco: o ruído branco da gravação esconde o que se quer medir
+    fraco = tmp_path / "tom_fraco.npy"
+    np.save(fraco, _tom(largura_hz=1.0, snr_db=-5.0).astype(np.complex64))
+    assert _rodar_medir(fraco).returncode == 0
+    registro = json.loads((tmp_path / "tom_fraco_ruido_de_fase.json").read_text(encoding="utf-8"))
+    assert registro["perfis"]["prova-a"]["situacao"].startswith("inconclusivo")

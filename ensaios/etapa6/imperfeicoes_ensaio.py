@@ -5,13 +5,15 @@
    do ruído branco da própria gravação descontada (sdrlink.fase).
 2. A trajetória de fase **real** (filtrada em 2 kHz, onde o ruído de fase aparece acima
    do piso) aplicada aos sinais simulados de cada perfil, 0,5 dB abaixo do Eb/N0 de PER
-   1%: a PER com e sem ela, no mesmo ruído.
+   1%: a PER com e sem ela, somando 4 sementes de ruído. Girar a fase do sinal muda
+   quais amostras de ruído causam erro, então a comparação é estatística: o resultado
+   traz os erros contados e o intervalo de 95%.
 3. Margem: ruído de fase de Wiener cada vez maior, 1 dB acima do Eb/N0 de PER 1%, até a
    PER passar de 1%.
 4. ADC de 8 bits do RTL: nível eficaz na entrada do ADC de −60 a −3 dBFS, 1 dB acima do
    Eb/N0 de PER 1%: a janela de ganho do RX.
 
-Uso: python ensaios/etapa6/imperfeicoes_ensaio.py   (cerca de 15 min)
+Uso: python ensaios/etapa6/imperfeicoes_ensaio.py   (cerca de 30 min)
 """
 
 import json
@@ -43,6 +45,7 @@ LARGURAS_HZ = (0.0, 10.0, 30.0, 100.0, 300.0, 1e3, 3e3, 10e3, 30e3)
 NIVEIS_DBFS = (-60.0, -50.0, -40.0, -30.0, -20.0, -12.0, -6.0, -3.0)
 OFFSET_HZ = -1400.0
 PER_ALVO = 0.01
+SEMENTES = (11, 21, 31, 41)
 
 
 def sinal_do_perfil(p, quadros):
@@ -53,6 +56,15 @@ def sinal_do_perfil(p, quadros):
     s = s[: np.flatnonzero(s)[-1] + 1]
     s = np.concatenate([np.zeros(20_000), s, np.zeros(20_000)])
     return canal.girar(s, OFFSET_HZ, p.taxa_sps), cm
+
+
+def intervalo_95(erros, total):
+    """Intervalo de Wilson de 95% para a PER."""
+    z = 1.96
+    f = erros / total
+    centro = (f + z**2 / (2 * total)) / (1 + z**2 / total)
+    meia = z * np.sqrt(f * (1 - f) / total + z**2 / (4 * total**2)) / (1 + z**2 / total)
+    return [round(max(0.0, centro - meia), 4), round(min(1.0, centro + meia), 4)]
 
 
 def per(p, cm, y, quadros):
@@ -100,12 +112,18 @@ def main():
         s, cm = sinal_do_perfil(p, quadros)
         r = {"ebn0_per_1pct_db": ebn0, "quadros": quadros}
         # 2. trajetória real (reamostrada no tempo para a taxa do perfil), 0,5 dB abaixo do ponto de 1%
-        w = ruido(s, cm, ebn0 - 0.5, 11)
-        r["fase_real"] = {"sem": per(p, cm, s + w, quadros)}
+        giros = {"sem": np.zeros(len(s))}
         for k, tom in enumerate(tons):
             ph = fase.trajetoria(tom, int(len(s) * FS_TOM / p.taxa_sps) + 2)
-            ph = np.interp(np.arange(len(s)) * FS_TOM / p.taxa_sps, np.arange(len(ph)), ph)
-            r["fase_real"][f"tom {k + 1}"] = per(p, cm, s * np.exp(1j * ph) + w, quadros)
+            giros[f"tom {k + 1}"] = np.interp(np.arange(len(s)) * FS_TOM / p.taxa_sps, np.arange(len(ph)), ph)
+        erros = dict.fromkeys(giros, 0)
+        for semente in SEMENTES:
+            w = ruido(s, cm, ebn0 - 0.5, semente)
+            for rotulo, ph in giros.items():
+                erros[rotulo] += round(per(p, cm, s * np.exp(1j * ph) + w, quadros) * quadros)
+        total = quadros * len(SEMENTES)
+        r["fase_real"] = {rotulo: {"erros": e, "quadros": total, "per": round(e / total, 4),
+                                   "intervalo_95": intervalo_95(e, total)} for rotulo, e in erros.items()}
         # 3. margem: Wiener 1 dB acima do ponto de 1%
         w = ruido(s, cm, ebn0 + 1.0, 12)
         r["wiener"] = {}
@@ -116,6 +134,9 @@ def main():
                 break
         toleradas = [float(k) for k, v in r["wiener"].items() if v <= PER_ALVO]
         r["largura_tolerada_hz"] = max(toleradas) if toleradas else None
+        # a mesma tolerância como variação de fase em um símbolo (Wiener: 2π·Δν·Ts)
+        r["variacao_tolerada_rad"] = (None if not toleradas else
+                                      round(float(np.sqrt(2 * np.pi * max(toleradas) * cm.sps / p.taxa_sps)), 4))
         # 4. ADC de 8 bits, 1 dB acima do ponto de 1%
         r["adc"] = {}
         for nivel in NIVEIS_DBFS:

@@ -30,6 +30,7 @@ import numpy as np
 
 from sdrlink import medicao, metricas, quadro, receptor, transmissor
 from sdrlink.config import Perfil, argumentos_de_enlace, perfil_dos_argumentos
+from sdrlink.hw.rtl_rx import aviso_de_nivel
 from sdrlink.receptor import ConfigReceptor
 from sdrlink.registro import salvar_json, versao_do_codigo
 
@@ -79,6 +80,10 @@ def _gravacao(captura: Path, perfil: Perfil) -> dict[str, object]:
     saturada = metadados.get("fracao_saturada")
     if isinstance(saturada, int | float) and saturada > 0:
         avisos.append(f"{100 * saturada:.3f}% das amostras saturadas: baixar o ganho do RX")
+    nivel = metadados.get("nivel_eficaz_dbfs")
+    aviso_nivel = aviso_de_nivel(float(nivel)) if isinstance(nivel, int | float) else None
+    if aviso_nivel:
+        avisos.append(aviso_nivel)
     for aviso in avisos:
         print(f"AVISO: {aviso}")
     return {"encontrada": True, "arquivo": arquivo.name, "metadados": metadados, "avisos": avisos}

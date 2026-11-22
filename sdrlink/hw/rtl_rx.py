@@ -27,6 +27,12 @@ AMOSTRAS_POR_LEITURA = 256 * 1024  # múltiplo de 512 bytes, exigência da librt
 AMOSTRAS_DESCARTADAS = 256 * 1024  # primeiras amostras após sintonizar são instáveis
 ESCALA_ADC = 127.5  # mesma escala do pyrtlsdr: (byte - 127,5) / 127,5
 MARGEM_TEMPO_S = 5.0  # folga do tempo máximo de uma captura
+# Janela de nível eficaz na entrada do ADC (bloco 21, docs/etapa6_imperfeicoes.md): abaixo de
+# −30 dBFS a quantização de 8 bits já custa PER (11% na prova A em −40); acima de −6 dBFS
+# uma fração grande das amostras satura.
+NIVEL_MIN_DBFS = -30.0
+NIVEL_MAX_DBFS = -6.0
+NIVEL_PISO_DBFS = -120.0  # o que se registra para uma gravação toda nula
 
 
 @dataclass(frozen=True)
@@ -99,6 +105,33 @@ def fracao_saturada(amostras: NDArray[np.complex64]) -> float:
     limite = (ESCALA_ADC - 1) / ESCALA_ADC
     no_limite = (np.abs(amostras.real) >= limite) | (np.abs(amostras.imag) >= limite)
     return float(np.mean(no_limite))
+
+
+def nivel_eficaz_dbfs(amostras: NDArray[np.complexfloating]) -> float:
+    """Valor eficaz de I e de Q em dB abaixo do fundo de escala do ADC (o mesmo do canal simulado).
+
+    Raises:
+        ValueError: vetor vazio.
+    """
+    if len(amostras) == 0:
+        raise ValueError("vetor de amostras vazio")
+    eficaz = float(np.sqrt(np.mean(np.abs(np.asarray(amostras, dtype=np.complex128)) ** 2) / 2))
+    return max(NIVEL_PISO_DBFS, 20 * float(np.log10(eficaz)) if eficaz > 0 else NIVEL_PISO_DBFS)
+
+
+def aviso_de_nivel(nivel_dbfs: float) -> str | None:
+    """O que fazer com o ganho do RX se o nível estiver fora da janela, ou None se estiver bom."""
+    if nivel_dbfs < NIVEL_MIN_DBFS:
+        return (
+            f"nível de {nivel_dbfs:.1f} dBFS, abaixo de {NIVEL_MIN_DBFS:.0f}: o ADC de 8 bits "
+            "perde resolução; subir o ganho do RX"
+        )
+    if nivel_dbfs > NIVEL_MAX_DBFS:
+        return (
+            f"nível de {nivel_dbfs:.1f} dBFS, acima de {NIVEL_MAX_DBFS:.0f}: perto da saturação; "
+            "baixar o ganho do RX"
+        )
+    return None
 
 
 def _configurar(radio: Any, config: ConfigRtl) -> None:
