@@ -151,12 +151,13 @@ def capa_e_sumario(entrega: Entrega) -> str:
     itens = "".join(
         f"<li>{i}. {html.escape(t)}</li>" for i, (t, *_) in enumerate(entrega.partes, 1)
     )
+    versao = html.escape(versao_do_codigo(ignorar=("entregas/",)))  # a própria saída não conta
     return (
         f'<div class="capa"><h1>Link de Comunicação SDR<br>{html.escape(entrega.titulo)}</h1>'
         "<p>SCM22108 Sistemas de Comunicação, Engenharia Eletrônica, IFSC</p>"
         "<p>Gabriel de Oliveira Peres, matrícula 201920800001</p>"
         f"<p>{date.today():%d/%m/%Y}</p>"
-        f"<p><small>Versão do código: <code>{html.escape(versao_do_codigo())}</code>"
+        f"<p><small>Versão do código: <code>{versao}</code>"
         "<br>Repositório: Sistema_comunicacao_projeto_radio_digital</small></p></div>"
         f'<h1 class="parte">Sumário</h1><ol class="sumario" style="list-style:none">{itens}</ol>'
     )

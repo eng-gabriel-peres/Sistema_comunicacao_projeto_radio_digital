@@ -38,19 +38,25 @@ def _git(nome: str) -> str | None:
     return resultado.stdout.strip() if resultado.returncode == 0 else None
 
 
-def versao_do_codigo() -> str:
+def versao_do_codigo(ignorar: tuple[str, ...] = ()) -> str:
     """Descrição do commit atual, com sufixo '-sujo' se houver qualquer pendência.
 
     "Pendência" inclui arquivo novo ainda fora do git: o `git describe --dirty`
     sozinho não percebe isso, e um registro poderia apontar para um commit que
     não contém o código que realmente rodou.
     Devolve 'desconhecida' se o git não estiver disponível.
+
+    Args:
+        ignorar: pastas (relativas à raiz, terminadas em "/") cujas pendências
+            não contam; o gerador de relatório ignora a própria saída, entregas/.
     """
     versao = _git("versao")
     pendencias = _git("pendencias")
     if not versao or pendencias is None:
         return "desconhecida"
-    return f"{versao}-sujo" if pendencias else versao
+    caminhos = [linha[3:].strip('"') for linha in pendencias.splitlines() if linha.strip()]
+    restantes = [c for c in caminhos if not c.startswith(ignorar)]
+    return f"{versao}-sujo" if restantes else versao
 
 
 def carimbo_de_tempo() -> str:

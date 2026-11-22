@@ -53,3 +53,13 @@ def test_salvar_json_rejeita_extensao_e_vazio(tmp_path: Path) -> None:
         registro.salvar_json(tmp_path / "r.txt", {"a": 1})
     with pytest.raises(ValueError, match="nada"):
         registro.salvar_json(tmp_path / "r.json", {})
+
+
+def test_versao_ignora_pendencias_so_nas_pastas_pedidas(monkeypatch: pytest.MonkeyPatch) -> None:
+    so_entregas = " M entregas/a.pdf\n?? entregas/b.pdf"
+    monkeypatch.setattr(registro, "_git", _git_falso("bloco-04", so_entregas))
+    assert registro.versao_do_codigo(ignorar=("entregas/",)) == "bloco-04"
+    assert registro.versao_do_codigo() == "bloco-04-sujo"
+    com_codigo = " M entregas/a.pdf\n M sdrlink/x.py"
+    monkeypatch.setattr(registro, "_git", _git_falso("bloco-04", com_codigo))
+    assert registro.versao_do_codigo(ignorar=("entregas/",)) == "bloco-04-sujo"
