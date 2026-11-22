@@ -199,3 +199,14 @@ def test_dqpsk_dobra_a_taxa_e_encurta_o_quadro() -> None:
     assert transmissor.amostras_por_quadro(cm) == (29 + 540 + 13) * 3
     baixo, alto = ConfigTransmissor(cm, FS, 425e3).banda_99_hz()
     assert alto - baixo == pytest.approx(749e3, abs=10e3)  # mesma banda da DBPSK do prova-a
+
+
+def test_fluxo_dqpsk_do_tx_e_recebido_pelo_rx() -> None:
+    # o TX manda o prefixo um bit por símbolo; sem isso o RX não acha nenhum quadro
+    cm = ConfigModem("dqpsk", "rrc", 3, beta=0.25)
+    pacotes = transmissor.numerar([bytes([k]) * 128 for k in range(6)])
+    config = ConfigTransmissor(cm, FS, 425e3)
+    sinal = np.concatenate([b for b, _ in transmissor.fluxo(pacotes, config, 1.0)])
+    x = np.concatenate([np.zeros(5000, dtype=complex), sinal / config.amplitude])
+    d = receptor.receber(x, ConfigReceptor(cm, FS, 425e3))
+    assert receptor.pacotes_aceitos(d) == pacotes

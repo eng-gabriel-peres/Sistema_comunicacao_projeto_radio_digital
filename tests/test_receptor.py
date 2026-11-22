@@ -289,3 +289,12 @@ def test_fec_le_quadro_curto_no_fim_da_captura() -> None:
     x = np.concatenate([np.zeros(3000), onda, np.zeros(400)]).astype(complex)
     d = receptor.receber(x, ConfigReceptor(cm, FS, fec=True))
     assert receptor.pacotes_aceitos(d) == [p]
+
+
+def test_dqpsk_usa_a_taxa_de_simbolos_no_filtro_e_no_modelo() -> None:
+    # a banda vem dos símbolos: DQPSK e DBPSK com o mesmo sps têm o mesmo filtro e o mesmo prefixo
+    dq = ConfigReceptor(ConfigModem("dqpsk", "rrc", 8), FS, DESLOCAMENTO)
+    db = ConfigReceptor(ConfigModem("dbpsk", "rrc", 8), FS, DESLOCAMENTO)
+    np.testing.assert_array_equal(dq.filtro_deteccao(), db.filtro_deteccao())
+    np.testing.assert_allclose(dq.modelo(), db.modelo(), atol=1e-12)
+    assert dq.taxa_bits == 2 * db.taxa_bits
