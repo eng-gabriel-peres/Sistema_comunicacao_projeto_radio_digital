@@ -12,7 +12,8 @@ Projeto Final de SCM22108 Sistemas de Comunicação, Engenharia Eletrônica, IFS
 | 2 | Estudo e auditoria da OOK de referência no enlace real | concluído: PER 0% em 698 quadros, achados A17 a A19 ([registro](docs/etapa2_recepcao_ook.md), [auditoria](docs/auditoria_etapas_1_2.md)) |
 | 3a | Quadro v2: sequência de 16 bits e CRC-16 | concluído ([registro](docs/etapa3_quadro.md)) |
 | 3b | OOK, 2-FSK e BPSK em simulação, pulsos RRC e gaussiano, banda a 99% | concluído ([registro](docs/etapa3_modulacoes.md)) |
-| 3c a 3f | RX multiquadro, TX de prova, enlace real, relatório | a fazer |
+| 3c | Receptor multiquadro: detecção com limiar, offset e instante por quadro, arquivo de saída | concluído ([registro](docs/etapa3_receptor.md)) |
+| 3d a 3f | TX de prova, enlace real, relatório | a fazer |
 | 4 | Simulação do canal: BER × Eb/N0 contra a teoria, fase, offset e temporização | concluído ([registro](docs/etapa4_canal.md)) |
 
 O plano completo, com os requisitos numerados e a matriz de rastreabilidade, está em [docs/00_planejamento_e_auditoria.md](docs/00_planejamento_e_auditoria.md).

@@ -119,7 +119,7 @@ def test_validacoes() -> None:
 def test_filtro_casado_amostra_no_pico_do_simbolo(pulso: str) -> None:
     config = ConfigModem("bpsk", pulso, 16)
     bits = _bits(200)
-    z = modem._amostras_casadas(modem.modular(bits, config), config, 200)
+    z = modem.saida_casada(modem.modular(bits, config), config, 200)
     np.testing.assert_allclose(np.real(z), 2.0 * bits - 1, atol=0.02)  # amplitude exata no pico
 
 

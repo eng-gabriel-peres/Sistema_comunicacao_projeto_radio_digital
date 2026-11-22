@@ -132,13 +132,13 @@ def figura_constelacao(rng):
     ruidoso = canal.awgn(s, 10.0, sps, rng)
     giro = np.exp(2j * np.pi * offset_hz * np.arange(len(s)) / (rb * sps))
     casos = [
-        ("sem ruído", modem._amostras_casadas(s, c, len(bits))),
-        ("Eb/N0 = 10 dB", modem._amostras_casadas(ruidoso, c, len(bits))),
-        ("Eb/N0 = 10 dB e offset de 1 kHz\n(Rb = 128 kbit/s, um quadro de 1109 bits)", modem._amostras_casadas(ruidoso * giro, c, len(bits))),
+        ("sem ruído", modem.saida_casada(s, c, len(bits))),
+        ("Eb/N0 = 10 dB", modem.saida_casada(ruidoso, c, len(bits))),
+        ("Eb/N0 = 10 dB e offset de 1 kHz\n(Rb = 128 kbit/s, um quadro de 1109 bits)", modem.saida_casada(ruidoso * giro, c, len(bits))),
     ]
     cd = ConfigModem("dbpsk", "rrc", sps)
     sd = canal.awgn(modem.modular(bits, cd), 10.0, sps, rng) * np.exp(2j * np.pi * offset_hz * np.arange(len(modem.modular(bits, cd))) / (rb * sps))
-    zd = modem._amostras_casadas(sd, cd, len(bits) + 1)
+    zd = modem.saida_casada(sd, cd, len(bits) + 1)
     casos.append(("DBPSK, mesmo offset: produto\nz[k]·conj(z[k−1]) antes da decisão", zd[1:] * np.conj(zd[:-1])))
     fig, eixos = plt.subplots(1, 4, figsize=(15, 4.2))
     for ax, (titulo, z) in zip(eixos, casos):

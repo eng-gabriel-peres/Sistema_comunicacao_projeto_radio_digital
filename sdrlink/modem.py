@@ -111,7 +111,9 @@ def modular(bits: Bits, config: ConfigModem) -> Sinal:
     forma = config.formato()
     if config.modulacao == "fsk":
         frequencia = np.convolve(_impulsos(2 * bits.astype(np.float64) - 1, config.sps), forma)
-        fase = np.cumsum(frequencia) * np.pi * config.h / config.sps  # pi*h por símbolo
+        # fase(n) = integral da frequência até n, exclusive (pi*h por símbolo); com a soma
+        # inclusiva a fase ficava adiantada 1 amostra, e o alinhamento dependia da taxa
+        fase = np.concatenate([[0.0], np.cumsum(frequencia)[:-1]]) * np.pi * config.h / config.sps
         return np.exp(1j * fase)
     simbolos = _simbolos_lineares(bits, config.modulacao)
     return np.convolve(_impulsos(simbolos, config.sps), forma).astype(np.complex128)
@@ -128,7 +130,7 @@ def _limiar_dois_niveis(valores: NDArray[np.float64]) -> float:
     return limiar
 
 
-def _amostras_casadas(amostras: Sinal, config: ConfigModem, n_simbolos: int) -> Sinal:
+def saida_casada(amostras: Sinal, config: ConfigModem, n_simbolos: int) -> Sinal:
     """Saída do filtro casado no instante ótimo de cada símbolo (OOK, BPSK, DBPSK).
 
     Raises:
@@ -160,7 +162,13 @@ def _demodular_fsk(amostras: Sinal, config: ConfigModem, n_bits: int) -> Bits:
     return np.asarray(alto > baixo, dtype=np.uint8)
 
 
-def demodular(amostras: Sinal, config: ConfigModem, n_bits: int, fase: float = 0.0) -> Bits:
+def demodular(
+    amostras: Sinal,
+    config: ConfigModem,
+    n_bits: int,
+    fase: float = 0.0,
+    limiar: float | None = None,
+) -> Bits:
     """Bits a partir do sinal recebido, com o instante de amostragem conhecido.
 
     Args:
@@ -168,6 +176,7 @@ def demodular(amostras: Sinal, config: ConfigModem, n_bits: int, fase: float = 0
         config: a mesma configuração do modulador.
         n_bits: quantidade de bits a recuperar.
         fase: fase da portadora em radianos (só a BPSK coerente usa).
+        limiar: limiar da OOK; se omitido, é ajustado pelos próprios símbolos (k-médias).
 
     Raises:
         ValueError: n_bits não positivo ou sinal curto demais.
@@ -177,10 +186,11 @@ def demodular(amostras: Sinal, config: ConfigModem, n_bits: int, fase: float = 0
     if config.modulacao == "fsk":
         return _demodular_fsk(amostras, config, n_bits)
     if config.modulacao == "dbpsk":
-        z = _amostras_casadas(amostras, config, n_bits + 1)
+        z = saida_casada(amostras, config, n_bits + 1)
         return (np.real(z[1:] * np.conj(z[:-1])) < 0).astype(np.uint8)
-    z = _amostras_casadas(amostras, config, n_bits)
+    z = saida_casada(amostras, config, n_bits)
     if config.modulacao == "bpsk":
         return np.asarray(np.real(z * np.exp(-1j * fase)) > 0, dtype=np.uint8)
     modulo = np.abs(z)
-    return (modulo > _limiar_dois_niveis(modulo)).astype(np.uint8)
+    corte = _limiar_dois_niveis(modulo) if limiar is None else limiar
+    return np.asarray(modulo > corte, dtype=np.uint8)

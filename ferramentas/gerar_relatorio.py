@@ -69,6 +69,7 @@ ENTREGAS = {
         (
             ("Quadro v2: número de sequência e CRC-16", "etapa3_quadro.md", None, None),
             ("OOK, 2-FSK e BPSK em simulação", "etapa3_modulacoes.md", None, None),
+            ("Receptor multiquadro", "etapa3_receptor.md", None, None),
             ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapa 3", "## Etapa 4"),
         ),
     ),
