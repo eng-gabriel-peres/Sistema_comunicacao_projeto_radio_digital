@@ -20,7 +20,7 @@ Código: [`sdrlink/receptor.py`](../sdrlink/receptor.py). Ferramenta de linha de
 | Capturas simuladas: 20 quadros de 128 bytes, offset de −1,6 kHz, atraso fracionário, 14 dB, blocos pequenos para forçar quadros nas emendas | **20 de 20** em OOK, DBPSK (256 e 10,24 kbit/s), GFSK e CPFSK; nenhum pacote errado aceito |
 | Perda de implementação: receptor completo, com tudo estimado, contra a demodulação ideal | **0 a 0,2 dB** em OOK e DBPSK; na GFSK o receptor ganha 0,6 dB (seção 5) |
 | Pacotes errados aceitos, em todos os ensaios | **0** |
-| Tempo de processamento | **1,16 s por segundo de captura** no pior caso (10 kbit/s): a prova de 60 s leva cerca de 70 s, e o limite é de 10 min |
+| Tempo de processamento | **0,99 s por segundo de captura** no pior caso (DBPSK a 256 kbit/s, depois da otimização da seção 10): a prova de 60 s leva cerca de 1 min, e o limite é de 10 min |
 | `scripts/receber.py` com uma captura simulada de 50 pacotes | arquivo de saída **idêntico ao log do TX**, nos 50 pacotes e na ordem |
 
 **A BPSK coerente não funciona com o offset medido**, e era esperado. A estimativa do offset pelo preâmbulo erra dezenas de hertz, e a Etapa 4 mostrou que a BPSK coerente tolera menos de 10 Hz nessa taxa. Mesmo sem offset, ela acertou 5 de 20 quadros a 10 dB. Isso confirma a decisão da Etapa 4: **a BPSK do projeto é a DBPSK**.
@@ -93,11 +93,11 @@ Por isso o limiar fica no ponto mais baixo que o falso alarme permite: **0,5**.
 | Quadros esperados pelo período do TX | 698 | 698 |
 | Detecções falsas | | 0 |
 | Offset | −1 343 Hz (FFT de 16 s) | −1 335 Hz (mediana; 5% a 95%: −1 482 a −1 119 Hz, a deriva do A18) |
-| Menor métrica de correlação | | 0,627 |
+| Menor métrica de correlação | | 0,625 (0,627 antes da otimização: a FFT longa passou a ser em precisão simples) |
 | Maior desvio do período entre quadros | 0,7 amostra | 0,7 amostra |
-| Tempo | | 18,6 s para 16 s de captura (1,16 s por segundo) |
+| Tempo | | 6,0 s para 16 s de captura (0,37 s por segundo); eram 18,6 s antes da otimização |
 
-Registro: `dados/logs/receptor_captura_real_20261121_234321.json` (medido de novo depois das correções A22 e A23 da Etapa 5: mesmo resultado).
+Registro: `dados/logs/receptor_captura_real_20261122_002415.json` (medido de novo depois da otimização da seção 10; o de `..._20261121_234321` é o de depois das correções A22 e A23 da Etapa 5, com o mesmo resultado).
 
 ## 5. Perda de implementação
 
@@ -141,7 +141,7 @@ A captura de 60 s (1 GB) é lida por mapeamento de memória, bloco a bloco.
 
 ## 7. Testes
 
-Total do projeto: 130 testes. São 13 em `tests/test_receptor.py`:
+Total do projeto: 157 testes. São 18 em `tests/test_receptor.py`:
 
 | Teste | O que garante |
 |---|---|
@@ -154,6 +154,11 @@ Total do projeto: 130 testes. São 13 em `tests/test_receptor.py`:
 | `test_arquivo_de_saida` | formato do arquivo de saída |
 | `test_resumo_da_recepcao` | contagens e offset do registro |
 | `test_validacoes_e_decimacao` | decimação escolhida, grade de hipóteses, parâmetros inválidos recusados |
+| `test_2fsk_rejeita_um_pico_de_dc_do_tamanho_do_sinal` | a 2-FSK demodulada depois do filtro (A23) ignora um DC do tamanho do sinal |
+| `test_fasor_rapido_igual_ao_exp` | a exponencial calculada pelo produto externo é igual a `exp` amostra a amostra (seção 10) |
+| `test_interpolador_fir_igual_ao_atraso_exato` | o interpolador FIR do instante fracionário reproduz o atraso exato pela FFT (seção 10) |
+| `test_le_o_quadro_da_prova_mesmo_com_o_comprimento_corrompido` | com o campo de comprimento errado, o quadro de 128 bytes ainda é lido inteiro; zeros exatos antes do quadro não geram detecção falsa (seção 10) |
+| `test_pulso_em_cache_e_so_leitura` | modelo e filtro guardados em cache não podem ser alterados por quem os usa |
 
 Testes de mutante feitos à mão (cada decisão desligada de propósito):
 
@@ -166,6 +171,11 @@ Testes de mutante feitos à mão (cada decisão desligada de propósito):
 | Sem refinar o instante (só a amostra inteira) | 3 |
 | Sem corrigir o offset antes de demodular | 1 |
 | Limiar da OOK por k-médias na janela toda (em vez do prefixo) | 1 |
+| Exponencial rápida com o passo grosso errado (seção 10) | 6 |
+| Interpolador FIR com a fração ao contrário (seção 10) | 4 |
+| Espectro girado para o lado errado em cada hipótese (seção 10) | 3 |
+| Sem o mínimo de 128 bytes lidos (seção 10) | 1 |
+| Sem o piso de energia da janela (seção 10) | 1 |
 
 Os mutantes foram rodados de novo contra a versão final do código, antes de publicar. Dois deles (sem a média e sem o filtro de detecção) sobreviviam aos testes da versão anterior e ganharam testes próprios (nenhuma detecção falsa; detecção a 8 dB).
 
@@ -176,6 +186,7 @@ Os mutantes foram rodados de novo contra a versão final do código, antes de pu
 | Captura real: resultado | `dados/logs/receptor_captura_real_20261121_234321.json` (o de `..._213841` é a primeira execução) |
 | Limiar e perda de implementação | `dados/logs/receptor_desempenho_20261122_000354.json` (refeito depois de A22 e A23; o de `..._215254` é a primeira versão), `dados/logs/receptor_desempenho_execucao.log` |
 | Figura | `docs/figuras/etapa3_receptor_per.png` |
+| Otimização: equivalência e tempo | `ensaios/etapa3/receptor_otimizacao_ensaio.py`, `dados/logs/receptor_otimizacao_20261122_002709.json`, `dados/logs/receptor_otimizacao_execucao.log` |
 | Código e testes | `sdrlink/receptor.py`, `scripts/receber.py`, `tests/test_receptor.py`; ajuste da fase da 2-FSK em `sdrlink/modem.py` |
 
 ## 9. Próximo passo (3d)
@@ -187,3 +198,49 @@ O transmissor de prova:
 - grava o **log do TX** (sequência e payload de cada pacote transmitido), que é a referência da PER oficial.
 
 Dá para testar ponta a ponta sem hardware: TX → canal simulado → `scripts/receber.py` → comparação dos dois logs.
+
+## 10. Otimização do receptor (22/11/2026)
+
+O 3d mediu 3,5 s de processamento por segundo de captura na DBPSK a 256 kbit/s: a prova de 60 s levaria cerca de 3,6 min. Cabia nos 10 min, mas com pouca folga para reprocessar com outros parâmetros durante a prova. O receptor foi acelerado sem mudar o algoritmo: as mesmas contas, feitas de forma mais barata.
+
+### O que mudou
+
+| Onde | Antes | Depois |
+|---|---|---|
+| Correlação na grade de offsets | uma FFT do sinal girado para cada hipótese | **uma FFT só**; cada hipótese é o espectro deslocado de um número inteiro de raias (`np.roll`), e a hipótese passa a ser a frequência exata dessa raia |
+| Energia da janela deslizante | convolução | **soma acumulada** (`cumsum`) |
+| Exponenciais de giro | `np.exp` em cada amostra | **produto externo** de dois vetores de cerca de √n amostras (`_fasor`) |
+| Instante fracionário | atraso pela FFT do trecho inteiro | **interpolador FIR** de 33 coeficientes (sinc com janela de Kaiser, β = 8) |
+| Leitura de cada quadro | demodulava a janela do maior quadro possível (255 bytes) | demodula o **cabeçalho primeiro** e depois só o tamanho do quadro, **no mínimo 128 bytes** (o payload da prova), para um comprimento corrompido não cortar o quadro |
+| Modelo, filtro e formato do pulso | recalculados a cada bloco | calculados uma vez (`functools.cache`), **só leitura** |
+| FFT longa | precisão dupla | precisão simples (`complex64`) |
+
+### Equivalência com a versão anterior
+
+O ensaio `ensaios/etapa3/receptor_otimizacao_ensaio.py` roda as duas versões (a anterior é lida da tag `bloco-05-software`) nas mesmas 9 capturas simuladas. São 400 quadros com o payload conhecido do BER, 7 a 13 dB, offset de −1,4 kHz, atraso de 0,37 amostra e pico de DC, em DBPSK (256 e 10,24 kbit/s), GFSK, OOK e 2-FSK retangular.
+
+| Comparação | Resultado nos 9 casos |
+|---|---|
+| Detecções | as mesmas (14 a 350 por caso) |
+| Diferença de instante | no máximo 0,008 amostra |
+| Diferença de offset | no máximo 0,025 Hz |
+| Situação de cada quadro (OK, CRC, curto) | 0 diferenças |
+| Bits demodulados (1 064 por quadro) | **0 diferenças** |
+| Pacotes aceitos e BER | **idênticos** |
+
+### Tempo
+
+Captura de prova simulada de 4,24 s, quadros um atrás do outro, 12 dB:
+
+| Configuração | Antes (s por s de captura) | Depois | Aceleração | Prova de 60 s, depois |
+|---|---|---|---|---|
+| DBPSK 256 kbit/s | 3,23 | **0,99** | 3,3 vezes | cerca de 1 min |
+| GFSK 128 kbit/s | 2,14 | **0,72** | 3,0 vezes | cerca de 43 s |
+| DBPSK 10,24 kbit/s | 0,83 | **0,33** | 2,6 vezes | cerca de 20 s |
+| Captura real da OOK (16 s, seção 4) | 1,16 | **0,37** | 3,1 vezes | |
+
+Os pacotes aceitos foram os mesmos nas duas versões (913, 408 e 37).
+
+### Um defeito antigo achado no caminho
+
+O teste novo do comprimento corrompido usa um quadro limpo, precedido de **zeros exatos**. A métrica de Pearson divide pela energia da janela, e numa janela só de zeros a conta vira 0/0. O resultado dava métricas de até 3·10¹⁶ e **51 detecções falsas**. A versão anterior tinha o mesmo defeito; ele não aparecia porque toda captura real e simulada tem ruído. Correção: a métrica é 0 quando a energia da janela fica abaixo de 10⁻⁹ da energia média do bloco (`PISO_RELATIVO`). O mutante sem esse piso faz o teste falhar.

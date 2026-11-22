@@ -1,0 +1,23 @@
+{
+  "captura": "dados\\capturas\\ook_ref_continua16s_20261104_103841.npy",
+  "duracao_s": 16.0,
+  "deteccoes": 698,
+  "quadros_esperados_pelo_periodo": 698,
+  "situacoes": {
+    "ok": 698,
+    "crc": 0,
+    "curto": 0
+  },
+  "payload_igual_a_mensagem": 698,
+  "offset_mediano_hz": -1334.9,
+  "offset_p5_p95_hz": [
+    -1482.2,
+    -1119.1
+  ],
+  "metrica_minima": 0.625,
+  "desvio_do_periodo_amostras_max": 0.7,
+  "tempo_reamostragem_s": 1.5,
+  "tempo_receptor_s": 6.0,
+  "tempo_por_segundo_de_captura_s": 0.37,
+  "versao_do_codigo": "bloco-05-software-1-g370af20-sujo"
+}

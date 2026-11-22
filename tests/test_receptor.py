@@ -168,3 +168,50 @@ def test_2fsk_rejeita_um_pico_de_dc_do_tamanho_do_sinal() -> None:
     pico = np.sqrt(np.mean(np.abs(x[len(x) // 2 :]) ** 2))  # da ordem da amplitude do sinal
     rx = ConfigReceptor(config, FS, deslocamento_hz=DESLOCAMENTO)
     assert receptor.pacotes_aceitos(receptor.receber(x + pico, rx)) == pacotes
+
+
+def test_fasor_rapido_igual_ao_exp() -> None:
+    for ciclos in (100 / 4_194_304, -0.0371, 0.25):
+        for n in (1, 7, 1000, 300_001):
+            esperado = np.exp(2j * np.pi * ciclos * np.arange(n))
+            np.testing.assert_allclose(receptor._fasor(ciclos, n), esperado, atol=1e-8)
+
+
+def test_interpolador_fir_igual_ao_atraso_exato() -> None:
+    # sinal de banda limitada (RRC, 8 amostras por bit): o FIR de 33 coeficientes reproduz o
+    # atraso fracionário exato por FFT, longe das bordas
+    sinal = modem.modular(
+        np.random.default_rng(1).integers(0, 2, 400).astype(np.uint8),
+        ConfigModem("dbpsk", "rrc", 8),
+    )
+    for inicio in (100.0, 100.25, 137.6):
+        fir = receptor._alinhar(sinal, inicio, 2000)
+        base = int(inicio)
+        # referência: atraso por FFT do sinal inteiro e só depois o recorte (recortar antes
+        # cria um começo abrupto, e o "toque" desse corte é que apareceria como erro)
+        exato = (
+            canal.atrasar(sinal, 1 - (inicio - base))[base + 1 : base + 2001]
+            if inicio % 1
+            else sinal[base : base + 2000]
+        )
+        np.testing.assert_allclose(fir, exato, atol=1e-3 * np.max(np.abs(sinal)))
+
+
+def test_le_o_quadro_da_prova_mesmo_com_o_comprimento_corrompido() -> None:
+    # a BER precisa dos 1024 bits de payload mesmo quando o campo de comprimento chega errado
+    config = ConfigModem("dbpsk", "rrc", 8)
+    bits = quadro.montar_quadro(Pacote(3, bytes(range(128))))
+    bits[29:37] = [0, 0, 0, 0, 0, 1, 0, 1]  # comprimento 5 no lugar de 128
+    onda = modem.modular(bits, config)
+    x = np.concatenate([np.zeros(3000), onda, np.zeros(30_000)]).astype(complex)
+    d = receptor.receber(x, ConfigReceptor(config, FS, guardar_bits=True))
+    assert len(d) == 1 and d[0].situacao == "crc"
+    assert d[0].bits is not None and len(d[0].bits) >= quadro.bits_apos_sync(128)
+    np.testing.assert_array_equal(d[0].bits[24 : 24 + 1024], bits[29 + 24 : 29 + 24 + 1024])
+
+
+def test_pulso_em_cache_e_so_leitura() -> None:
+    forma = ConfigModem("dbpsk", "rrc", 8).formato()
+    assert forma is ConfigModem("dbpsk", "rrc", 8).formato()  # calculado uma vez
+    with pytest.raises(ValueError, match="read-only"):
+        forma[0] = 1.0

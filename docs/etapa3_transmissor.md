@@ -39,7 +39,7 @@ O que isso mostra:
 - **A cadeia está completa.** Arquivo do avaliador, quadros numerados, sinal, receptor, arquivo de saída e PER com goodput pela regra do enunciado, sem nenhum passo manual.
 - **Nenhum pacote foi aceito com conteúdo errado e não houve espúrios**, em 6 848 pacotes.
 - **Prova B** (10 kbit/s de goodput, no mínimo 500 pacotes e PER de até 1%): a DBPSK a 256 kbit/s entrega cerca de 234 kbit/s e cerca de 13 700 pacotes em 60 s. Ela cumpre a PER a partir de cerca de 11 dB de Eb/N0 no receptor. A 10 dB a PER foi de 2,4%, o que bate com a curva do 3c.
-- **Processamento:** o RX levou cerca de 3,5 s por segundo de captura a 256 kbit/s, ou seja, cerca de 3,6 min para os 60 s da prova, dentro dos 10 min. É mais lento que os 1,16 s/s medidos a 10 kbit/s porque há muito mais quadros por segundo e cada leitura demodula a janela do maior quadro possível. Fica como otimização para a Etapa 6.
+- **Processamento:** o RX levou cerca de 3,5 s por segundo de captura a 256 kbit/s, ou seja, cerca de 3,6 min para os 60 s da prova, dentro dos 10 min. É mais lento que os 1,16 s/s medidos a 10 kbit/s porque há muito mais quadros por segundo e cada leitura demodula a janela do maior quadro possível. **Atualização (22/11/2026):** o receptor foi otimizado, com resultado idêntico, e agora leva 0,99 s por segundo nessa configuração, cerca de 1 min para a prova de 60 s ([etapa3_receptor.md](etapa3_receptor.md), seção 10).
 - **TX:** gerou o sinal a 0,44 vez o tempo real. O Pluto consome em tempo real, então há folga de cerca de 2,3 vezes (ver o risco R1 na seção 5).
 
 ## 2. Como funciona
