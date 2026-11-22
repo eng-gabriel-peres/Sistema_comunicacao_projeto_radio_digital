@@ -1,0 +1,53 @@
+perfil prova-b: 25.6 kbit/s, Eb/N0 5.5 dB
+    100000 payloads de 128 bytes em C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\prova_a_60s\payloads.bin
+    694 pacotes (simulado), banda a 99%: 235 a 265 kHz do LO
+    Log do TX: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\prova_a_60s\logs\tx_20261122_151531.txt
+    694 pacotes aceitos em 25.8 s
+    Banda a 99%: 276.8 kHz; Eb/N0: 5.59 dB
+    AVISO: banda não confiável (SNR na captura de -13.4 dB): medir a banda numa posição com mais sinal
+    Saída: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\prova_a_60s\prova_b_6dB_saida.txt
+    Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\prova_a_60s\prova_b_6dB_rx.json
+    694/694 certos | PER 0.00% | goodput 11.8 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+    Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\prova_a_60s\prova_b_6dB_saida_avaliacao.json
+{
+  "ensaio": "prova A simulada de ponta a ponta, 60 s, comandos da prova",
+  "perfil": {
+    "nome": "prova-b",
+    "modulacao": "dbpsk",
+    "pulso": "rrc",
+    "sps": 80,
+    "beta": 0.35,
+    "bt": 0.5,
+    "h": 1.0,
+    "taxa_sps": 2048000.0,
+    "deslocamento_hz": 250000.0,
+    "lo_hz": 919500000.0,
+    "fec": true,
+    "emendar_caudas": false,
+    "limiar": 0.4,
+    "descricao": "Prova B: DBPSK RRC com FEC a 25,6 kbit/s no ar, C/N0 de 48,4 dB-Hz (docs/etapa6_fec.md)"
+  },
+  "ebn0_db": 5.5,
+  "offset_hz": -1400.0,
+  "dc_relativo": 0.008,
+  "imagem_dbc": -45.0,
+  "semente": 20261122,
+  "duracao_da_captura_s": 61.52,
+  "transmitidos": 694,
+  "recebidos_certos": 694,
+  "per": 0.0,
+  "goodput_kbps": 11.8,
+  "conteudo_diferente": 0,
+  "espurios": 0,
+  "banda_99_medida_khz": 276.8,
+  "ebn0_medido_db": 5.59,
+  "tempo_tx_simulado_s": 36.5,
+  "tx_tempo_real_registrado_s": 34.92,
+  "tempo_canal_s": 13.2,
+  "tempo_rx_total_s": 28.3,
+  "tempo_rx_processamento_s": 25.8,
+  "dentro_dos_10_min": true,
+  "passa_na_prova_a": true,
+  "versao_do_codigo": "bloco-18-2-g0f31401"
+}
+registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\prova_b_60s_6dB_20261122_151613.json

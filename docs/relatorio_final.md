@@ -66,6 +66,7 @@ arquivo do avaliador ─► transmitir.py ─► Pluto ─► ar ─► RTL ─�
 | 16 | `bloco-16` | diferença de relógio de amostragem (±50 ppm sem perda em todos os perfis) e opção de gerar o sinal todo antes de transmitir (risco R1) | [etapa6_robustez.md](etapa6_robustez.md) |
 | 17 | `bloco-17` | perfil experimental a 2,4 MS/s: 1 427 kbit/s (+17%) em simulação; ferramenta da faixa plana do RTL | [etapa6_taxa_24.md](etapa6_taxa_24.md) |
 | 18 | `bloco-18` | fechamento: relatório final e PDFs atualizados | este documento |
+| 19 | `bloco-19` | limiar de detecção de 0,4 na prova B com FEC: de 0,4 a 1 dB a mais de alcance | [etapa6_limiar.md](etapa6_limiar.md) |
 
 ## 4. Resultados finais (ensaio geral, sem hardware)
 

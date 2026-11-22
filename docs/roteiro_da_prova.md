@@ -59,7 +59,7 @@ Em cada posição: goodput de pelo menos 10 kbit/s, PER de até 1% e **pelo meno
 |---|---|
 | Goodput sem perdas | 11,84 kbit/s (folga de 17,2% sobre 10 kbit/s com PER de 1%) |
 | Tempo para 500 pacotes | **43 s**: o ensaio tem de durar pelo menos isso; com 60 s, cerca de 690 pacotes |
-| C/N0 necessário | 48,4 dB-Hz (25,0 dB a menos que o `prova-a`, 20,2 dB a menos que o `prova-a-dbpsk`: cerca de 18 vezes a distância do `prova-a` no espaço livre) |
+| C/N0 necessário | 48,2 dB-Hz com o limiar de detecção de 0,4 do perfil (bloco 19; cerca de 25 dB a menos que o `prova-a` e 20 dB a menos que o `prova-a-dbpsk`: cerca de 18 vezes a distância do `prova-a` no espaço livre) |
 
 Em cada posição:
 1. RX: `python scripts/gravar_iq.py --perfil prova-b --segundos <duração + 3> --nome prova_b_pos<N>`

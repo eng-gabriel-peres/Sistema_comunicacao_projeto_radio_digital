@@ -1,0 +1,10 @@
+2.5 dB: limiar 0.5: PER 0.848, limiar 0.4: PER 0.720
+3.0 dB: limiar 0.5: PER 0.568, limiar 0.4: PER 0.380
+3.5 dB: limiar 0.5: PER 0.217, limiar 0.4: PER 0.105
+4.0 dB: limiar 0.5: PER 0.090, limiar 0.4: PER 0.013
+4.5 dB: limiar 0.5: PER 0.030, limiar 0.4: PER 0.005
+5.0 dB: limiar 0.5: PER 0.013, limiar 0.4: PER 0.003
+5.5 dB: limiar 0.5: PER 0.003, limiar 0.4: PER 0.000
+6.0 dB: limiar 0.5: PER 0.000, limiar 0.4: PER 0.000
+{"ebn0_per_1pct_db": {"0.5": 5.07, "0.4": 4.12}, "cn0_necessario_dbhz": {"0.5": 49.15, "0.4": 48.2}, "so_ruido_30_s": {"0.5": {"deteccoes": 0, "aceitas": 0}, "0.4": {"deteccoes": 0, "aceitas": 0}}}
+registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\limiar_20261122_151453.json
