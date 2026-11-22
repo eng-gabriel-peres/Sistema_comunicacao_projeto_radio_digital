@@ -24,6 +24,8 @@ Com 128 bytes de payload, o quadro tem **1 109 bits** (eficiência de 92,3%), o 
 
 **Sequência:** o TX numera os pacotes a partir de 0 e volta a 0 depois de 65 535. Numa prova de 60 s, isso só acontece acima de cerca de 1 100 pacotes por segundo, o que não é atingível com 1 MHz de banda.
 
+> **Atualização (bloco 10, 22/11/2026): quadro v3, sequência de 24 bits.** A premissa acima caiu. Com a DQPSK a 1 365 kbit/s na mesma banda de 1 MHz, o TX manda cerca de 1 170 pacotes por segundo, mais de 70 000 em 60 s. Na prova de 60 s simulada a sequência voltou a zero depois de 65 536 pacotes, e o avaliador, que casa a saída do RX com o log do TX pelo número de sequência, contou 4 839 pacotes como "conteúdo diferente": PER de 6,9%, o que desclassificaria na prova A. O campo passou a ter **24 bits** (16,7 milhões de pacotes antes de repetir), e o quadro de 128 bytes passou de 1 109 para **1 117 bits** (2 201 com FEC). Custa 0,7% de goodput. Alternativas descartadas: limitar o TX a 65 536 pacotes por prova (7% de goodput a menos) e confiar que o avaliador trate a volta (risco de desclassificação). Para sequências abaixo de 65 536 o payload conhecido do ensaio de BER não muda. Detalhes em [etapa6_dqpsk.md](etapa6_dqpsk.md).
+
 ## 2. Por que o CRC cobre o cabeçalho
 
 Na referência, o CRC-8 cobre só o payload. Um erro de bit no comprimento faz o RX ler o número errado de bits e, na maioria dos casos, falhar no CRC. Já um erro no número de sequência (campo novo) **passaria sem ser detectado**: o RX aceitaria o pacote com o número errado. O avaliador contaria isso como falha, e o pacote verdadeiro apareceria como perdido.

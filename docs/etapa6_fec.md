@@ -4,6 +4,8 @@ Requisitos: CMP-B (alcance) e seção 7 do enunciado ("repetição de pacotes e 
 
 Feito em 22/11/2026, sem hardware (bloco 09).
 
+> **Nota (bloco 10): quadro v3.** Com a sequência de 24 bits o quadro com FEC passou de 2 185 para 2 201 bits (2 214 tempos de bit no fluxo). O goodput sem perdas do `prova-b` fica em **11,84 kbit/s**, com folga de **17,2%** sobre os 10 kbit/s com PER de 1%.
+
 ## 1. Resultado
 
 | Item | Resultado |

@@ -1,0 +1,126 @@
+{
+  "ensaio": "prova A com DQPSK: taxa, banda, PER do receptor completo e margem",
+  "taxa_sps": 2048000.0,
+  "quadros_por_ponto": 1000,
+  "deslocamento_hz": 425000.0,
+  "offset_hz": -1400.0,
+  "dc_relativo": 0.008,
+  "imagem_dbc": -45.0,
+  "cn0_bancada_dbhz": 78.3,
+  "candidatas": [
+    {
+      "nome": "DBPSK 682,7 kbit/s (prova-a)",
+      "modulacao": "dbpsk",
+      "sps": 3,
+      "fec": false,
+      "taxa_no_ar": 682666.7,
+      "banda_99_khz": 749.0,
+      "faixa_khz": [
+        50.2,
+        799.3
+      ],
+      "goodput_sem_perda_kbps": 618.6,
+      "per_por_ebn0_no_ar": {
+        "6": 1.0,
+        "7": 0.946,
+        "8": 0.566,
+        "9": 0.175,
+        "10": 0.033,
+        "11": 0.001,
+        "12": 0.001,
+        "13": 0.0,
+        "14": 0.0
+      },
+      "errados_aceitos": 0,
+      "ebn0_no_ar_per_1pct_db": 10.34,
+      "cn0_necessario_dbhz": 68.68,
+      "margem_na_bancada_db": 9.6,
+      "rx_s_por_s": 1.05
+    },
+    {
+      "nome": "DQPSK 1365 kbit/s",
+      "modulacao": "dqpsk",
+      "sps": 3,
+      "fec": false,
+      "taxa_no_ar": 1365333.3,
+      "banda_99_khz": 747.0,
+      "faixa_khz": [
+        52.1,
+        799.1
+      ],
+      "goodput_sem_perda_kbps": 1192.9,
+      "per_por_ebn0_no_ar": {
+        "6": 1.0,
+        "7": 1.0,
+        "8": 0.968,
+        "9": 0.72,
+        "10": 0.299,
+        "11": 0.066,
+        "12": 0.012,
+        "13": 0.001,
+        "14": 0.0,
+        "15": 0.0
+      },
+      "errados_aceitos": 0,
+      "ebn0_no_ar_per_1pct_db": 12.07,
+      "cn0_necessario_dbhz": 73.43,
+      "margem_na_bancada_db": 4.9,
+      "rx_s_por_s": 1.11
+    },
+    {
+      "nome": "DQPSK 1024 kbit/s",
+      "modulacao": "dqpsk",
+      "sps": 4,
+      "fec": false,
+      "taxa_no_ar": 1024000.0,
+      "banda_99_khz": 563.1,
+      "faixa_khz": [
+        143.3,
+        706.5
+      ],
+      "goodput_sem_perda_kbps": 894.7,
+      "per_por_ebn0_no_ar": {
+        "6": 1.0,
+        "7": 0.999,
+        "8": 0.969,
+        "9": 0.727,
+        "10": 0.295,
+        "11": 0.063,
+        "12": 0.008,
+        "13": 0.0,
+        "14": 0.0
+      },
+      "errados_aceitos": 0,
+      "ebn0_no_ar_per_1pct_db": 11.89,
+      "cn0_necessario_dbhz": 71.99,
+      "margem_na_bancada_db": 6.3,
+      "rx_s_por_s": 1.08
+    },
+    {
+      "nome": "DQPSK 1365 kbit/s no ar, FEC 1/2",
+      "modulacao": "dqpsk",
+      "sps": 3,
+      "fec": true,
+      "taxa_no_ar": 1365333.3,
+      "banda_99_khz": 747.0,
+      "faixa_khz": [
+        52.1,
+        799.1
+      ],
+      "goodput_sem_perda_kbps": 619.7,
+      "per_por_ebn0_no_ar": {
+        "2": 0.779,
+        "3": 0.182,
+        "4": 0.012,
+        "5": 0.0,
+        "6": 0.0
+      },
+      "errados_aceitos": 0,
+      "ebn0_no_ar_per_1pct_db": 4.04,
+      "cn0_necessario_dbhz": 65.39,
+      "margem_na_bancada_db": 12.9,
+      "rx_s_por_s": 6.88
+    }
+  ],
+  "versao_do_codigo": "bloco-09-9-gc5203ea"
+}
