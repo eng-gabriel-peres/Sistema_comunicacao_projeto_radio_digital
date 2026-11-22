@@ -5,7 +5,7 @@ Passo a passo para a bancada e para as provas A e B (seção 8 do enunciado), co
 ## 1. Antes do dia (nos dois computadores)
 
 1. Clonar o repositório na versão marcada para a prova (CMP-C): `git checkout <tag da prova>`. A tag tem de existir **antes** da prova.
-2. Instalar o ambiente: `python -m venv .venv` e `pip install -r requirements.txt`; no PC do TX, a **libiio 0.25**; no PC do RX, o **driver WinUSB do RTL** (Zadig). Conferir com `python scripts/verificar_ambiente.py`.
+2. Instalar o ambiente como no [README](../README.md) e em [ambiente.md](ambiente.md): `py -3.13 -m venv .venv`, depois `.venv\Scripts\python -m pip install -r requirements-dev.txt` e `.venv\Scripts\python -m pip install -e .` (sem o `-e .` os scripts não acham o pacote `sdrlink`). No PC do TX, a **libiio 0.25**; no PC do RX, o **driver WinUSB do RTL** (Zadig). Conferir com `python scripts/verificar_ambiente.py`.
 3. Rodar `python ferramentas/verificar.py`: o portão de qualidade tem de passar no computador da prova.
 4. Os dois computadores **sem rede entre si** e sem rede com o avaliador durante o ensaio (PLT-02). O RX **não** recebe o arquivo de payloads (PLT-07).
 
@@ -15,7 +15,7 @@ Passo a passo para a bancada e para as provas A e B (seção 8 do enunciado), co
 |---|---|---|
 | 1. Aquecer o RTL | ligado no USB por **10 minutos** antes de calibrar ou medir (PLT-06) | |
 | 2. Captura de controle, Pluto desligado | `python scripts/gravar_iq.py --perfil prova-a --segundos 2 --nome controle` | nada forte entre 919,5 e 920,4 MHz (o sinal da prova A fica de +50 a +800 kHz do LO de 919,5 MHz) |
-| 3. Calibração do RTL (se o Pluto ou o RTL forem outros) | `python scripts/calibrar_rtl.py --freq-tom-hz <tom> --minutos-ligado 10` | anotar o ppm em `configs/rtl.toml` (hoje: +84 ppm para o par Pluto da equipe + RTL) |
+| 3. Calibração do RTL (se o Pluto ou o RTL forem outros) | TX: `python scripts/transmitir_tom.py --freq-tom-hz <tom> --duracao-s 120`; RX, ao mesmo tempo: `python scripts/calibrar_rtl.py --freq-tom-hz <tom> --minutos-ligado 10` | anotar o ppm em `configs/rtl.toml` (hoje: +84 ppm para o par Pluto da equipe + RTL) |
 | 4. Ganho do RX | `gravar_iq.py --ganho-db <G>`, AGC desligado | o JSON da captura registra o ganho (MET-05) e a fração de amostras saturadas: tem de ser 0 |
 
 ## 3. Prova A: maior goodput em 60 s
@@ -58,7 +58,7 @@ Em cada posição: goodput de pelo menos 10 kbit/s, PER de até 1% e **pelo meno
 |---|---|
 | Goodput sem perdas | 11,84 kbit/s (folga de 17,2% sobre 10 kbit/s com PER de 1%) |
 | Tempo para 500 pacotes | **43 s**: o ensaio tem de durar pelo menos isso; com 60 s, cerca de 690 pacotes |
-| C/N0 necessário | 48,4 dB-Hz (20,2 dB a menos que o `prova-a`: cerca de 10 vezes a distância no espaço livre) |
+| C/N0 necessário | 48,4 dB-Hz (25,0 dB a menos que o `prova-a`, 20,2 dB a menos que o `prova-a-dbpsk`: cerca de 18 vezes a distância do `prova-a` no espaço livre) |
 
 Em cada posição:
 1. RX: `python scripts/gravar_iq.py --perfil prova-b --segundos <duração + 3> --nome prova_b_pos<N>`
@@ -79,10 +79,12 @@ Se uma posição falhar com o `prova-b`, não há perfil mais sensível pronto: 
 
 | Item | Risco | Onde está o plano |
 |---|---|---|
-| Banda a 99% dos perfis medida no RTL | a medida do avaliador ser diferente da nossa | [etapa6_prova_a.md](etapa6_prova_a.md), seção 6 |
+| Banda a 99% dos perfis medida no RTL | a medida do avaliador ser diferente da nossa | [etapa6_prova_a.md](etapa6_prova_a.md), seção 2.6 |
 | Python alimentando o Pluto a 2,048 MS/s por 60 s, sem buraco | quadros cortados | risco R1, [etapa3_transmissor.md](etapa3_transmissor.md) |
 | DQPSK no ar: ruído de fase e desequilíbrio IQ reais | a DQPSK precisar de mais que 12 dB | regra de troca, seção 3.1 |
 | Deriva do offset na prova B (quadros de 86 ms) | pior que os 35 Hz/s medidos | [etapa6_prova_b.md](etapa6_prova_b.md) |
+| Gravação de 60 s no RTL (cerca de 1 GB em complex64) sem perder amostras | captura incompleta; só gravamos até 16 s no ar | `gravar_iq.py --segundos 63`; conferir o número de amostras no JSON |
+| Recepção com o quadro v3 nas nossas modulações | nada além da OOK de referência foi recebido no ar | protocolo da Etapa 5 |
 
 ## 7. Ensaio geral sem hardware
 
@@ -99,12 +101,14 @@ Nenhum pacote com conteúdo diferente, nenhum espúrio, e todos os tempos de RX 
 
 **A banda da prova B saiu errada, e isso virou correção.** O sinal da prova B ocupa 30 kHz (29,9 kHz medidos no TX). A 6 dB por bit, numa banda de 25,6 kHz dentro dos 2 MHz capturados, a SNR na captura é de cerca de −13 dB, e a medida por subtração do ruído fica dominada pelo resíduo da estimativa do ruído, somado em 2 MHz. Medi a mesma configuração em vários níveis:
 
-| Eb/N0 por bit no ar | SNR na captura | Banda medida |
-|---|---|---|
-| 6 dB | −13 dB | 1 884 kHz |
-| 10 dB | −9 dB | 764 kHz |
-| 15 dB | −4 dB | 30,9 kHz |
-| 20 dB | +1 dB | 30,2 kHz |
+| Eb/N0 por bit no ar | SNR na captura | Banda medida (4 sementes, captura curta) | Banda medida (4 sementes, captura longa) |
+|---|---|---|---|
+| 6 dB | −12,9 dB | 1 884; 1 152; 26,7; 519 kHz | 635; 673; 29,8; 182 kHz |
+| 10 dB | −9,0 dB | 764; 30,4; 28,3; 333 kHz | 430; 260; 29,8; 29,9 kHz |
+| 15 dB | −4,0 dB | 29,3 a 30,9 kHz | 29,8 a 30,5 kHz |
+| 20 dB | +1,0 dB | 29,7 a 30,2 kHz | 29,9 a 30,1 kHz |
+
+Registro: `ensaios/etapa6/banda_snr_ensaio.py`, `dados/logs/banda_snr_20261122_141637.json` (bloco 15). Abaixo do limite a medida é praticamente sorteio: o mesmo sinal, com outro ruído, dá de 27 a 1 884 kHz. Por isso o ensaio geral, a 6 dB, deu 266 kHz. Acima de −5 dB ela fica a menos de 1 kHz do valor verdadeiro, e a marcação de confiança acertou nos 40 casos.
 
 A 6 dB a medida chegou a passar de 1 MHz: pareceria uma violação do limite sem que nada estivesse errado no sinal. Correção (commit `46749ac`): o `medir_captura` registra a SNR na captura e marca `banda_99_confiavel = false` abaixo de −5 dB, e o `receber.py` avisa na tela. **Na prova B, medir a banda na posição mais próxima** (a banda não muda com a distância).
 

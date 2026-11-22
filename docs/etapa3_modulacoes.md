@@ -129,9 +129,9 @@ Leituras:
 
 | # | Achado | O que foi feito |
 |:-:|---|---|
-| — | O RRC truncado em 8 símbolos deixava até 3,4% de interferência entre símbolos no instante ótimo (encontrado por um teste novo) | Duração padrão passou a 12 símbolos: 0,4% |
+| (sem número) | O RRC truncado em 8 símbolos deixava até 3,4% de interferência entre símbolos no instante ótimo (encontrado por um teste novo) | Duração padrão passou a 12 símbolos: 0,4% |
 | A21 | A banda a 99% medida no RTL é limitada a cerca de ±1 MHz pela taxa de amostragem e atenuada nas bordas pelo filtro anti-aliasing | Medir só sinais de banda estreita (RRC e gaussiano) e posicioná-los longe do DC e das bordas; registrado para a Etapa 5 |
-| — | Com pulso retangular, nenhuma modulação passa de cerca de 104 kbit/s em 1 MHz | Pulso retangular descartado para as provas; RRC e gaussiano adotados |
+| (sem número) | Com pulso retangular, nenhuma modulação passa de cerca de 104 kbit/s em 1 MHz | Pulso retangular descartado para as provas; RRC e gaussiano adotados |
 
 ## 8. Testes
 

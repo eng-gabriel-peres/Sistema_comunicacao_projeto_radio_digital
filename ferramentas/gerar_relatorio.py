@@ -133,6 +133,8 @@ ENTREGAS = {
             ("Etapa 6e: Viterbi em lote e a reserva com FEC", "etapa6_viterbi_lote.md", None, None),
             ("Etapa 6f: emenda das caudas do RRC", "etapa6_emenda.md", None, None),
             ("Roteiro da prova e ensaio geral", "roteiro_da_prova.md", None, None),
+            ("Auditoria final de conformidade", "auditoria_final.md", None, None),
+            ("Plano de bancada", "plano_de_bancada.md", None, None),
             ("Padrão de código", "padrao_de_codigo.md", None, None),
             ("Anexo A: registro de uso de IA (todas as etapas)", "registro_ia.md", None, None),
         ),

@@ -141,7 +141,7 @@ A captura de 60 s (1 GB) é lida por mapeamento de memória, bloco a bloco.
 
 ## 7. Testes
 
-Total do projeto: 157 testes. São 18 em `tests/test_receptor.py`:
+Total do projeto: 130 testes no sub-bloco 3c e 157 depois do bloco 06 (hoje são mais; ver o [relatório final](relatorio_final.md)). São 18 em `tests/test_receptor.py` depois do bloco 06:
 
 | Teste | O que garante |
 |---|---|

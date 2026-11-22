@@ -1,6 +1,6 @@
 # Dados de ensaio
 
-Capturas IQ, logs de TX/RX e registros de calibração ficam nesta pasta, **fora do git** por causa do tamanho. A exceção são os registros de calibração (JSON e figura em `calibracao/`), que são pequenos e servem de evidência de entrega. Este índice é versionado e registra cada ensaio, para que qualquer resultado possa ser localizado e reproduzido.
+As capturas IQ (`.npy`) ficam nesta pasta **fora do git**, por causa do tamanho. Os registros JSON e os logs de console dos ensaios (`logs/`) e os registros de calibração (`calibracao/`) são pequenos e **entram no git**, como evidência. Este índice é versionado e registra cada ensaio, para que qualquer resultado possa ser localizado e reproduzido.
 
 | Data | Arquivo(s) | Ensaio | Configuração | Commit | Observações |
 |---|---|---|---|---|---|
@@ -19,3 +19,25 @@ Capturas IQ, logs de TX/RX e registros de calibração ficam nesta pasta, **fora
 | 04/11/2026 10:38 | `capturas/ook_ref_continua16s_20261104_103841.npy` | OOK de referência, `capturar` assíncrona, 16 s | RTL 8,7 dB, 84 ppm | 5e5d103 | 698 de 698 com CRC OK, PER 0%, BER 0/117 264, offset −1 343 Hz |
 | 04/11/2026 10:42 | `logs/deriva_offset_20261104_104204.json`, `logs/etapa2_tx_20261104_104105_deriva.log` | Deriva do offset durante 60 s de TX | RTL 8,7 dB, 84 ppm, 0,5 s por ponto | 5e5d103 + script novo | offset de −1 184 a −1 623 Hz; Pluto a 34 a 35 °C (A18) |
 | 04/11/2026 11:05 | `logs/varredura_faixa_20261104_110544.json`, `docs/figuras/varredura_faixa_04nov.png` | Varredura de 915 a 928 MHz sem transmissão | RTL 40,2 dB, 84 ppm, 8 passos de 1,6 MHz, 0,5 s cada | 513fb93 + script novo | linha mais forte perto de 921,6 MHz (harmônica 32 × 28,8 MHz do RTL); entrada para a decisão D5 |
+
+## Ensaios em simulação (21 e 22/11/2026)
+
+Todos em `logs/`, gerados pelos scripts de `ensaios/`; cada JSON traz a versão do código que o gerou. Os logs de console têm o mesmo prefixo, com `_execucao.log`.
+
+| Data | Arquivo(s) | Ensaio | Etapa ou bloco |
+|---|---|---|---|
+| 21/11/2026 | `modulacoes_20261121_203042.json` | OOK, 2-FSK e BPSK em simulação, banda a 99% | Etapa 3b |
+| 21/11/2026 | `etapa4_canal_20261121_210352.json` | Canal: BER × Eb/N0, fase, offset, temporização | Etapa 4 |
+| 21/11/2026 | `receptor_captura_real_20261121_213841.json, ..._234321.json` | Receptor na captura real da OOK (698/698) | Etapa 3c |
+| 21 e 22/11/2026 | `receptor_desempenho_20261121_215254.json, ..._20261122_000354.json` | Perda de implementação do receptor | Etapa 3c |
+| 21/11/2026 | `enlace_simulado_20261121_231317.json, ..._235020.json` | Prova simulada de ponta a ponta (10 s) | Etapa 3d |
+| 21/11/2026 | `etapa5_referencia_20261121_234655.json` | Referência simulada da cadeia de medição | Etapa 5 |
+| 22/11/2026 | `receptor_captura_real_20261122_002415.json, receptor_otimizacao_20261122_002709.json` | Receptor acelerado: captura real e equivalência | bloco 06 |
+| 22/11/2026 | `prova_a_20261122_011645.json, prova_a_60s_11dB_20261122_011906.json` | Prova A: varredura de taxas e 60 s simulados (DBPSK) | bloco 07 |
+| 22/11/2026 | `prova_b_20261122_103822.json` | Prova B sem código | bloco 08 |
+| 22/11/2026 | `prova_b_fec_20261122_104747.json, fec_sincronismo_ideal_20261122_105017.json` | FEC no receptor completo e com sincronismo ideal | bloco 09 |
+| 22/11/2026 | `prova_a_dqpsk_20261122_111533.json, prova_a_60s_13dB_20261122_111755.json, prova_a_60s_13dB_20261122_110647_quadro_v2_sequencia_volta.json` | DQPSK; prova de 60 s (e a rodada que falhou com a sequência de 16 bits) | bloco 10 |
+| 22/11/2026 | `viterbi_lote_20261122_112923.json, prova_a_fec_60s_6dB_20261122_113148.json` | Viterbi em lote: equivalência e 60 s com prova-a-fec | bloco 11 |
+| 22/11/2026 | `emenda_caudas_20261122_113942.json` | Emenda das caudas do RRC | bloco 12 |
+| 22/11/2026 | `ensaio_geral_20261122_115928.json e um por perfil (prova_a_60s_14dB, prova_a_fec_60s_6dB_..._115606, prova_a_dbpsk_60s_12dB, prova_b_60s_6dB)` | Ensaio geral com os quatro perfis finais | bloco 13 |
+| 22/11/2026 | `banda_snr_20261122_141637.json` | Banda medida × SNR na captura (prova B) | bloco 15 |

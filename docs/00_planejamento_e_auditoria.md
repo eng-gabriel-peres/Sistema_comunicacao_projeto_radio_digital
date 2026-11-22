@@ -4,7 +4,7 @@ SCM22108 Sistemas de Comunicação, IFSC. Documento vivo: atualizar a cada etapa
 
 | Item | Valor |
 |---|---|
-| Versão | 0.1 (planejamento inicial, antes de escrever código) |
+| Versão | 0.1 em 22/10 (planejamento inicial); a matriz (seção 6) e as decisões (seção 11) foram atualizadas em 22/11, no bloco 15 |
 | Data | 22/10/2026 |
 | Fonte dos requisitos | `Projeto_Final_SDR.docx.pdf` (versão revisada) |
 | Código de partida | `referencia/` (fornecido pelo professor, mantido intocado) |
@@ -192,39 +192,47 @@ Conclusão: BPSK coerente **sem** tratar o offset não funciona (a fase dá vár
 - Resolução de frequência da FFT = fs / N. Com 2,048 MS/s e N = 4096, são 500 Hz. Para medir o residual com resolução de cerca de 10 Hz, usar N ≥ 2²⁰ (cerca de 2 Hz) ou interpolar o pico.
 - ppm = (f_medida − f_esperada) / f_portadora × 10⁶, aplicada **sobre** a correção já ativa (achado A5).
 
-## 6. Matriz de rastreabilidade (estado em 04/11)
+## 6. Matriz de rastreabilidade (estado em 22/11/2026, depois do bloco 15)
 
-Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware ou de definição do professor.
+Legenda: ✅ atendido com evidência; 🟡 atendido em simulação ou em parte, falta a bancada; ❌ não atendido; ⏳ depende de terceiros ou de decisão. A auditoria item a item do enunciado está em [auditoria_final.md](auditoria_final.md).
 
-| ID | Estado hoje | Evidência / observação | Etapa que fecha |
+| ID | Estado | Evidência / o que falta | Etapa |
 |---|---|---|---|
-| PLT-01 | ✅ | Pluto da equipe só como TX (`ip:192.168.2.22`, fw v0.32), RTL só como RX | 1 |
-| PLT-02 | 🟡 | Ensaios de 04/11 feitos num só PC; falta repetir com TX e RX em computadores distintos (pendência P2) | 1 |
-| PLT-03 | 🟡 | Referência em Python; 2-FSK e BPSK ainda não existem | 3 |
-| PLT-05 | 🟡 | Faixa definida (915 a 928 MHz) e conferida no código (`conferir_faixa_autorizada`: sinal, vazamento do LO e imagem IQ); os ensaios de 04/11 usaram o LO em 915,0 MHz, na borda (A20); próximos ensaios no meio da faixa | 2, 3 |
-| MOD-01 | ✅ | Enlace real em 04/11: 8 de 8 recepções da referência com CRC OK; 698 de 698 quadros em 16 s, PER 0%, BER 0 em 117 264 bits ([etapa2_recepcao_ook.md](etapa2_recepcao_ook.md), [auditoria_etapas_1_2.md](auditoria_etapas_1_2.md)) | 2 |
-| MOD-02, MOD-03 | 🟡 | 2-FSK (CPFSK e GFSK) e BPSK/DBPSK implementadas e validadas em simulação: ida e volta, quadro v2 com CRC, BER contra a teoria ([etapa3_modulacoes.md](etapa3_modulacoes.md)); BPSK implementada como DBPSK, comparada com a BPSK coerente em simulação e justificada pelo offset medido ([etapa4_canal.md](etapa4_canal.md)); falta o enlace real (3e) | 3, 4 |
-| MOD-04 | ✅ (simulação) | DQPSK com mapa de Gray e detecção diferencial (bloco 10): BER bate com a fórmula exata a 0,5%; no receptor completo, 1 365 kbit/s na mesma banda de 747 kHz, 1,7 dB acima da DBPSK ([etapa6_dqpsk.md](etapa6_dqpsk.md)); falta o enlace real | 6 |
-| PUL-01 | ✅ (simulação) | RRC β = 0,35 e gaussiano BT = 0,5 escolhidos pela banda a 99% simulada contra a teoria: pulso retangular limitaria a BPSK a cerca de 49 kbit/s em 1 MHz, o RRC permite cerca de 860 kbit/s; falta medir no RTL | 3 |
-| PKT-01 a PKT-03 | ✅ (código) | Quadro v2 com sequência de 16 bits e CRC-16 sobre cabeçalho e payload; CRC justificado com contagem exata de erros não detectados ([etapa3_quadro.md](etapa3_quadro.md)); A3 e A9 tratados; falta usar no enlace (3c a 3e) | 3 |
-| PKT-04 | ✅ (simulação) | TX lê o arquivo do avaliador (.bin ou .txt), numera e transmite em fluxo; rodada simulada de ponta a ponta com 5 000 payloads ([etapa3_transmissor.md](etapa3_transmissor.md)); falta no ar (3e) | 3 |
-| RX-01, RX-03 | ✅ (simulação e captura real) | Receptor multiquadro com limiar medido, offset e instante estimados por quadro, processamento em blocos e arquivo de saída (`scripts/receber.py`); 698/698 na captura real da OOK de 04/11; perda de implementação de 0 a 0,3 dB; processamento de 0,99 s por segundo de captura no pior caso, depois da otimização de 22/11 (resultado idêntico ao anterior); A1 e A2 tratados ([etapa3_receptor.md](etapa3_receptor.md)); falta o ensaio com o quadro v2 no ar (3e) | 3 |
-| RX-02 | 🟡 | Captura contínua em bytes brutos sem perda (A8 e A17 corrigidos); falta a gravação de 60 s em arquivo | 3 |
-| TX-01 | ✅ (simulação) | Log do TX (sequência e payload por pacote, no formato da saída do RX) e registro JSON; só começam pacotes dentro da janela; A4 tratado ([etapa3_transmissor.md](etapa3_transmissor.md)) | 3 |
-| CAL-01, CAL-02 | ✅ | Recalibrado em 04/11 com o Pluto da equipe: correção adotada +84 ppm (medições de 84,04 e 84,21), resíduo com 84 de −356 a −524 Hz ([calibracao_rtl.md](calibracao_rtl.md)); em 22/10, com o Pluto do professor, era +77; achados A5 a A7, A15 e A16 tratados | 1 |
-| CAL-03 | 🟡 | Agora o Pluto é o da equipe (erro próprio de cerca de −9,5 ppm); falta decidir se ajustamos o `xo_correction` ou deixamos a correção toda no RTL | 1 |
-| MET-01, MET-02 | 🟡 | Goodput e PER calculados pela regra da seção 7 (`sdrlink.metricas`), validados na rodada simulada; falta medir no ar (Etapa 5) | 5 |
-| MET-03 a MET-05 | 🟡 | BER com sequência conhecida (inclusive quadros com CRC falho, sequência por votação, tolerante à diferença de relógio), banda a 99% e Eb/N0 medidos na captura e registro completo no `scripts/receber.py`; validados contra a verdade em simulação ([etapa5_software.md](etapa5_software.md)); falta medir no ar | 5 |
-| CMP-01 a CMP-04 | ❌ | | 4, 5 |
-| CMP-A | 🟡 (simulação) | **DQPSK a 1 365 kbit/s (bloco 10, perfil `prova-a`):** goodput de 1 192 kbit/s na prova de 60 s simulada (PER de 0,06%), 1,93 vez o da DBPSK, margem estimada de 4,9 dB na bancada; quadro v3 com sequência de 24 bits ([etapa6_dqpsk.md](etapa6_dqpsk.md)); com as caudas do RRC emendadas (bloco 12) o goodput sem perdas sobe para 1 218 kbit/s (+2,1%); reservas com regra de troca: DQPSK com FEC (`prova-a-fec`, bloco 11: mesmo goodput da DBPSK com 3,3 dB a mais de margem, PER 0% na prova de 60 s simulada, RX em 89 s) e DBPSK (`prova-a-dbpsk`). Antes (bloco 07): DBPSK RRC β = 0,25 a 682,7 kbit/s, banda a 99% de 749 kHz, PER de 0,15% e goodput de 622 kbit/s numa prova de 60 s simulada com os comandos da prova, RX em 67 a 80 s; margem estimada de 9,6 dB na bancada de 04/11 ([etapa6_prova_a.md](etapa6_prova_a.md)); falta confirmar no ar | 6 |
-| CMP-B | 🟡 (simulação) | **Com FEC (bloco 09):** DBPSK a 25,6 kbit/s no ar com código convolucional K = 7 (perfil `prova-b`), C/N0 necessário de 48,4 dB-Hz, 2,9 dB abaixo do sem código e 20,2 dB abaixo do `prova-a` ([etapa6_fec.md](etapa6_fec.md)). Sem código (bloco 08): DBPSK a 12,8 kbit/s (`prova-b-sem-fec`): goodput de 11,7 kbit/s, 500 pacotes em 44 s, C/N0 necessário de 51,3 dB-Hz, 17,3 dB abaixo do `prova-a` (cerca de 7 vezes a distância no espaço livre); GFSK e OOK perdem 4,3 e 3,3 dB ([etapa6_prova_b.md](etapa6_prova_b.md)); falta medir no ar | 6, 7 |
-| CMP-C | ❌ | Tags por bloco já existem; falta a tag da prova | 7 |
-| PRC-01 | ✅ | Repositório git e portão de qualidade (Bloco 0); configuração centralizada em `configs/` com perfis de enlace usados pelo TX, pela gravação e pelo RX (`--perfil`), achado A14 tratado no bloco 07 ([etapa6_prova_a.md](etapa6_prova_a.md)) | 1, 6 |
-| PRC-02 | ⏳ | Abrir o registro de IA já na Etapa 1 | todas |
+| PLT-01 | ✅ | Pluto só como TX (`ip:192.168.2.22`, fw v0.32), RTL só como RX; nenhum código abre o RX do Pluto | 1 |
+| PLT-02 | 🟡 | O sistema não depende de rede (arquivos e scripts independentes nos dois lados); todos os ensaios reais até agora foram num PC só (pendência P2) | bancada |
+| PLT-03 | ✅ | Toda a cadeia de modulação e demodulação é do projeto, em Python; SciPy só para filtros, FFT e reamostragem | 3 |
+| PLT-04 | ✅ | Sem amplificadores, alteração de hardware ou canal paralelo: o projeto usa só o Pluto e o RTL como vêm | todas |
+| PLT-05 | ✅ | Faixa de 915 a 928 MHz conferida pelo TX antes de transmitir (sinal, vazamento do LO e imagem IQ); LO de 919,5 MHz, longe da harmônica de 921,6 MHz do RTL (D5) | 3 |
+| PLT-06 | ✅ | RTL aquecido 10 min nos ensaios de 04/11; passo 1 do roteiro da prova | 1 |
+| PLT-07 | ✅ | O RX não lê payloads: só a captura e o perfil | 3 |
+| MOD-01 | ✅ | OOK de referência no ar em 04/11: 698 de 698 quadros, PER 0%, BER 0 em 117 264 bits ([etapa2_recepcao_ook.md](etapa2_recepcao_ook.md)) | 2 |
+| MOD-02, MOD-03 | 🟡 | 2-FSK (CPFSK e GFSK) e DBPSK em simulação, no receptor completo e contra a teoria (a menos de 0,08 dB); a BPSK coerente comparada em simulação e descartada pelo offset medido ([etapa4_canal.md](etapa4_canal.md)); **falta no ar** | 3, bancada |
+| MOD-04 | 🟡 | DQPSK (bloco 10): bate com a fórmula exata a 0,5%; 1 365 kbit/s na mesma banda de 747 kHz, 1,7 dB acima da DBPSK no receptor completo (1,4 dB na teoria); **falta no ar** ([etapa6_dqpsk.md](etapa6_dqpsk.md)) | 6, bancada |
+| PUL-01 | 🟡 | RRC (β = 0,35 na Etapa 3 e 0,25 nos perfis da prova A) e gaussiano BT = 0,5, escolhidos pela banda a 99% simulada contra a teoria; **falta a banda medida no RTL**, que o enunciado pede | 3, bancada |
+| PKT-01 a PKT-03 | ✅ | Quadro v3: sequência de 24 bits (16 no v2, que dava a volta em 60 s na DQPSK) e CRC-16 sobre comprimento, sequência e payload; CRC justificado; cada mudança documentada ([etapa3_quadro.md](etapa3_quadro.md), [etapa6_dqpsk.md](etapa6_dqpsk.md)) | 3, 6 |
+| PKT-04 | ✅ | TX lê o arquivo do avaliador (.bin ou .txt) de 128 bytes e avisa se ele não enche a janela | 3, 6 |
+| RX-01, RX-03 | ✅ | Receptor multiquadro com saída no formato da prova; 698/698 na captura real da OOK; **falta o quadro v3 no ar** | 3, bancada |
+| RX-02 | 🟡 | Gravação sem perda de amostras (`scripts/gravar_iq.py`, leitura assíncrona, A17); processamento de 60 s em 25 a 89 s no ensaio geral; **falta uma gravação de 60 s (1 GB) no RTL** | 3, bancada |
+| TX-01 | ✅ | Log do TX por pacote e registro JSON com o perfil; só começam pacotes dentro da janela | 3 |
+| CAL-01, CAL-02 | ✅ | +84 ppm com o Pluto da equipe; resíduo de −0,36 a −1,62 kHz e deriva de até 35 Hz/s; o RX estima o offset por quadro ([calibracao_rtl.md](calibracao_rtl.md)) | 1 |
+| CAL-03 | ⏳ | Erro do Pluto estimado em −9,5 ppm; decidir se ajusta o `xo_correction` (P3) | bancada |
+| MET-01, MET-02 | 🟡 | PER e goodput pela regra da seção 7 (`metricas.avaliar`, `scripts/avaliar.py`), validados em simulação; **falta medir** | 5, bancada |
+| MET-03 a MET-05 | 🟡 | BER com sequência conhecida, banda a 99% (com marcação de confiança) e Eb/N0 da captura; registro com perfil, contagens, offset e o ganho do RX da gravação; **falta medir** | 5, bancada |
+| CMP-01 | ❌ | Comparação **experimental** das três modulações: protocolo pronto (perfis `dbpsk-256k`, `gfsk-128k`, `ook-128k`) | bancada |
+| CMP-02, CMP-03 | ✅ | BER × Eb/N0 simuladas contra a teoria; AWGN, fase, offset e temporização nas três modulações ([etapa4_canal.md](etapa4_canal.md)) | 4 |
+| CMP-04 | 🟡 | Simulação × teoria pronto; **falta a medição** e a explicação das diferenças | 5, bancada |
+| CMP-A | 🟡 | DQPSK a 1 365 kbit/s (`prova-a`): **1 217,8 kbit/s** de goodput e PER de 0,003% na prova de 60 s simulada; reservas `prova-a-fec` e `prova-a-dbpsk` com regra de troca ([roteiro_da_prova.md](roteiro_da_prova.md)) | 6, 7 |
+| CMP-B | 🟡 | DBPSK com FEC a 25,6 kbit/s no ar (`prova-b`): 11,8 kbit/s, 500 pacotes em 43 s, C/N0 necessário de 48,4 dB-Hz, **25,0 dB** abaixo do `prova-a` (20,2 dB abaixo do `prova-a-dbpsk`) | 6, 7 |
+| CMP-C | ⏳ | Tags por bloco (`bloco-00` a `bloco-15`); falta a tag da prova | 7 |
+| PRC-01 | ✅ | git, portão de qualidade em todo commit, perfis de configuração (A14) | todas |
+| PRC-02 | ❌ | **Registro de uso de IA vazio em todas as etapas**; tem de ser texto da equipe (P1) | todas |
+| PRC-03 | 🟡 | Logs de simulação e de calibração versionados com a versão do código; capturas das provas no dia | todas |
+| PRC-04 | 🟡 | Relatórios por etapa e relatório final com análise de falhas; falta a parte medida | 7 |
+| PRC-05 | ⏳ | Defesa oral individual; perguntas prováveis em [relatorio_final.md](relatorio_final.md), seção 10 | 7 |
 
 ## 7. Ambiente de desenvolvimento
 
-### 7.1 Situação deste PC (atualizada em 22/10, Bloco 0)
+### 7.1 Situação deste PC (em 22/10, Bloco 0; a libiio e o driver WinUSB foram instalados antes dos ensaios de 04/11)
 
 | Item | Estado |
 |---|---|
@@ -337,7 +345,7 @@ Ensaios reais: goodput, PER, BER com sequência pseudoaleatória, banda a 99% pe
 
 Otimizar velocidade (prova A) e alcance (prova B), comparando com a versão anterior nas mesmas condições; ensaiar o procedimento da prova (arquivo de payloads, 60 s, processamento em até 10 min); tag no repositório; preparar a defesa individual.
 
-**Prova A em software feita em 22/11/2026** ([etapa6_prova_a.md](etapa6_prova_a.md)): DBPSK RRC a 682,7 kbit/s (perfil `prova-a`), a maior taxa que cabe em 1 MHz a 2,048 MS/s; prova de 60 s simulada com PER de 0,15% e goodput de 622 kbit/s; perfis de enlace (A14). Falta confirmar no ar e escolher a configuração da prova B.
+**Prova A em software feita em 22/11/2026** ([etapa6_prova_a.md](etapa6_prova_a.md)): DBPSK RRC a 682,7 kbit/s, a maior taxa de símbolos que cabe em 1 MHz a 2,048 MS/s; perfis de enlace (A14). **Atualização:** depois vieram a prova B (blocos 08 e 09), a DQPSK, que passou a ser o `prova-a` (bloco 10), o Viterbi em lote (11), a emenda das caudas (12) e o roteiro da prova (13). Resumo em [relatorio_final.md](relatorio_final.md).
 
 ## 10. Riscos
 
@@ -351,12 +359,12 @@ Otimizar velocidade (prova A) e alcance (prova B), comparando com a versão ante
 | Diferença Windows × Fedora | Código que só roda em um PC | Testar nos dois; nada específico de sistema no pacote |
 | Prazo de 29/10 | Nota de processo | Começar pelo ambiente e pela auditoria, que não dependem de hardware |
 
-## 11. Decisões em aberto
+## 11. Decisões (todas fechadas em 22/11/2026)
 
-| # | Decisão | Recomendação inicial | Quando decidir |
-|:-:|---|---|---|
-| D1 | CRC-16 ou CRC-32 | CRC-16/CCITT (`init = 0xFFFF`): 8 bits a mais que o CRC-8 e muito mais forte | Etapa 3 |
-| D2 | BPSK coerente ou DBPSK | Implementar as duas na simulação e escolher pelos resultados | Etapa 3/4 |
-| D3 | Taxa de amostragem do RX | Igual à do TX (ex.: 2,0 MS/s), para amostras por símbolo inteiras nos dois lados | Etapa 3 |
-| D4 | RX em tempo real ou gravar e processar | Gravar e processar depois (mais simples e auditável) | Etapa 3 |
-| D5 | Frequência e deslocamento do sinal | Faixa definida pelo professor: 915 a 928 MHz. Varredura sem transmissão em 04/11 (`dados/logs/varredura_faixa_20261104_110544.json`, figura `varredura_faixa_04nov.png`): a linha mais forte (+35 dB) fica perto de 921,6 MHz = 32 × 28,8 MHz, harmônica do cristal do RTL, então **evitar 921,6 MHz**; trechos mais limpos por volta de 919 a 920,4 MHz e 923 a 924 MHz. Escolha final no sub-bloco 3d, com captura de controle | Etapa 3 |
+| # | Decisão | Recomendação inicial | Quando decidir | Decidido |
+|:-:|---|---|---|---|
+| D1 | CRC-16 ou CRC-32 | CRC-16/CCITT (`init = 0xFFFF`): 8 bits a mais que o CRC-8 e muito mais forte | Etapa 3 | CRC-16/CCITT (Etapa 3a) |
+| D2 | BPSK coerente ou DBPSK | Implementar as duas na simulação e escolher pelos resultados | Etapa 3/4 | DBPSK (Etapa 4), e DQPSK opcional (bloco 10) |
+| D3 | Taxa de amostragem do RX | Igual à do TX (ex.: 2,0 MS/s), para amostras por símbolo inteiras nos dois lados | Etapa 3 | 2,048 MS/s nos dois lados |
+| D4 | RX em tempo real ou gravar e processar | Gravar e processar depois (mais simples e auditável) | Etapa 3 | gravar e processar depois |
+| D5 | Frequência e deslocamento do sinal | Faixa definida pelo professor: 915 a 928 MHz. Varredura sem transmissão em 04/11 (`dados/logs/varredura_faixa_20261104_110544.json`, figura `varredura_faixa_04nov.png`): a linha mais forte (+35 dB) fica perto de 921,6 MHz = 32 × 28,8 MHz, harmônica do cristal do RTL, então **evitar 921,6 MHz**; trechos mais limpos por volta de 919 a 920,4 MHz e 923 a 924 MHz. Escolha final no sub-bloco 3d, com captura de controle | Etapa 3 | LO de 919,5 MHz (bloco 07) |
