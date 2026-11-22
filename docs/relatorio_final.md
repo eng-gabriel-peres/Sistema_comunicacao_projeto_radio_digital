@@ -13,7 +13,7 @@ Estado em 22/11/2026: **tudo o que dá para fazer sem hardware está feito e val
 | Prova B (maior alcance) | perfil `prova-b`: **DBPSK com código convolucional K = 7, 25,6 kbit/s no ar**: goodput de 11,8 kbit/s, 500 pacotes em 43 s, **C/N0 necessário de 48,4 dB-Hz**, 20,2 dB menos que o `prova-a` (cerca de 10 vezes a distância no espaço livre) |
 | Comparação com a OOK de referência | a referência entrega **7,3 kbit/s** (21 bytes por quadro, 10 kbit/s, pulso retangular; captura real de 04/11). O `prova-a` chega a **1 218 kbit/s em simulação, cerca de 167 vezes**, na mesma banda de 1 MHz |
 | Simulação × teoria | BER de BPSK, DBPSK, DQPSK e 2-FSK a menos de 0,08 dB das fórmulas; a DQPSK bate com a fórmula exata (Marcum) a 0,5% |
-| Qualidade | 235 testes automáticos; portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; 19 tags, uma ou mais por bloco; toda evidência com a versão do código que a gerou |
+| Qualidade | 235 testes automáticos; portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; 21 tags, uma ou mais por bloco (de `bloco-00` a `bloco-14-rev2`); toda evidência com a versão do código que a gerou |
 | Falta | bancada: o enlace no ar com o quadro v3, as medições da Etapa 5, e as provas (seção 8) |
 
 ## 2. O sistema
