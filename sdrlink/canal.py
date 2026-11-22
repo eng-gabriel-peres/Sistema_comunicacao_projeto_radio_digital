@@ -24,10 +24,14 @@ ATRASO_MAX_AMOSTRAS = 1e6
 def awgn(
     sinal: NDArray[np.complex128],
     ebn0_db: float,
-    amostras_por_bit: int,
+    amostras_por_bit: float,
     rng: np.random.Generator,
 ) -> NDArray[np.complex128]:
     """Soma ruído branco gaussiano complexo para o Eb/N0 pedido.
+
+    Eb é a potência média do sinal inteiro vezes as amostras por **bit**: na DQPSK,
+    sps / 2 (sps é por símbolo). Se o sinal tem silêncio entre quadros, a média inclui
+    o silêncio e o Eb real dos quadros fica um pouco maior que o pedido.
 
     Raises:
         ValueError: sinal vazio ou sem potência, Eb/N0 ou amostras por bit inválidos.
@@ -36,7 +40,7 @@ def awgn(
         raise ValueError("sinal vazio")
     if not EBN0_MIN_DB <= ebn0_db <= EBN0_MAX_DB:
         raise ValueError(f"Eb/N0 fora de {EBN0_MIN_DB} a {EBN0_MAX_DB} dB: {ebn0_db}")
-    if amostras_por_bit < 1:
+    if amostras_por_bit <= 0:
         raise ValueError(f"amostras por bit inválidas: {amostras_por_bit}")
     potencia = float(np.mean(np.abs(sinal) ** 2))
     if potencia == 0:

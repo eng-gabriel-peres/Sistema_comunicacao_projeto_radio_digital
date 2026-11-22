@@ -1,7 +1,7 @@
 """Calibra a frequência do RTL-SDR com o sinal do Pluto (tom do tx_test.py ou OOK).
 
 Procedimento (requisitos CAL-01 e CAL-02):
-    1. captura com a correção inicial (padrão 0) e acha a portadora no espectro
+    1. captura com a correção inicial (padrão: a de configs/rtl.toml) e acha a portadora no espectro
        médio, descartando raias na grade de espúrios internos do RTL;
     2. calcula a correção total (inicial + correção do que sobrou, achado A5);
     3. captura com a correção total e mede o resíduo de verdade;

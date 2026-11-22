@@ -1,4 +1,4 @@
-"""Testes do quadro v2 (sdrlink.quadro)."""
+"""Testes do quadro (sdrlink.quadro): v3, com sequência de 24 bits."""
 
 import numpy as np
 import pytest

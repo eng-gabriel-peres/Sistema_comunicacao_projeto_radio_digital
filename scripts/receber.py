@@ -5,7 +5,7 @@ Saídas, ao lado da captura (ou na pasta --pasta):
     <nome>_rx.json    parâmetros, versão do código e números da recepção (seção 7 do enunciado)
 
 O registro traz também a banda a 99% e o Eb/N0 medidos na captura, quando há pelo
-menos uns 20 ms de ruído antes do primeiro quadro (comece a gravar antes do TX), e,
+menos 0,2 s de ruído antes do primeiro quadro (comece a gravar antes do TX), e,
 com --ber, a BER com sequência conhecida (o TX precisa usar os payloads de
 scripts/gerar_payloads.py --conhecidos).
 

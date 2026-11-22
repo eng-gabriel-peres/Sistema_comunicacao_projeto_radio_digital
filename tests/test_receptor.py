@@ -24,7 +24,7 @@ def _captura(
     fec: bool = False,
     tamanhos: tuple[int, ...] = (128,),
 ) -> tuple[np.ndarray, list[Pacote], list[float]]:
-    """Captura simulada: n quadros v2 separados por silêncio, com atraso, offset e ruído.
+    """Captura simulada: n quadros separados por silêncio, com atraso, offset e ruído.
 
     O Eb/N0 é por bit no ar; os tamanhos de payload se repetem em ciclo.
     """
@@ -40,7 +40,8 @@ def _captura(
         partes += [onda, np.zeros(intervalo, dtype=complex)]
         pos += len(onda) + intervalo
     sinal = canal.girar(canal.atrasar(np.concatenate(partes), 0.37), DESLOCAMENTO + OFFSET, FS)
-    return 0.05 * canal.awgn(sinal, ebn0_db, config.sps, rng), pacotes, inicios
+    amostras_por_bit = config.sps / config.bits_por_simbolo  # na DQPSK, meio símbolo
+    return 0.05 * canal.awgn(sinal, ebn0_db, amostras_por_bit, rng), pacotes, inicios
 
 
 def _bloco_pequeno(config: ConfigReceptor) -> int:
@@ -316,8 +317,7 @@ def test_fec_em_lote_igual_a_leitura_quadro_a_quadro() -> None:
     # o receptor decodifica todos os quadros de um bloco de uma vez (bloco 11); cada quadro
     # tem de sair igual ao da leitura individual (demodular_quadro), bit a bit
     cm = ConfigModem("dqpsk", "rrc", 4)
-    # _captura dá o Eb/N0 por símbolo: 9 dB na DQPSK são 6 dB por bit
-    x, pacotes, _ = _captura(cm, 9, np.random.default_rng(51), 9.0, True, (128, 40, 200))
+    x, pacotes, _ = _captura(cm, 9, np.random.default_rng(51), 6.0, True, (128, 40, 200))
     config = ConfigReceptor(cm, FS, DESLOCAMENTO, fec=True, guardar_bits=True)
     d = receptor.receber(x, config)
     assert receptor.pacotes_aceitos(d) == pacotes

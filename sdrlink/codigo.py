@@ -1,8 +1,8 @@
 """Código convolucional K = 7, taxa 1/2 (geradores 171 e 133 em octal) e decodificador de Viterbi.
 
-Requisito: o enunciado (seção 7) permite FEC, com o custo dele no goodput. Uso
-previsto: prova B (alcance), em que o goodput mínimo de 10 kbit/s impede baixar
-mais a taxa e só um código dá mais margem (bloco 09).
+Requisito: o enunciado (seção 7) permite FEC, com o custo dele no goodput. Usado na
+prova B (alcance, bloco 09), em que o goodput mínimo de 10 kbit/s impede baixar mais
+a taxa e só um código dá mais margem, e na reserva da prova A com DQPSK (bloco 11).
 
 É o código padrão do CCSDS e da NASA desde as sondas Voyager: distância livre 10,
 ganho de cerca de 5 dB sobre a BPSK sem código, com decisão suave, a BER de 1e-5.

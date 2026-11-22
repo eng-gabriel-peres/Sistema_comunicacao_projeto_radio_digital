@@ -108,7 +108,7 @@ def avaliar(
     }
 
 
-def payload_conhecido(sequencia: int, tamanho: int = 128) -> bytes:
+def payload_conhecido(sequencia: int, tamanho: int = quadro.PAYLOAD_PROVA_BYTES) -> bytes:
     """Payload pseudoaleatório fixo do pacote de número `sequencia` (ensaio de BER)."""
     gerador = np.random.default_rng([SEMENTE_BER, sequencia % (quadro.SEQUENCIA_MAX + 1)])
     return gerador.integers(0, 256, tamanho, dtype=np.uint8).tobytes()

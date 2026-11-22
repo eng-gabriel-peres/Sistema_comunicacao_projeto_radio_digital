@@ -1,4 +1,4 @@
-"""Quadro v2 do enlace: número de sequência de 16 bits e CRC-16.
+"""Quadro v3 do enlace: número de sequência de 24 bits e CRC-16.
 
 Requisitos: PKT-01 (sequência, payload e verificação de integridade), PKT-02
 (escolha do CRC justificada), PKT-03 (formato documentado em
@@ -7,10 +7,11 @@ docs/etapa3_quadro.md), PKT-04 (payload de 128 bytes da prova).
 Formato (bits na ordem de transmissão, cada byte com o bit mais significativo
 primeiro, como na referência):
 
-    preâmbulo 16 | sync 13 | comprimento 8 | sequência 16 | payload 8N | CRC 16 | guarda 16
+    preâmbulo 16 | sync 13 | comprimento 8 | sequência 24 | payload 8N | CRC 16 | guarda 16
 
 Diferenças em relação ao quadro da referência (achados A3 e A9):
-    * campo de sequência de 16 bits, para PER e duplicatas;
+    * campo de sequência, para PER e duplicatas: 16 bits no v2 (Etapa 3) e 24 bits no
+      v3 (bloco 10), porque a 1,2 Mbit/s a de 16 bits dava a volta dentro dos 60 s;
     * CRC-16/CCITT-FALSE (polinômio 0x1021, valor inicial 0xFFFF) no lugar do
       CRC-8 com valor inicial 0;
     * o CRC cobre comprimento, sequência e payload: na referência só o payload
@@ -38,7 +39,10 @@ BITS_CRC = 16
 PAYLOAD_MAX_BYTES: int = 2**BITS_COMPRIMENTO - 1  # 255
 SEQUENCIA_MAX: int = 2**BITS_SEQUENCIA - 1
 BITS_CABECALHO = BITS_COMPRIMENTO + BITS_SEQUENCIA  # depois do sync, antes do payload
-BITS_PREFIXO = len(PREAMBULO) + len(SYNC)  # 29 bits conhecidos no início de todo quadro
+PREFIXO = np.concatenate([PREAMBULO, SYNC])  # os bits conhecidos do início de todo quadro
+PREFIXO.setflags(write=False)
+BITS_PREFIXO = len(PREFIXO)  # 29
+PAYLOAD_PROVA_BYTES = 128  # payload da competição (seção 12 do enunciado)
 
 POLINOMIO_CRC16 = 0x1021  # CRC-16/CCITT-FALSE
 INICIAL_CRC16 = 0xFFFF

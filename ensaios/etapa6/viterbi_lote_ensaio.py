@@ -69,7 +69,8 @@ def tamanhos_variados(cm, semente):
         partes += [modem.modular(bits, cm, quadro.BITS_PREFIXO), np.zeros(int(rng.integers(200, 2000)), complex)]
     bits = quadro.montar_quadro(Pacote(99, bytes(range(60))), fec=True)
     partes += [modem.modular(bits, cm, quadro.BITS_PREFIXO), np.zeros(300, complex)]
-    return canal.awgn(canal.girar(np.concatenate(partes), 250e3 - 1500.0, FS), 6.0, cm.sps, rng)
+    amostras_por_bit = cm.sps / cm.bits_por_simbolo  # 6 dB por bit também na DQPSK
+    return canal.awgn(canal.girar(np.concatenate(partes), 250e3 - 1500.0, FS), 6.0, amostras_por_bit, rng)
 
 
 DQPSK = ConfigModem("dqpsk", "rrc", 3, beta=0.25)

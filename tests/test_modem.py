@@ -42,7 +42,7 @@ def test_ida_e_volta_sem_ruido(config: ConfigModem) -> None:
 
 
 @pytest.mark.parametrize("config", CONFIGS, ids=NOMES)
-def test_quadro_v2_passa_pela_cadeia_com_ruido(config: ConfigModem) -> None:
+def test_quadro_passa_pela_cadeia_com_ruido(config: ConfigModem) -> None:
     pacote = quadro.Pacote(321, bytes(range(128)))
     bits = quadro.montar_quadro(pacote)
     sinal = canal.awgn(modem.modular(bits, config), 16.0, config.sps, np.random.default_rng(2))
@@ -207,7 +207,8 @@ def test_saida_suave_tem_o_sinal_da_decisao_dura(config: ConfigModem) -> None:
     rng = np.random.default_rng(41)
     bits = rng.integers(0, 2, 400).astype(np.uint8)
     y = modem.modular(bits, config)
-    y = canal.awgn(y, 3.0, config.sps, rng)  # Eb/N0 baixo: alguns bits errados em todas
+    # Eb/N0 baixo, por bit: alguns bits errados em todas
+    y = canal.awgn(y, 3.0, config.sps / config.bits_por_simbolo, rng)
     suaves = modem.demodular_suave(y, config, 400)
     duros = modem.demodular(y, config, 400)
     np.testing.assert_array_equal((suaves > 0).astype(np.uint8), duros)

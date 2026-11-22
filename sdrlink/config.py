@@ -23,13 +23,14 @@ from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
+from sdrlink import modem
 from sdrlink.modem import MODULACOES, PULSOS_FSK, PULSOS_LINEARES, ConfigModem
 
 RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RTL = RAIZ / "configs" / "rtl.toml"
 ARQUIVO_PERFIS = RAIZ / "configs" / "perfis.toml"
 CORRECAO_MAXIMA_PPM = 200
-TOLERANCIA_SPS = 1e-9  # folga numérica ao conferir que taxa / taxa de bits é inteiro
+TOLERANCIA_SPS = 1e-9  # folga numérica ao conferir que as amostras por símbolo são inteiras
 FAIXA_LO_HZ = (915e6, 928e6)  # faixa autorizada (PLT-05); a conferência fina é do pluto_tx
 
 
@@ -94,6 +95,8 @@ class Perfil:
         self.modem()
         if self.taxa_sps <= 0 or abs(self.deslocamento_hz) >= self.taxa_sps / 2:
             raise ValueError(f"{self.nome}: taxa ou deslocamento inválidos")
+        if self.emendar_caudas and not self.modem().linear:
+            raise ValueError(f"{self.nome}: emendar_caudas só vale para modulações lineares")
         if not FAIXA_LO_HZ[0] <= self.lo_hz <= FAIXA_LO_HZ[1]:
             raise ValueError(f"{self.nome}: LO de {self.lo_hz / 1e6} MHz fora de 915 a 928 MHz")
 
@@ -195,10 +198,12 @@ def montar_perfil(
     if taxa_bits is not None:
         taxa_sps = float(dados.get("taxa_sps", base.taxa_sps if base else Perfil.taxa_sps))
         modulacao = str(dados.get("modulacao", base.modulacao if base else ""))
-        bits_por_simbolo = 2 if modulacao == "dqpsk" else 1
-        sps = taxa_sps * bits_por_simbolo / float(taxa_bits)
+        sps = taxa_sps * modem.bits_por_simbolo_de(modulacao) / float(taxa_bits)
         if abs(sps - round(sps)) > TOLERANCIA_SPS:
-            raise ValueError(f"taxa de amostragem / taxa de bits = {sps:.4f}: precisa ser inteiro")
+            raise ValueError(
+                f"amostras por símbolo = {sps:.4f}: precisa ser inteiro "
+                "(taxa de amostragem × bits por símbolo / taxa de bits)"
+            )
         dados["sps"] = round(sps)
     if base is None:
         return Perfil("linha de comando", **dados)  # type: ignore[arg-type]

@@ -60,7 +60,7 @@ def _densidades(
 
 
 def _limites(f: NDArray[np.float64], liquida: NDArray[np.float64]) -> tuple[float, float]:
-    """Faixa com 99% da potência (0,5% fora de cada lado).
+    """Faixa com espectro.FRACAO_PADRAO (99%) da potência, metade do resto de cada lado.
 
     Raises:
         ValueError: sem potência acima do ruído.
@@ -69,7 +69,8 @@ def _limites(f: NDArray[np.float64], liquida: NDArray[np.float64]) -> tuple[floa
     if total <= 0:
         raise ValueError("o trecho de sinal não tem potência acima do ruído")
     acumulada = np.cumsum(liquida) / total
-    return float(np.interp(0.005, acumulada, f)), float(np.interp(0.995, acumulada, f))
+    fora = (1 - espectro.FRACAO_PADRAO) / 2  # a mesma fração de sdrlink.espectro
+    return float(np.interp(fora, acumulada, f)), float(np.interp(1 - fora, acumulada, f))
 
 
 def banda_99_medida(
