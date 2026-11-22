@@ -54,9 +54,9 @@ def captura(cm, ebn0_db, rng):
     s = s[: np.flatnonzero(s)[-1] + 1]
     potencia = float(np.mean(np.abs(s) ** 2))
     n0 = potencia * cm.sps / 10 ** (ebn0_db / 10)
-    antes = int(0.1 * FS)
-    x = np.zeros(antes + len(s), dtype=np.complex64)
-    x[antes:] = s
+    antes = depois = int(0.1 * FS)  # ruído antes e depois, como numa gravação real
+    x = np.zeros(antes + len(s) + depois, dtype=np.complex64)
+    x[antes : antes + len(s)] = s
     del s
     fase0 = rng.uniform(0, 2 * np.pi)
     dc = DC_RELATIVO * np.sqrt(potencia + n0)
