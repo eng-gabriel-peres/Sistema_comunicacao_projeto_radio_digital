@@ -49,6 +49,9 @@ BITS_DO_INDICE_8PSK = np.argsort(GRAY_8PSK)  # os 3 bits (b0b1b2) de cada índic
 N_FFT_8PSK = 8192  # busca da frequência pela potência 8 (mínimo; maior se o corpo for maior)
 GIRO_MAX_8PSK = 0.02  # rad/símbolo de offset residual depois do preâmbulo (2,2 kHz a 682,7 ksímb/s)
 PREFIXO_MIN_8PSK = 8  # símbolos conhecidos para a fase de referência
+GANHO_RASTREIO_8PSK = (
+    0.1  # malha de fase guiada pelas decisões: fração do erro corrigida por símbolo
+)
 PULSOS_FSK = ("retangular", "gaussiano")  # 2-FSK: pulso de frequência
 ITERACOES_LIMIAR = 20
 H_MAX = 2.0  # índice de modulação máximo aceito
@@ -280,17 +283,36 @@ def _frequencia_8psk(v: Sinal) -> float:
 def _corrigir_8psk(corpo: Sinal, fase_prefixo: float, distancia: float) -> Sinal:
     """Tira fase e offset do corpo de uma 8-PSK.
 
-    Potência 8 para a frequência e a fase, ambiguidade de 45° pela fase do prefixo. Uma
-    passada guiada pelas decisões (reta na fase de z·conj(decisão)) foi medida e não deu
-    ganho: PER de 4,3% contra 4,45% a 12 dB em 2000 quadros (bloco 24); ficou de fora.
+    A frequência sai da potência 8 do corpo. A fase parte da do prefixo, levada até o
+    corpo por essa frequência, e é rastreada símbolo a símbolo (_rastrear_8psk). A primeira
+    versão tirava a fase da média da potência 8 do corpo inteiro: com ruído de fase, a fase
+    média se afasta da do prefixo e a ambiguidade de 45° saía errada no quadro todo; e uma
+    reta só por quadro não acompanhava a fase (Wiener de 30 Hz: PER de 17%, bloco 24).
     """
     k = np.arange(len(corpo))
-    v = np.abs(corpo) * np.exp(8j * np.angle(corpo))
-    omega = _frequencia_8psk(v)
-    theta8 = float(np.angle(np.sum(v * np.exp(-8j * omega * k)))) / 8
-    previsto = fase_prefixo + omega * distancia
-    theta = theta8 + np.round((previsto - theta8) / (np.pi / 4)) * np.pi / 4
-    return np.asarray(corpo * np.exp(-1j * (theta + omega * k)), dtype=np.complex128)
+    omega = _frequencia_8psk(np.abs(corpo) * np.exp(8j * np.angle(corpo)))
+    inicio = fase_prefixo + omega * distancia
+    return _rastrear_8psk(corpo * np.exp(-1j * (inicio + omega * k)))
+
+
+def _rastrear_8psk(corpo: Sinal) -> Sinal:
+    """Malha de fase guiada pelas decisões, símbolo a símbolo, a partir da fase do prefixo.
+
+    Cada símbolo é girado pela fase estimada até o anterior, decidido, e o erro de fase
+    da decisão corrige a estimativa em GANHO_RASTREIO_8PSK. Uma média móvel das decisões
+    do quadro inteiro (testada antes) não resolvia: com a fase longe da reta inicial, as
+    primeiras decisões no meio do quadro já saíam erradas e a média só as confirmava.
+    """
+    # a decisão só depende do ângulo: o laço anda sobre os ângulos, em aritmética escalar
+    # (com operações do numpy por símbolo eram 2,4 ms por quadro; 121 s numa prova de 60 s)
+    passo = np.pi / 4
+    fases = []
+    fase = 0.0
+    for angulo in np.angle(corpo).tolist():  # no máximo len(corpo) símbolos
+        fases.append(fase)
+        desvio = angulo - fase
+        fase += GANHO_RASTREIO_8PSK * (desvio - round(desvio / passo) * passo)
+    return np.asarray(corpo * np.exp(-1j * np.asarray(fases)), dtype=np.complex128)
 
 
 def _suave_8psk(

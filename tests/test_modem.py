@@ -322,13 +322,15 @@ def test_8psk_mapa_de_gray_e_prefixo_igual_ao_da_dbpsk() -> None:
 
 
 @pytest.mark.parametrize("semente", [1, 2, 3])
-def test_8psk_estimada_bate_com_a_teoria_exata(semente: int) -> None:
+def test_8psk_estimada_perde_pouco_para_a_teoria_exata(semente: int) -> None:
+    # a malha de fase realimenta parte dos erros de decisão: a 10 dB a BER fica 1,2 a 1,4 vez a
+    # teoria (cerca de 0,3 dB); na faixa da prova, 13 dB, cerca de 0,15 dB (bloco 24)
     rng = np.random.default_rng(semente)
     bits = _quadro_8psk(300_000, semente + 10)
     sinal = canal.girar(modem.modular(bits, PSK8, 29), 300.0, 2.048e6, fase_rad=0.7)
     ruidoso = canal.awgn(sinal, 10.0, 8 / 3, rng)
     ber = np.mean(modem.demodular(ruidoso, PSK8, len(bits), prefixo=29)[29:] != bits[29:])
-    assert ber == pytest.approx(float(teoria.ber_8psk(10.0)), rel=0.15)  # 1,01e-3
+    assert 0.85 < ber / float(teoria.ber_8psk(10.0)) < 1.5  # teoria: 1,01e-3
 
 
 def test_ber_teorica_da_8psk() -> None:
@@ -369,3 +371,19 @@ def test_8psk_aguenta_o_offset_residual_ate_o_limite_da_busca() -> None:
         np.testing.assert_array_equal(modem.demodular(girado, PSK8, len(bits), prefixo=29), bits)
     fora = canal.girar(sinal, 2.5 * limite_hz, 2.048e6, fase_rad=0.3)
     assert np.mean(modem.demodular(fora, PSK8, len(bits), prefixo=29) != bits) > 0.05
+
+
+@pytest.mark.parametrize("semente", [1, 2])
+def test_8psk_rastreia_o_ruido_de_fase_dentro_do_quadro(semente: int) -> None:
+    # Wiener de 30 Hz, 1 dB acima do ponto de PER 1%: com uma reta só por quadro a PER ia a 17%
+    cm = ConfigModem("8psk", "rrc", 3, beta=0.25)  # a da prova A
+    rng = np.random.default_rng(semente)
+    falhos = 0
+    for _ in range(300):
+        bits = _quadro_8psk(1072, int(rng.integers(1 << 30)))
+        x = modem.modular(bits, cm, 29)
+        fase = canal.ruido_de_fase(len(x), 30.0, 2.048e6, rng) + rng.uniform(0, 2 * np.pi)
+        x = canal.girar(x * np.exp(1j * fase), rng.uniform(-300, 300), 2.048e6)
+        y = canal.awgn(x, 13.9, 1.0, rng)
+        falhos += bool(np.any(modem.demodular(y, cm, len(bits), prefixo=29)[29:] != bits[29:]))
+    assert falhos / 300 < 0.02
