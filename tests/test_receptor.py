@@ -180,11 +180,17 @@ def test_resumo_da_recepcao() -> None:
 def test_2fsk_rejeita_um_pico_de_dc_do_tamanho_do_sinal() -> None:
     # o correlator da 2-FSK precisa do filtro de banda antes: sem ele, um pico de DC do tamanho
     # do sinal (o do RTL, ou outro sinal forte na banda) multiplicava a BER por 25
+    # O critério é "o pico não causa nenhuma perda além das do ruído": a 13 dB o ruído sozinho
+    # derruba cerca de 1 quadro em 80, e o teste antigo (todos os quadros com o pico) passava
+    # ou não conforme a semente (bloco 10)
     config = ConfigModem("fsk", "gaussiano", 16)
-    x, pacotes, _ = _captura(config, 8, np.random.default_rng(14), ebn0_db=13.0)
-    pico = np.sqrt(np.mean(np.abs(x[len(x) // 2 :]) ** 2))  # da ordem da amplitude do sinal
     rx = ConfigReceptor(config, FS, deslocamento_hz=DESLOCAMENTO)
-    assert receptor.pacotes_aceitos(receptor.receber(x + pico, rx)) == pacotes
+    for semente in (14, 15, 16):
+        x, pacotes, _ = _captura(config, 8, np.random.default_rng(semente), ebn0_db=13.0)
+        pico = np.sqrt(np.mean(np.abs(x[len(x) // 2 :]) ** 2))  # da ordem da amplitude do sinal
+        sem_pico = set(receptor.pacotes_aceitos(receptor.receber(x, rx)))
+        com_pico = set(receptor.pacotes_aceitos(receptor.receber(x + pico, rx)))
+        assert com_pico == sem_pico and len(sem_pico & set(pacotes)) >= 7
 
 
 def test_fasor_rapido_igual_ao_exp() -> None:
@@ -224,7 +230,8 @@ def test_le_o_quadro_da_prova_mesmo_com_o_comprimento_corrompido() -> None:
     d = receptor.receber(x, ConfigReceptor(config, FS, guardar_bits=True))
     assert len(d) == 1 and d[0].situacao == "crc"
     assert d[0].bits is not None and len(d[0].bits) >= quadro.bits_apos_sync(128)
-    np.testing.assert_array_equal(d[0].bits[24 : 24 + 1024], bits[29 + 24 : 29 + 24 + 1024])
+    cab = quadro.BITS_CABECALHO
+    np.testing.assert_array_equal(d[0].bits[cab : cab + 1024], bits[29 + cab : 29 + cab + 1024])
 
 
 def test_pulso_em_cache_e_so_leitura() -> None:
@@ -241,7 +248,11 @@ def test_fec_le_quadros_de_varios_tamanhos_com_offset_e_emendas() -> None:
     config = ConfigReceptor(cm, FS, DESLOCAMENTO, fec=True)
     d = receptor.receber(x, config, tamanho_bloco=_bloco_pequeno(config))
     assert receptor.pacotes_aceitos(d) == pacotes
-    assert all(abs(a.inicio - b) < 0.4 for a, b in zip(d, inicios, strict=True))
+    # instante dos quadros certos: a 9 dB no ar o erro chega a 0,57 amostra (7% do símbolo) em
+    # 10 sementes; o limite antigo, 0,4, passava pela semente. Uma detecção falsa (CRC falho)
+    # pode aparecer e não entra na conta
+    certas = [a for a in d if a.situacao == "ok"]
+    assert all(abs(a.inicio - b) < 0.1 * cm.sps for a, b in zip(certas, inicios, strict=True))
 
 
 def test_fec_recebe_onde_sem_codigo_falha() -> None:

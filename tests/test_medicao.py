@@ -35,7 +35,8 @@ def _bits_do_quadro(seq: int, erros: tuple[int, ...] = ()) -> np.ndarray:
 def test_payload_conhecido_fixo_e_diferente_por_sequencia() -> None:
     assert metricas.payload_conhecido(7) == metricas.payload_conhecido(7)
     assert metricas.payload_conhecido(7) != metricas.payload_conhecido(8)
-    assert metricas.payload_conhecido(65536 + 3) == metricas.payload_conhecido(3)
+    assert metricas.payload_conhecido(2**24 + 3) == metricas.payload_conhecido(3)
+    assert metricas.payload_conhecido(65536 + 3) != metricas.payload_conhecido(3)  # v3: 24 bits
     assert len(metricas.payload_conhecido(0)) == 128
 
 
@@ -83,7 +84,9 @@ def test_banda_e_ebn0_medidos_batem_com_os_verdadeiros() -> None:
     limites = r["banda_99_limites_khz"]
     assert isinstance(limites, list)
     baixo, alto = limites
-    assert (baixo + alto) / 2 == pytest.approx(250, abs=5)
+    # o centro flutua com o ruído: 243,9 a 251,4 kHz em 10 sementes (bloco 10); ±5 kHz era
+    # do tamanho da flutuação e passava pela semente
+    assert (baixo + alto) / 2 == pytest.approx(250, abs=8)
     assert r["ebn0_estimado_db"] == pytest.approx(8.0, abs=0.3)
 
 
@@ -108,7 +111,9 @@ def test_cadeia_completa_de_ber_bate_com_a_teoria() -> None:
 def _bits_com_sequencia_lida(seq_real: int, seq_lida: int) -> np.ndarray:
     """Quadro com o payload de seq_real, mas com o campo de sequência corrompido para seq_lida."""
     bits = _bits_do_quadro(seq_real)
-    campo = np.unpackbits(np.frombuffer(seq_lida.to_bytes(2, "big"), dtype=np.uint8))
+    campo = np.unpackbits(
+        np.frombuffer(seq_lida.to_bytes(quadro.BYTES_SEQUENCIA, "big"), dtype=np.uint8)
+    )
     bits[quadro.BITS_COMPRIMENTO : quadro.BITS_CABECALHO] = campo
     return bits
 

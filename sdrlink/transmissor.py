@@ -133,7 +133,7 @@ def ler_payloads(caminho: Path, tamanho: int = TAMANHO_PAYLOAD) -> list[bytes]:
 
 
 def numerar(payloads: list[bytes], sequencia_inicial: int = 0) -> list[Pacote]:
-    """Pacotes numerados em ordem; a sequência volta a 0 depois de 65535."""
+    """Pacotes numerados em ordem; a sequência volta a 0 depois de 2^24 - 1."""
     return [
         Pacote((sequencia_inicial + k) % (quadro.SEQUENCIA_MAX + 1), p)
         for k, p in enumerate(payloads[:MAX_PACOTES])

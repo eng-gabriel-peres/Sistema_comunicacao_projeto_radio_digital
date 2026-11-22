@@ -236,7 +236,8 @@ def test_perfil_dqpsk_converte_a_taxa_de_bits_em_simbolos() -> None:
 
 @pytest.mark.parametrize(
     ("nome", "folga_minima"),
-    [("prova-b", 0.15), ("prova-b-sem-fec", 0.15), ("prova-b-limite", 0.05)],
+    # folgas com o quadro v3 (1130 tempos de bit; 2214 com FEC): 17,2%, 14,8% e 4,3%
+    [("prova-b", 0.17), ("prova-b-sem-fec", 0.14), ("prova-b-limite", 0.04)],
 )
 def test_perfis_da_prova_b_passam_dos_10_kbps_com_per_de_1_pct(
     nome: str, folga_minima: float

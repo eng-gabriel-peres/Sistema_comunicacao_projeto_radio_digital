@@ -22,16 +22,21 @@ def test_crc16_valor_de_conferencia_e_residuo_zero() -> None:
     assert quadro.crc16(dados + quadro.crc16(dados).to_bytes(2, "big")) == 0
 
 
-def test_quadro_da_prova_tem_1109_bits_e_mantem_preambulo_e_sync_da_referencia() -> None:
+def test_quadro_da_prova_tem_1117_bits_e_mantem_preambulo_e_sync_da_referencia() -> None:
     bits = quadro.montar_quadro(Pacote(7, PAYLOAD_PROVA))
-    assert len(bits) == quadro.bits_por_quadro(128) == 1109
+    assert len(bits) == quadro.bits_por_quadro(128) == 1117  # v3: sequência de 24 bits
     assert "".join(map(str, bits[:16])) == "10" * 8
     assert "".join(map(str, bits[16:29])) == "1111100110101"
     assert not bits[-16:].any()
 
 
 def test_ida_e_volta() -> None:
-    for pacote in (Pacote(0, b""), Pacote(65535, PAYLOAD_PROVA), Pacote(300, b"\x00" * 255)):
+    for pacote in (
+        Pacote(0, b""),
+        Pacote(65535, PAYLOAD_PROVA),
+        Pacote(65536, PAYLOAD_PROVA),  # o v2 (16 bits) não tinha este número
+        Pacote(2**24 - 1, b"\x00" * 255),
+    ):
         leitura = quadro.interpretar(_corpo(pacote))
         assert leitura.situacao == "ok"
         assert leitura.pacote == pacote
@@ -46,7 +51,7 @@ def test_bits_a_mais_depois_do_quadro_sao_ignorados() -> None:
 
 def test_todo_erro_de_um_bit_e_detectado() -> None:
     corpo = _corpo(Pacote(1234, PAYLOAD_PROVA))
-    assert len(corpo) == 1064  # comprimento 8 + sequência 16 + payload 1024 + CRC 16
+    assert len(corpo) == 1072  # comprimento 8 + sequência 24 + payload 1024 + CRC 16
     for k in range(len(corpo)):
         errado = corpo.copy()
         errado[k] ^= 1
@@ -80,7 +85,7 @@ def test_bits_insuficientes() -> None:
 
 def test_validacoes() -> None:
     with pytest.raises(ValueError, match="sequência"):
-        Pacote(65536, b"")
+        Pacote(2**24, b"")
     with pytest.raises(ValueError, match="payload"):
         Pacote(0, b"x" * 256)
     with pytest.raises(ValueError, match="payload"):
@@ -92,11 +97,11 @@ def test_validacoes() -> None:
 def test_quadro_com_fec_codifica_so_o_corpo() -> None:
     p = Pacote(513, bytes(range(128)))
     simples, codificado = quadro.montar_quadro(p), quadro.montar_quadro(p, fec=True)
-    assert len(simples) == quadro.bits_por_quadro(128) == 1109
-    assert len(codificado) == quadro.bits_por_quadro(128, fec=True) == 2185
+    assert len(simples) == quadro.bits_por_quadro(128) == 1117
+    assert len(codificado) == quadro.bits_por_quadro(128, fec=True) == 2201
     np.testing.assert_array_equal(codificado[:29], simples[:29])  # preâmbulo e sync iguais
     np.testing.assert_array_equal(codificado[-16:], simples[-16:])  # guarda igual
     corpo = codificado[29:-16]
-    assert len(corpo) == quadro.bits_no_ar_apos_sync(128, fec=True) == 2 * (1064 + 6)
+    assert len(corpo) == quadro.bits_no_ar_apos_sync(128, fec=True) == 2 * (1072 + 6)
     decodificado = codigo.decodificar(2.0 * corpo - 1, quadro.bits_apos_sync(128))
     assert quadro.interpretar(decodificado).pacote == p

@@ -32,7 +32,8 @@ PREAMBULO = np.array([1, 0] * 8, dtype=np.uint8)  # 16 bits alternados, para o l
 SYNC = np.array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1], dtype=np.uint8)  # Barker-13
 GUARDA = np.zeros(16, dtype=np.uint8)  # silêncio entre quadros
 BITS_COMPRIMENTO = 8
-BITS_SEQUENCIA = 16
+BITS_SEQUENCIA = 24  # quadro v3 (bloco 10); era 16 no v2
+BYTES_SEQUENCIA = BITS_SEQUENCIA // 8
 BITS_CRC = 16
 PAYLOAD_MAX_BYTES: int = 2**BITS_COMPRIMENTO - 1  # 255
 SEQUENCIA_MAX: int = 2**BITS_SEQUENCIA - 1
@@ -70,7 +71,7 @@ class Pacote:
     """Conteúdo útil de um quadro.
 
     Attributes:
-        sequencia: número do pacote, de 0 a 65535 (o TX volta a 0 depois do máximo).
+        sequencia: número do pacote, de 0 a 2^24 - 1 (o TX volta a 0 depois do máximo).
         payload: dados úteis, de 0 a 255 bytes.
     """
 
@@ -103,7 +104,8 @@ def bits_para_bytes(bits: Bits) -> bytes:
 
 def _protegido(pacote: Pacote) -> bytes:
     """Bytes cobertos pelo CRC: comprimento, sequência (big-endian) e payload."""
-    return bytes([len(pacote.payload)]) + pacote.sequencia.to_bytes(2, "big") + pacote.payload
+    sequencia = pacote.sequencia.to_bytes(BYTES_SEQUENCIA, "big")
+    return bytes([len(pacote.payload)]) + sequencia + pacote.payload
 
 
 def montar_quadro(pacote: Pacote, fec: bool = False) -> Bits:
@@ -162,7 +164,8 @@ def interpretar(bits: Bits) -> Leitura:
     protegido, crc_recebido = corpo[:-2], int.from_bytes(corpo[-2:], "big")
     if crc16(protegido) != crc_recebido:
         return Leitura(None, "crc", total)
-    pacote = Pacote(int.from_bytes(protegido[1:3], "big"), protegido[3:])
+    fim_sequencia = 1 + BYTES_SEQUENCIA
+    pacote = Pacote(int.from_bytes(protegido[1:fim_sequencia], "big"), protegido[fim_sequencia:])
     return Leitura(pacote, "ok", total)
 
 
@@ -177,6 +180,6 @@ def bits_no_ar_apos_sync(n_bytes_payload: int, fec: bool = False) -> int:
 
 
 def bits_por_quadro(n_bytes_payload: int, fec: bool = False) -> int:
-    """Tamanho do quadro completo em bits (1109 para os 128 bytes da prova; 2185 com fec)."""
+    """Tamanho do quadro completo em bits (1117 para os 128 bytes da prova; 2201 com fec)."""
     depois = bits_no_ar_apos_sync(n_bytes_payload, fec)
     return len(PREAMBULO) + len(SYNC) + depois + len(GUARDA)

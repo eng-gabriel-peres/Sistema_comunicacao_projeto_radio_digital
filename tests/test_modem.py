@@ -243,7 +243,7 @@ def test_dqpsk_mapa_de_gray_e_prefixo_igual_ao_da_dbpsk() -> None:
     dq = modem.modular(bits, ConfigModem("dqpsk", "rrc", 4), quadro.BITS_PREFIXO)
     db = modem.modular(bits, ConfigModem("dbpsk", "rrc", 4))
     np.testing.assert_allclose(dq[: 29 * 4], db[: 29 * 4], atol=1e-12)  # o RX acha os dois igual
-    assert modem.simbolos(len(bits), ConfigModem("dqpsk", "rrc", 4), 29) == 29 + 540
+    assert modem.simbolos(len(bits), ConfigModem("dqpsk", "rrc", 4), 29) == 29 + 544
 
 
 def test_dqpsk_nao_precisa_da_fase_e_bate_com_a_teoria() -> None:
