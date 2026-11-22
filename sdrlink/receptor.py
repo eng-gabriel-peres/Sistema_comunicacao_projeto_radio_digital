@@ -1,7 +1,7 @@
 """Receptor multiquadro: acha todos os quadros de uma captura e devolve os pacotes válidos.
 
 Requisitos: RX-01 (detecção com limiar, todos os quadros), RX-03 (arquivo de
-saída com sequência e payload), MET-01 (base da PER). Achados tratados: A1
+saída com sequência e payload), MET-02 (base da PER). Achados tratados: A1
 (a referência decodifica um quadro só), A2 (sem limiar, ruído vira quadro) e
 A18 (offset residual de até 1,6 kHz).
 

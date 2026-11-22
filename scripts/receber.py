@@ -8,7 +8,7 @@ Uso:
     python scripts/receber.py dados/capturas/<captura>.npy --modulacao dbpsk --pulso rrc \
         --taxa-bits 256e3 --deslocamento-hz 250e3
 
-Requisitos: RX-01, RX-03 (arquivo de saída), MET-01; processamento dentro dos 10 min da prova.
+Requisitos: RX-01, RX-03 (arquivo de saída), MET-02 e MET-05; processa dentro dos 10 min da prova.
 """
 
 from __future__ import annotations
