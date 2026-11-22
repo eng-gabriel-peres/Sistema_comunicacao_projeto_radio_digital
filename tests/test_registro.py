@@ -56,7 +56,7 @@ def test_salvar_json_rejeita_extensao_e_vazio(tmp_path: Path) -> None:
 
 
 def test_versao_ignora_pendencias_so_nas_pastas_pedidas(monkeypatch: pytest.MonkeyPatch) -> None:
-    so_entregas = " M entregas/a.pdf\n?? entregas/b.pdf"
+    so_entregas = "M entregas/a.pdf\n M entregas/c.pdf\n?? entregas/b.pdf"  # 1ª linha sem espaço
     monkeypatch.setattr(registro, "_git", _git_falso("bloco-04", so_entregas))
     assert registro.versao_do_codigo(ignorar=("entregas/",)) == "bloco-04"
     assert registro.versao_do_codigo() == "bloco-04-sujo"

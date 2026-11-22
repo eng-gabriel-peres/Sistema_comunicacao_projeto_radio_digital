@@ -54,7 +54,13 @@ def versao_do_codigo(ignorar: tuple[str, ...] = ()) -> str:
     pendencias = _git("pendencias")
     if not versao or pendencias is None:
         return "desconhecida"
-    caminhos = [linha[3:].strip('"') for linha in pendencias.splitlines() if linha.strip()]
+    # cada linha é "XY caminho" (ou "R  antigo -> novo"); a saída de _git perde o espaço
+    # inicial da primeira linha, por isso a separação é pelo primeiro espaço, não pela coluna
+    caminhos = [
+        linha.split(maxsplit=1)[-1].split(" -> ")[-1].strip('"')
+        for linha in pendencias.splitlines()
+        if linha.strip()
+    ]
     restantes = [c for c in caminhos if not c.startswith(ignorar)]
     return f"{versao}-sujo" if restantes else versao
 
