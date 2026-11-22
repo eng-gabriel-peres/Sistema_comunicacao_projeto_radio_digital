@@ -1,29 +1,33 @@
 DBPSK 256 kbit/s, 12 dB
     2282 pacotes (simulado), banda a 99%: 100 a 399 kHz do LO
-    Log do TX: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\logs\tx_20261121_230957.txt
-    2282 pacotes aceitos em 34.8 s
+    Log do TX: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\logs\tx_20261121_234659.txt
+    2282 pacotes aceitos em 34.5 s
+    Banda a 99%: 296.4 kHz; Eb/N0: 12.0 dB
     Saída: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\DBPSK_256_kbits_12dB_saida.txt
     Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\DBPSK_256_kbits_12dB_rx.json
-    {'transmitidos': 2282, 'recebidos_certos': 2282, 'conteudo_diferente': 0, 'espurios': 0, 'duplicados': 0, 'perdidos': 0, 'per': 0.0, 'goodput_bps': 233676.8, 'duracao_s': 10.0, 'tempo_tx_s': 4.4, 'tempo_rx_s': 36.4, 'tempo_rx_estimado_60s_min': 3.6, 'offset_estimado_hz': -1386.0, 'deteccoes': 2346, 'crc_falho': 64}
+    {'transmitidos': 2282, 'recebidos_certos': 2282, 'conteudo_diferente': 0, 'espurios': 0, 'duplicados': 0, 'perdidos': 0, 'per': 0.0, 'goodput_bps': 233676.8, 'duracao_s': 10.0, 'tempo_tx_s': 4.3, 'tempo_rx_s': 36.8, 'tempo_rx_estimado_60s_min': 3.7, 'offset_estimado_hz': -1386.0, 'deteccoes': 2346, 'crc_falho': 64}
 DBPSK 256 kbit/s, 10 dB
     2282 pacotes (simulado), banda a 99%: 100 a 399 kHz do LO
-    Log do TX: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\logs\tx_20261121_231053.txt
-    2227 pacotes aceitos em 37.3 s
+    Log do TX: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\logs\tx_20261121_234756.txt
+    2227 pacotes aceitos em 34.2 s
+    Banda a 99%: 300.1 kHz; Eb/N0: 9.99 dB
     Saída: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\DBPSK_256_kbits_10dB_saida.txt
     Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\DBPSK_256_kbits_10dB_rx.json
-    {'transmitidos': 2282, 'recebidos_certos': 2227, 'conteudo_diferente': 0, 'espurios': 0, 'duplicados': 0, 'perdidos': 55, 'per': 0.0241, 'goodput_bps': 228044.8, 'duracao_s': 10.0, 'tempo_tx_s': 4.4, 'tempo_rx_s': 38.9, 'tempo_rx_estimado_60s_min': 3.9, 'offset_estimado_hz': -1384.2, 'deteccoes': 2330, 'crc_falho': 103}
+    {'transmitidos': 2282, 'recebidos_certos': 2227, 'conteudo_diferente': 0, 'espurios': 0, 'duplicados': 0, 'perdidos': 55, 'per': 0.0241, 'goodput_bps': 228044.8, 'duracao_s': 10.0, 'tempo_tx_s': 4.3, 'tempo_rx_s': 36.5, 'tempo_rx_estimado_60s_min': 3.7, 'offset_estimado_hz': -1384.2, 'deteccoes': 2330, 'crc_falho': 103}
 GFSK 128 kbit/s, 15 dB
     1142 pacotes (simulado), banda a 99%: 144 a 355 kHz do LO
-    Log do TX: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\logs\tx_20261121_231150.txt
-    1135 pacotes aceitos em 24.3 s
+    Log do TX: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\logs\tx_20261121_234850.txt
+    1142 pacotes aceitos em 24.1 s
+    Banda a 99%: 209.8 kHz; Eb/N0: 15.0 dB
     Saída: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\GFSK_128_kbits_15dB_saida.txt
     Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\GFSK_128_kbits_15dB_rx.json
-    {'transmitidos': 1142, 'recebidos_certos': 1135, 'conteudo_diferente': 0, 'espurios': 0, 'duplicados': 0, 'perdidos': 7, 'per': 0.0061, 'goodput_bps': 116224.0, 'duracao_s': 10.0, 'tempo_tx_s': 4.7, 'tempo_rx_s': 26.0, 'tempo_rx_estimado_60s_min': 2.6, 'offset_estimado_hz': -1427.9, 'deteccoes': 1171, 'crc_falho': 36}
+    {'transmitidos': 1142, 'recebidos_certos': 1142, 'conteudo_diferente': 0, 'espurios': 0, 'duplicados': 0, 'perdidos': 0, 'per': 0.0, 'goodput_bps': 116940.8, 'duracao_s': 10.0, 'tempo_tx_s': 4.2, 'tempo_rx_s': 26.4, 'tempo_rx_estimado_60s_min': 2.6, 'offset_estimado_hz': -1427.7, 'deteccoes': 1171, 'crc_falho': 29}
 OOK 128 kbit/s, 15 dB
     1142 pacotes (simulado), banda a 99%: 178 a 321 kHz do LO
-    Log do TX: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\logs\tx_20261121_231234.txt
-    1142 pacotes aceitos em 26.4 s
+    Log do TX: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\logs\tx_20261121_234934.txt
+    1142 pacotes aceitos em 27.0 s
+    Banda a 99%: 143.4 kHz; Eb/N0: 14.9 dB
     Saída: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\OOK_128_kbits_15dB_saida.txt
     Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\capturas\enlace_simulado\OOK_128_kbits_15dB_rx.json
-    {'transmitidos': 1142, 'recebidos_certos': 1142, 'conteudo_diferente': 0, 'espurios': 0, 'duplicados': 0, 'perdidos': 0, 'per': 0.0, 'goodput_bps': 116940.8, 'duracao_s': 10.0, 'tempo_tx_s': 4.0, 'tempo_rx_s': 28.0, 'tempo_rx_estimado_60s_min': 2.8, 'offset_estimado_hz': -1496.7, 'deteccoes': 1149, 'crc_falho': 7}
-registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\enlace_simulado_20261121_231317.json
+    {'transmitidos': 1142, 'recebidos_certos': 1142, 'conteudo_diferente': 0, 'espurios': 0, 'duplicados': 0, 'perdidos': 0, 'per': 0.0, 'goodput_bps': 116940.8, 'duracao_s': 10.0, 'tempo_tx_s': 3.9, 'tempo_rx_s': 29.6, 'tempo_rx_estimado_60s_min': 3.0, 'offset_estimado_hz': -1496.7, 'deteccoes': 1149, 'crc_falho': 7}
+registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\enlace_simulado_20261121_235020.json

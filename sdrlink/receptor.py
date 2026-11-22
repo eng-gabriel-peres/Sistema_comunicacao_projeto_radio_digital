@@ -73,7 +73,9 @@ class ConfigReceptor:
         taxa_sps: taxa de amostragem da captura.
         deslocamento_hz: posição do sinal em relação ao centro da captura.
         limiar: valor mínimo da métrica de correlação normalizada (0 a 1).
-        offset_max_hz: maior offset residual esperado (define o tamanho dos trechos).
+        offset_max_hz: maior offset residual esperado (define a grade de hipóteses).
+        guardar_bits: guarda em cada detecção os bits demodulados depois do sync,
+            mesmo com CRC falho (para a BER com sequência conhecida, MET-03).
     """
 
     modem: ConfigModem
@@ -81,6 +83,7 @@ class ConfigReceptor:
     deslocamento_hz: float = 0.0
     limiar: float = LIMIAR_PADRAO
     offset_max_hz: float = OFFSET_MAX_PADRAO_HZ
+    guardar_bits: bool = False
 
     def __post_init__(self) -> None:
         """Rejeita parâmetros incoerentes.
@@ -168,6 +171,7 @@ class Deteccao:
         offset_hz: offset de frequência estimado pelo preâmbulo.
         situacao: "ok", "crc" ou "curto" (sdrlink.quadro.Leitura).
         pacote: o pacote, só quando o CRC confere.
+        bits: bits demodulados depois do sync (só com ConfigReceptor.guardar_bits).
     """
 
     inicio: float
@@ -175,6 +179,7 @@ class Deteccao:
     offset_hz: float
     situacao: str
     pacote: Pacote | None
+    bits: NDArray[np.uint8] | None = None
 
 
 def _soma_deslizante(valores: NDArray[np.float64], janela: int) -> NDArray[np.float64]:
@@ -288,17 +293,12 @@ def _limiar_do_prefixo(trecho: Sinal, cm: ConfigModem) -> float:
     return float(np.mean(modulo[prefixo == 1]) + np.mean(modulo[prefixo == 0])) / 2
 
 
-def ler_quadro(
-    x: Sinal,
-    inicio: float,
-    offset_hz: float,
-    config: ConfigReceptor,
-    interpretador: Interpretador = quadro.interpretar,
-) -> quadro.Leitura:
-    """Corrige instante, offset e fase de um quadro, demodula e interpreta os bits depois do sync.
+def demodular_quadro(
+    x: Sinal, inicio: float, offset_hz: float, config: ConfigReceptor
+) -> NDArray[np.uint8] | None:
+    """Corrige instante, offset e fase de um quadro e devolve os bits depois do sync.
 
-    O interpretador padrão é o do quadro v2; o ensaio com a captura da referência
-    passa o do quadro antigo (comprimento, payload e CRC-8).
+    Devolve None se a captura acaba antes do cabeçalho.
     """
     cm = config.modem_interno
     trecho = canal.girar(
@@ -309,17 +309,32 @@ def ler_quadro(
         (len(trecho) - len(cm.formato())) // cm.sps - 1,
     )
     if n_bits <= BITS_PREFIXO + quadro.BITS_CABECALHO:
-        return quadro.Leitura(None, "curto", 0)
-    modelo = config.modelo()
-    fase = float(np.angle(np.vdot(modelo, trecho[: len(modelo)])))  # só a BPSK coerente usa
+        return None
     if cm.modulacao != "ook":
-        return interpretador(modem.demodular(trecho, cm, n_bits, fase=fase)[BITS_PREFIXO:])
+        modelo = config.modelo()
+        fase = float(np.angle(np.vdot(modelo, trecho[: len(modelo)])))  # só a BPSK coerente usa
+        return modem.demodular(trecho, cm, n_bits, fase=fase)[BITS_PREFIXO:]
     # OOK: a janela de leitura é maior que o quadro, e o que vem depois (silêncio, outro
     # quadro, interferência) puxaria um limiar ajustado na janela toda; o limiar vem dos
     # 29 bits conhecidos do prefixo. Uma 2ª passada com k-médias só nos símbolos do quadro
     # foi medida em 1500 quadros a 11 e 12 dB e não deu ganho significativo: ficou de fora.
-    bits = modem.demodular(trecho, cm, n_bits, limiar=_limiar_do_prefixo(trecho, cm))
-    return interpretador(bits[BITS_PREFIXO:])
+    return modem.demodular(trecho, cm, n_bits, limiar=_limiar_do_prefixo(trecho, cm))[BITS_PREFIXO:]
+
+
+def ler_quadro(
+    x: Sinal,
+    inicio: float,
+    offset_hz: float,
+    config: ConfigReceptor,
+    interpretador: Interpretador = quadro.interpretar,
+) -> quadro.Leitura:
+    """Demodula um quadro e interpreta os bits depois do sync.
+
+    O interpretador padrão é o do quadro v2; o ensaio com a captura da referência
+    passa o do quadro antigo (comprimento, payload e CRC-8).
+    """
+    bits = demodular_quadro(x, inicio, offset_hz, config)
+    return quadro.Leitura(None, "curto", 0) if bits is None else interpretador(bits)
 
 
 def receber_bloco(
@@ -344,10 +359,22 @@ def receber_bloco(
     for p in picos(metrica, config.limiar, DISTANCIA_MIN_BITS * config.modem_interno.sps):
         offset = estimar_offset(filtrado, p, float(grosso[p]), config)
         inicio = _refinar(metrica, p)
-        leitura = ler_quadro(base, inicio, offset, config, interpretador)
+        # a 2-FSK demodula do sinal já filtrado na banda do pulso: o correlator dela não
+        # rejeita sinais fortes fora da banda (pico de DC do RTL, outros sinais ISM), e um
+        # pico de DC do tamanho do sinal multiplicava a BER por 25 (21/11/2026); OOK e
+        # DBPSK passam pelo filtro casado RRC, que já os rejeita
+        entrada = filtrado if config.modem.modulacao == "fsk" else base
+        bits = demodular_quadro(entrada, inicio, offset, config)
+        leitura = quadro.Leitura(None, "curto", 0) if bits is None else interpretador(bits)
+        guardados = bits if config.guardar_bits else None
         deteccoes.append(
             Deteccao(
-                origem + inicio * d, float(metrica[p]), offset, leitura.situacao, leitura.pacote
+                origem + inicio * d,
+                float(metrica[p]),
+                offset,
+                leitura.situacao,
+                leitura.pacote,
+                guardados,
             )
         )
     return deteccoes

@@ -141,6 +141,8 @@ Quadro de referência: `[preâmbulo 16][Barker-13][comprimento 8][payload 8·N][
 | A19 | Baixo | `sdrlink.hw.rtl_rx` (leitura assíncrona) | Em cerca de 5% das capturas a librtlsdr acusa erro de I2C ao pôr o sintonizador em repouso no fechamento; nunca com leitura síncrona | Não afeta os dados (captura sempre completa e a seguinte funciona); fica sob observação | RX-02 |
 | A20 | Médio | ensaios de 04/11 e referência (`CENTER_FREQ = 915e6`) | O LO do Pluto ficou em 915,000 MHz, exatamente na borda da faixa autorizada; o vazamento do LO fica na borda e a imagem IQ (LO − 200 kHz = 914,8 MHz) cai fora dela. O sinal útil (915,2 MHz) estava dentro | Nos próximos ensaios o LO vai para perto do meio da faixa; o código do projeto recusa transmitir se sinal, LO ou imagem saírem de 915 a 928 MHz | PLT-05 |
 | A21 | Médio | medição da banda no RTL | A 2,048 MS/s o RTL enxerga só ±1,02 MHz, com as bordas atenuadas pelo filtro anti-aliasing: a banda a 99% de um sinal de caudas largas (pulso retangular) sai sempre subestimada | Medir a banda só com pulsos RRC ou gaussiano e com o sinal longe do DC e das bordas ([etapa3_modulacoes.md](etapa3_modulacoes.md), seção 4) | MET-04 |
+| A22 | Alto | `sdrlink.modem` (2-FSK) | Desde a troca da integral de fase (sub-bloco 3c), a janela do correlator da 2-FSK ficou 1,5 amostra adiantada: a BER da GFSK subiu 2,6 vezes em 11 dB. A CPFSK quase não sentiu, e os testes não pegaram | Janela corrigida (+1 amostra) e testes de regressão (janela no ótimo; GFSK contra o valor da Etapa 4). Os números de GFSK do 3c e do 3d foram medidos de novo ([etapa5_software.md](etapa5_software.md)) | MOD-02 |
+| A23 | Alto | `sdrlink.receptor` (2-FSK) | O correlator da 2-FSK trabalhava na banda decimada inteira: um sinal forte fora da banda do pulso (o pico de DC do RTL, outro sinal ISM) entrava nele, e um pico do tamanho do sinal multiplicou a BER por 25 | A 2-FSK passou a demodular depois do filtro de banda do pulso: imune ao pico e, de quebra, 4 a 10 vezes menos BER na GFSK entre 11 e 13 dB ([etapa5_software.md](etapa5_software.md)) | MOD-02, RX-01 |
 
 Conclusão da auditoria: a referência é uma **boa base didática** (quadro, Barker, limiar pelo preâmbulo, CRC), mas atende só MOD-01 e parte de PKT-01. O restante tem de ser construído. Os achados A1 a A4 são o núcleo do trabalho de engenharia.
 
@@ -212,7 +214,7 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | CAL-01, CAL-02 | ✅ | Recalibrado em 04/11 com o Pluto da equipe: correção adotada +84 ppm (medições de 84,04 e 84,21), resíduo com 84 de −356 a −524 Hz ([calibracao_rtl.md](calibracao_rtl.md)); em 22/10, com o Pluto do professor, era +77; achados A5 a A7, A15 e A16 tratados | 1 |
 | CAL-03 | 🟡 | Agora o Pluto é o da equipe (erro próprio de cerca de −9,5 ppm); falta decidir se ajustamos o `xo_correction` ou deixamos a correção toda no RTL | 1 |
 | MET-01, MET-02 | 🟡 | Goodput e PER calculados pela regra da seção 7 (`sdrlink.metricas`), validados na rodada simulada; falta medir no ar (Etapa 5) | 5 |
-| MET-03 a MET-05 | ❌ | | 5 |
+| MET-03 a MET-05 | 🟡 | BER com sequência conhecida (inclusive quadros com CRC falho, sequência por votação, tolerante à diferença de relógio), banda a 99% e Eb/N0 medidos na captura e registro completo no `scripts/receber.py`; validados contra a verdade em simulação ([etapa5_software.md](etapa5_software.md)); falta medir no ar | 5 |
 | CMP-01 a CMP-04 | ❌ | | 4, 5 |
 | CMP-A, CMP-B, CMP-C | ❌ | | 6, 7 |
 | PRC-01 | 🟡 | Repositório git e portão de qualidade criados (Bloco 0); falta a configuração centralizada (A14) | 1 |
@@ -326,6 +328,8 @@ Canal simulado com AWGN, erro de fase, offset de frequência e erro de temporiza
 ### Etapa 5 (até 03/12)
 
 Ensaios reais: goodput, PER, BER com sequência pseudoaleatória, banda a 99% pela DEP do RTL, sensibilidade a ganho, taxa e distância. Relatório parcial comparando simulação e medição.
+
+**Parte em software feita em 21 e 22/11/2026** ([etapa5_software.md](etapa5_software.md)): BER com sequência conhecida (inclusive quadros com CRC falho), banda a 99% e Eb/N0 medidos na captura, validados contra a verdade; curvas de referência simuladas; protocolo de bancada. Achados A22 e A23 corrigidos. Falta medir no ar.
 
 ### Etapas 6 e 7 (até 10/12)
 

@@ -193,3 +193,9 @@ def gravar_log(registros: list[RegistroTx], caminho: Path) -> Path:
     linhas = [f"{r.pacote.sequencia}\t{r.pacote.payload.hex()}" for r in registros]
     caminho.write_text("\n".join(linhas) + ("\n" if linhas else ""), encoding="utf-8", newline="\n")
     return caminho
+
+
+def amostras_por_quadro(config: ConfigModem, tamanho_payload: int = TAMANHO_PAYLOAD) -> int:
+    """Duração de um quadro no fluxo do TX, em amostras: o período entre quadros consecutivos."""
+    vazio = quadro.montar_quadro(Pacote(0, bytes(tamanho_payload)))
+    return len(modem.modular(vazio, config))

@@ -1,0 +1,239 @@
+{
+ "ensaio": "receptor multiquadro: limiar e perda de implementação (simulação)",
+ "versao_do_codigo": "bloco-03d-1-g9c3973b-sujo",
+ "semente": 20261123,
+ "offset_hz": -1600.0,
+ "limiar_adotado": 0.5,
+ "A_limiar": {
+  "DBPSK RRC, 256 kbit/s": {
+   "6 dB": {
+    "verdadeiro_min": 0.579,
+    "verdadeiro_mediana": 0.666,
+    "falso_q9999": 0.358,
+    "falso_max": 0.5
+   },
+   "8 dB": {
+    "verdadeiro_min": 0.688,
+    "verdadeiro_mediana": 0.746,
+    "falso_q9999": 0.386,
+    "falso_max": 0.46
+   },
+   "10 dB": {
+    "verdadeiro_min": 0.752,
+    "verdadeiro_mediana": 0.798,
+    "falso_q9999": 0.384,
+    "falso_max": 0.449
+   }
+  },
+  "DBPSK RRC, 10,24 kbit/s": {
+   "6 dB": {
+    "verdadeiro_min": 0.606,
+    "verdadeiro_mediana": 0.701,
+    "falso_q9999": 0.376,
+    "falso_max": 0.45
+   },
+   "8 dB": {
+    "verdadeiro_min": 0.699,
+    "verdadeiro_mediana": 0.804,
+    "falso_q9999": 0.409,
+    "falso_max": 0.465
+   },
+   "10 dB": {
+    "verdadeiro_min": 0.822,
+    "verdadeiro_mediana": 0.856,
+    "falso_q9999": 0.425,
+    "falso_max": 0.536
+   }
+  },
+  "GFSK, 128 kbit/s": {
+   "6 dB": {
+    "verdadeiro_min": 0.475,
+    "verdadeiro_mediana": 0.611,
+    "falso_q9999": 0.341,
+    "falso_max": 0.441
+   },
+   "8 dB": {
+    "verdadeiro_min": 0.622,
+    "verdadeiro_mediana": 0.677,
+    "falso_q9999": 0.362,
+    "falso_max": 0.424
+   },
+   "10 dB": {
+    "verdadeiro_min": 0.704,
+    "verdadeiro_mediana": 0.754,
+    "falso_q9999": 0.388,
+    "falso_max": 0.482
+   }
+  },
+  "OOK RRC, 128 kbit/s": {
+   "6 dB": {
+    "verdadeiro_min": 0.426,
+    "verdadeiro_mediana": 0.594,
+    "falso_q9999": 0.31,
+    "falso_max": 0.392
+   },
+   "8 dB": {
+    "verdadeiro_min": 0.589,
+    "verdadeiro_mediana": 0.665,
+    "falso_q9999": 0.334,
+    "falso_max": 0.473
+   },
+   "10 dB": {
+    "verdadeiro_min": 0.626,
+    "verdadeiro_mediana": 0.732,
+    "falso_q9999": 0.345,
+    "falso_max": 0.527
+   }
+  }
+ },
+ "B_per": {
+  "DBPSK RRC, 256 kbit/s": [
+   {
+    "ebn0_db": 6.0,
+    "per_ideal": 1.0,
+    "per_receptor": 0.995,
+    "aceitos_errados": 0,
+    "deteccoes": 200
+   },
+   {
+    "ebn0_db": 7.0,
+    "per_ideal": 0.915,
+    "per_receptor": 0.92,
+    "aceitos_errados": 0,
+    "deteccoes": 204
+   },
+   {
+    "ebn0_db": 8.0,
+    "per_ideal": 0.53,
+    "per_receptor": 0.51,
+    "aceitos_errados": 0,
+    "deteccoes": 200
+   },
+   {
+    "ebn0_db": 9.0,
+    "per_ideal": 0.12,
+    "per_receptor": 0.18,
+    "aceitos_errados": 0,
+    "deteccoes": 202
+   },
+   {
+    "ebn0_db": 10.0,
+    "per_ideal": 0.02,
+    "per_receptor": 0.015,
+    "aceitos_errados": 0,
+    "deteccoes": 204
+   }
+  ],
+  "DBPSK RRC, 10,24 kbit/s": [
+   {
+    "ebn0_db": 6.0,
+    "per_ideal": 1.0,
+    "per_receptor": 1.0,
+    "aceitos_errados": 0,
+    "deteccoes": 200
+   },
+   {
+    "ebn0_db": 7.0,
+    "per_ideal": 0.92,
+    "per_receptor": 0.95,
+    "aceitos_errados": 0,
+    "deteccoes": 202
+   },
+   {
+    "ebn0_db": 8.0,
+    "per_ideal": 0.485,
+    "per_receptor": 0.585,
+    "aceitos_errados": 0,
+    "deteccoes": 202
+   },
+   {
+    "ebn0_db": 9.0,
+    "per_ideal": 0.125,
+    "per_receptor": 0.145,
+    "aceitos_errados": 0,
+    "deteccoes": 206
+   },
+   {
+    "ebn0_db": 10.0,
+    "per_ideal": 0.02,
+    "per_receptor": 0.015,
+    "aceitos_errados": 0,
+    "deteccoes": 206
+   }
+  ],
+  "GFSK, 128 kbit/s": [
+   {
+    "ebn0_db": 10.0,
+    "per_ideal": 1.0,
+    "per_receptor": 0.94,
+    "aceitos_errados": 0,
+    "deteccoes": 200
+   },
+   {
+    "ebn0_db": 11.0,
+    "per_ideal": 0.815,
+    "per_receptor": 0.555,
+    "aceitos_errados": 0,
+    "deteccoes": 201
+   },
+   {
+    "ebn0_db": 12.0,
+    "per_ideal": 0.415,
+    "per_receptor": 0.175,
+    "aceitos_errados": 0,
+    "deteccoes": 200
+   },
+   {
+    "ebn0_db": 13.0,
+    "per_ideal": 0.095,
+    "per_receptor": 0.025,
+    "aceitos_errados": 0,
+    "deteccoes": 201
+   },
+   {
+    "ebn0_db": 14.0,
+    "per_ideal": 0.01,
+    "per_receptor": 0.005,
+    "aceitos_errados": 0,
+    "deteccoes": 201
+   }
+  ],
+  "OOK RRC, 128 kbit/s": [
+   {
+    "ebn0_db": 10.0,
+    "per_ideal": 0.91,
+    "per_receptor": 0.92,
+    "aceitos_errados": 0,
+    "deteccoes": 200
+   },
+   {
+    "ebn0_db": 11.0,
+    "per_ideal": 0.49,
+    "per_receptor": 0.505,
+    "aceitos_errados": 0,
+    "deteccoes": 204
+   },
+   {
+    "ebn0_db": 12.0,
+    "per_ideal": 0.14,
+    "per_receptor": 0.13,
+    "aceitos_errados": 0,
+    "deteccoes": 201
+   },
+   {
+    "ebn0_db": 13.0,
+    "per_ideal": 0.03,
+    "per_receptor": 0.03,
+    "aceitos_errados": 0,
+    "deteccoes": 202
+   },
+   {
+    "ebn0_db": 14.0,
+    "per_ideal": 0.005,
+    "per_receptor": 0.005,
+    "aceitos_errados": 0,
+    "deteccoes": 203
+   }
+  ]
+ }
+}

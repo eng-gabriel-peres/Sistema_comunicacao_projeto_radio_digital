@@ -4,11 +4,16 @@ Saídas, ao lado da captura (ou na pasta --pasta):
     <nome>_saida.txt  uma linha por pacote aceito: "sequência<TAB>payload em hexadecimal"
     <nome>_rx.json    parâmetros, versão do código e números da recepção (seção 7 do enunciado)
 
+O registro traz também a banda a 99% e o Eb/N0 medidos na captura, quando há pelo
+menos uns 20 ms de ruído antes do primeiro quadro (comece a gravar antes do TX), e,
+com --ber, a BER com sequência conhecida (o TX precisa usar os payloads de
+scripts/gerar_payloads.py --conhecidos).
+
 Uso:
     python scripts/receber.py dados/capturas/<captura>.npy --modulacao dbpsk --pulso rrc \
-        --taxa-bits 256e3 --deslocamento-hz 250e3
+        --taxa-bits 256e3 --deslocamento-hz 250e3 [--ber]
 
-Requisitos: RX-01, RX-03 (arquivo de saída), MET-02 e MET-05; processa dentro dos 10 min da prova.
+Requisitos: RX-01, RX-03 (arquivo de saída), MET-02 a MET-05; processa dentro dos 10 min.
 """
 
 from __future__ import annotations
@@ -20,7 +25,7 @@ from pathlib import Path
 
 import numpy as np
 
-from sdrlink import receptor
+from sdrlink import medicao, metricas, receptor, transmissor
 from sdrlink.modem import MODULACOES, ConfigModem
 from sdrlink.receptor import ConfigReceptor
 from sdrlink.registro import salvar_json, versao_do_codigo
@@ -42,6 +47,9 @@ def _argumentos() -> argparse.Namespace:
     p.add_argument("--limiar", type=float, default=receptor.LIMIAR_PADRAO)
     p.add_argument("--offset-max-hz", type=float, default=receptor.OFFSET_MAX_PADRAO_HZ)
     p.add_argument("--pasta", type=Path, default=None, help="padrão: a pasta da captura")
+    p.add_argument(
+        "--ber", action="store_true", help="mede a BER (payloads com sequência conhecida)"
+    )
     args = p.parse_args()
     sps = args.taxa_sps / args.taxa_bits
     if abs(sps - round(sps)) > TOLERANCIA_SPS:
@@ -54,12 +62,20 @@ def main() -> int:
     args = _argumentos()
     modem = ConfigModem(args.modulacao, args.pulso, round(args.taxa_sps / args.taxa_bits))
     config = ConfigReceptor(
-        modem, args.taxa_sps, args.deslocamento_hz, args.limiar, args.offset_max_hz
+        modem, args.taxa_sps, args.deslocamento_hz, args.limiar, args.offset_max_hz, args.ber
     )
     amostras = np.load(args.captura, mmap_mode="r")  # 60 s a 2,048 MS/s = 1 GB: lê por blocos
     inicio = time.time()
     deteccoes = receptor.receber(amostras, config)
     tempo = time.time() - inicio
+    periodo = transmissor.amostras_por_quadro(modem)
+    medidas: dict[str, object] = {"medido": False, "motivo": "nenhum quadro detectado"}
+    if deteccoes:
+        fim = deteccoes[-1].inicio + periodo
+        medidas = medicao.medir_captura(
+            amostras, deteccoes[0].inicio, fim, args.taxa_sps, args.taxa_bits
+        )
+    ber = metricas.medir_ber(deteccoes, periodo, 2 * modem.sps) if args.ber else None
     pasta = args.pasta or args.captura.parent
     nome = args.captura.stem
     saida = receptor.gravar_saida(receptor.pacotes_aceitos(deteccoes), pasta / f"{nome}_saida.txt")
@@ -70,9 +86,17 @@ def main() -> int:
         "decimacao": config.decimacao,
         "tempo_de_processamento_s": round(tempo, 1),
         **receptor.resumo(deteccoes, len(amostras) / args.taxa_sps),
+        "medidas_da_captura": medidas,
+        "ber": ber,
     }
     caminho = salvar_json(pasta / f"{nome}_rx.json", registro)
     print(f"{registro['pacotes_aceitos']} pacotes aceitos em {tempo:.1f} s")
+    if medidas.get("medido"):
+        print(
+            f"Banda a 99%: {medidas['banda_99_khz']} kHz; Eb/N0: {medidas['ebn0_estimado_db']} dB"
+        )
+    if ber is not None:
+        print(f"BER: {ber['bits_errados']}/{ber['bits_comparados']} = {ber['ber']:.2e}")
     print(f"Saída: {saida}\nRegistro: {caminho}")
     return 0
 

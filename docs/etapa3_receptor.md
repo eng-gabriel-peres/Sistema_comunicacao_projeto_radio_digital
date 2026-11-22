@@ -18,7 +18,7 @@ Código: [`sdrlink/receptor.py`](../sdrlink/receptor.py). Ferramenta de linha de
 |---|---|
 | **Captura real** de 16 s da OOK de referência (04/11, Pluto da equipe → RTL) | **698 de 698** quadros com CRC OK, 0 detecções falsas; offset −1 335 Hz (a FFT longa de 04/11 mediu −1 343 Hz) |
 | Capturas simuladas: 20 quadros de 128 bytes, offset de −1,6 kHz, atraso fracionário, 14 dB, blocos pequenos para forçar quadros nas emendas | **20 de 20** em OOK, DBPSK (256 e 10,24 kbit/s), GFSK e CPFSK; nenhum pacote errado aceito |
-| Perda de implementação: receptor completo, com tudo estimado, contra a demodulação ideal | **0 a 0,3 dB** (seção 5) |
+| Perda de implementação: receptor completo, com tudo estimado, contra a demodulação ideal | **0 a 0,2 dB** em OOK e DBPSK; na GFSK o receptor ganha 0,6 dB (seção 5) |
 | Pacotes errados aceitos, em todos os ensaios | **0** |
 | Tempo de processamento | **1,16 s por segundo de captura** no pior caso (10 kbit/s): a prova de 60 s leva cerca de 70 s, e o limite é de 10 min |
 | `scripts/receber.py` com uma captura simulada de 50 pacotes | arquivo de saída **idêntico ao log do TX**, nos 50 pacotes e na ordem |
@@ -60,7 +60,7 @@ Cada decisão abaixo veio de um teste que falhou ou de uma medição.
 
 ### Escolha do limiar (medida)
 
-Métrica nos quadros reais (mínimo) e fora deles (quantil 99,99% e máximo), com offset de −1,6 kHz. Registro: `dados/logs/receptor_desempenho_20261121_215254.json`.
+Métrica nos quadros reais (mínimo) e fora deles (quantil 99,99% e máximo), com offset de −1,6 kHz. Registro: `dados/logs/receptor_desempenho_20261122_000354.json`.
 
 | Configuração | 6 dB, real mín. | 8 dB, real mín. | 10 dB, real mín. | Falso, 99,99% | Falso, máximo |
 |---|---|---|---|---|---|
@@ -97,7 +97,7 @@ Por isso o limiar fica no ponto mais baixo que o falso alarme permite: **0,5**.
 | Maior desvio do período entre quadros | 0,7 amostra | 0,7 amostra |
 | Tempo | | 18,6 s para 16 s de captura (1,16 s por segundo) |
 
-Registro: `dados/logs/receptor_captura_real_20261121_213841.json`.
+Registro: `dados/logs/receptor_captura_real_20261121_234321.json` (medido de novo depois das correções A22 e A23 da Etapa 5: mesmo resultado).
 
 ## 5. Perda de implementação
 
@@ -113,11 +113,12 @@ O Eb/N0 é medido só sobre o sinal dos quadros, sem os intervalos de silêncio.
 |---|---|---|---|---|
 | DBPSK RRC, 256 kbit/s | 0,0 dB | 0,1 dB | cerca de 10 dB (1,5% em 10 dB) | 0 |
 | DBPSK RRC, 10,24 kbit/s | 0,2 dB | 0,0 dB | cerca de 10 dB (1,5% em 10 dB) | 0 |
-| GFSK, 128 kbit/s | 0,2 dB | 0,3 dB | cerca de 14 dB (4,5% em 14 dB) | 0 |
+| GFSK, 128 kbit/s | **−0,6 dB** (ganho) | **−0,7 dB** (ganho) | cerca de 13,6 dB (0,5% em 14 dB) | 0 |
 | OOK RRC, 128 kbit/s | 0,0 dB | 0,0 dB | cerca de 13,6 dB | 0 |
 
 Com 200 quadros por ponto, diferenças de até cerca de 0,1 dB estão dentro da flutuação estatística.
-- A **GFSK** é a única com perda clara, de 0,2 a 0,3 dB. O correlator de uma janela da GFSK já perde com interferência entre símbolos (Etapa 4), e fica mais sensível ao pequeno erro que resta no instante e no offset.
+- Na **GFSK** o receptor fica **0,6 a 0,7 dB melhor** que a "demodulação ideal" desta tabela. A ideal usa o correlator puro, de um símbolo. O receptor demodula a 2-FSK depois do filtro de banda (achado A23, Etapa 5), que estende a observação além do símbolo e tira da conta o que está fora da banda.
+- **Correção (22/11/2026):** a primeira versão desta tabela dava perda de 0,2 a 0,3 dB na GFSK. Ela foi medida com a janela da 2-FSK 1,5 amostra adiantada (achado A22) e sem o filtro (A23). As duas coisas foram corrigidas na Etapa 5, e o ensaio foi refeito. OOK e DBPSK não mudaram.
 - A **DBPSK** chega à PER de 1% da prova perto de 10 dB, cerca de 4 dB antes da OOK e da GFSK.
 
 ## 6. Ferramenta para a prova
@@ -172,8 +173,8 @@ Os mutantes foram rodados de novo contra a versão final do código, antes de pu
 
 | Evidência | Onde |
 |---|---|
-| Captura real: resultado | `dados/logs/receptor_captura_real_20261121_213841.json` |
-| Limiar e perda de implementação | `dados/logs/receptor_desempenho_20261121_215254.json`, `dados/logs/receptor_desempenho_execucao.log` |
+| Captura real: resultado | `dados/logs/receptor_captura_real_20261121_234321.json` (o de `..._213841` é a primeira execução) |
+| Limiar e perda de implementação | `dados/logs/receptor_desempenho_20261122_000354.json` (refeito depois de A22 e A23; o de `..._215254` é a primeira versão), `dados/logs/receptor_desempenho_execucao.log` |
 | Figura | `docs/figuras/etapa3_receptor_per.png` |
 | Código e testes | `sdrlink/receptor.py`, `scripts/receber.py`, `tests/test_receptor.py`; ajuste da fase da 2-FSK em `sdrlink/modem.py` |
 
