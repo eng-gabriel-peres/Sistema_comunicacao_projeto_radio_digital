@@ -4,7 +4,8 @@ Os documentos do repositório são a fonte única: o relatório só os junta na
 ordem da entrega, com capa e sumário, e imprime em PDF pelo Edge (ou Chrome)
 em modo headless. Assim o PDF nunca diverge do que está versionado.
 
-Uso: python -m ferramentas.gerar_relatorio [etapas-1-2 | etapa-3 | etapa-4 | etapa-5 | etapa-6]
+Uso: python -m ferramentas.gerar_relatorio <entrega>
+    entregas: etapas-1-2, etapa-3, etapa-4, etapa-5, etapa-6, final
 """
 
 from __future__ import annotations
@@ -88,6 +89,52 @@ ENTREGAS = {
         (
             ("Caracterização: ferramentas e protocolo", "etapa5_software.md", None, None),
             ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapa 5", "## Etapas 6 e 7"),
+        ),
+    ),
+    "final": Entrega(
+        "Relatório final: enlace digital Pluto → RTL-SDR",
+        "Relatorio_Final_Gabriel_Peres",
+        (
+            (
+                "Síntese: o que funcionou, o que falhou, o que melhorar",
+                "relatorio_final.md",
+                None,
+                None,
+            ),
+            (
+                "Planejamento, requisitos e matriz de rastreabilidade",
+                "00_planejamento_e_auditoria.md",
+                None,
+                None,
+            ),
+            ("Auditoria de conformidade das Etapas 1 e 2", "auditoria_etapas_1_2.md", None, None),
+            ("Etapa 1: calibração do RTL-SDR", "calibracao_rtl.md", None, None),
+            (
+                "Etapa 2: recepção da OOK de referência no enlace real",
+                "etapa2_recepcao_ook.md",
+                None,
+                None,
+            ),
+            ("Etapa 3a: quadro com sequência e CRC-16", "etapa3_quadro.md", None, None),
+            ("Etapa 3b: OOK, 2-FSK e BPSK em simulação", "etapa3_modulacoes.md", None, None),
+            ("Etapa 3c: receptor multiquadro", "etapa3_receptor.md", None, None),
+            (
+                "Etapa 3d: transmissor de prova, log do TX e métricas",
+                "etapa3_transmissor.md",
+                None,
+                None,
+            ),
+            ("Etapa 4: simulação do canal", "etapa4_canal.md", None, None),
+            ("Etapa 5: caracterização (ferramentas e protocolo)", "etapa5_software.md", None, None),
+            ("Etapa 6a: configuração da prova A", "etapa6_prova_a.md", None, None),
+            ("Etapa 6b: configuração da prova B", "etapa6_prova_b.md", None, None),
+            ("Etapa 6c: FEC para a prova B", "etapa6_fec.md", None, None),
+            ("Etapa 6d: DQPSK para a prova A e quadro v3", "etapa6_dqpsk.md", None, None),
+            ("Etapa 6e: Viterbi em lote e a reserva com FEC", "etapa6_viterbi_lote.md", None, None),
+            ("Etapa 6f: emenda das caudas do RRC", "etapa6_emenda.md", None, None),
+            ("Roteiro da prova e ensaio geral", "roteiro_da_prova.md", None, None),
+            ("Padrão de código", "padrao_de_codigo.md", None, None),
+            ("Anexo A: registro de uso de IA (todas as etapas)", "registro_ia.md", None, None),
         ),
     ),
     "etapa-6": Entrega(
