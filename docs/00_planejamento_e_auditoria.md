@@ -216,8 +216,10 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | MET-01, MET-02 | 🟡 | Goodput e PER calculados pela regra da seção 7 (`sdrlink.metricas`), validados na rodada simulada; falta medir no ar (Etapa 5) | 5 |
 | MET-03 a MET-05 | 🟡 | BER com sequência conhecida (inclusive quadros com CRC falho, sequência por votação, tolerante à diferença de relógio), banda a 99% e Eb/N0 medidos na captura e registro completo no `scripts/receber.py`; validados contra a verdade em simulação ([etapa5_software.md](etapa5_software.md)); falta medir no ar | 5 |
 | CMP-01 a CMP-04 | ❌ | | 4, 5 |
-| CMP-A, CMP-B, CMP-C | ❌ | | 6, 7 |
-| PRC-01 | 🟡 | Repositório git e portão de qualidade criados (Bloco 0); falta a configuração centralizada (A14) | 1 |
+| CMP-A | 🟡 (simulação) | Configuração escolhida em simulação: DBPSK RRC β = 0,25 a 682,7 kbit/s, banda a 99% de 749 kHz, PER de 0,15% e goodput de 622 kbit/s numa prova de 60 s simulada com os comandos da prova, RX em 67 a 80 s; margem estimada de 9,6 dB na bancada de 04/11 ([etapa6_prova_a.md](etapa6_prova_a.md)); falta confirmar no ar | 6 |
+| CMP-B | ❌ | Perfis prontos para registrar cada configuração; falta escolher a configuração de alcance | 6, 7 |
+| CMP-C | ❌ | Tags por bloco já existem; falta a tag da prova | 7 |
+| PRC-01 | ✅ | Repositório git e portão de qualidade (Bloco 0); configuração centralizada em `configs/` com perfis de enlace usados pelo TX, pela gravação e pelo RX (`--perfil`), achado A14 tratado no bloco 07 ([etapa6_prova_a.md](etapa6_prova_a.md)) | 1, 6 |
 | PRC-02 | ⏳ | Abrir o registro de IA já na Etapa 1 | todas |
 
 ## 7. Ambiente de desenvolvimento
@@ -334,6 +336,8 @@ Ensaios reais: goodput, PER, BER com sequência pseudoaleatória, banda a 99% pe
 ### Etapas 6 e 7 (até 10/12)
 
 Otimizar velocidade (prova A) e alcance (prova B), comparando com a versão anterior nas mesmas condições; ensaiar o procedimento da prova (arquivo de payloads, 60 s, processamento em até 10 min); tag no repositório; preparar a defesa individual.
+
+**Prova A em software feita em 22/11/2026** ([etapa6_prova_a.md](etapa6_prova_a.md)): DBPSK RRC a 682,7 kbit/s (perfil `prova-a`), a maior taxa que cabe em 1 MHz a 2,048 MS/s; prova de 60 s simulada com PER de 0,15% e goodput de 622 kbit/s; perfis de enlace (A14). Falta confirmar no ar e escolher a configuração da prova B.
 
 ## 10. Riscos
 

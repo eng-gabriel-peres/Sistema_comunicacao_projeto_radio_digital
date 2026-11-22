@@ -4,7 +4,7 @@ Os documentos do repositório são a fonte única: o relatório só os junta na
 ordem da entrega, com capa e sumário, e imprime em PDF pelo Edge (ou Chrome)
 em modo headless. Assim o PDF nunca diverge do que está versionado.
 
-Uso: python -m ferramentas.gerar_relatorio [etapas-1-2 | etapa-3 | etapa-4 | etapa-5]
+Uso: python -m ferramentas.gerar_relatorio [etapas-1-2 | etapa-3 | etapa-4 | etapa-5 | etapa-6]
 """
 
 from __future__ import annotations
@@ -88,6 +88,14 @@ ENTREGAS = {
         (
             ("Caracterização: ferramentas e protocolo", "etapa5_software.md", None, None),
             ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapa 5", "## Etapas 6 e 7"),
+        ),
+    ),
+    "etapa-6": Entrega(
+        "Relatório parcial da Etapa 6",
+        "Relatorio_Etapa_6_Gabriel_Peres",
+        (
+            ("Prova A: configuração e perfis", "etapa6_prova_a.md", None, None),
+            ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapas 6 e 7", None),
         ),
     ),
 }

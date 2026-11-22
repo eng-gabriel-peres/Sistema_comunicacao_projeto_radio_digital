@@ -1,0 +1,47 @@
+# Perfis de enlace (sdrlink.config.Perfil). O TX, a gravação e o RX usam o mesmo perfil:
+#   python scripts/transmitir.py payloads.bin --perfil prova-a
+#   python scripts/gravar_iq.py --perfil prova-a --segundos 62
+#   python scripts/receber.py <captura>.npy --perfil prova-a
+# Um parâmetro dado na linha de comando substitui só aquele campo, e o registro
+# JSON de cada script guarda o perfil completo que foi usado.
+#
+# Campos: modulacao, pulso, sps (amostras por bit), beta (RRC), bt (gaussiano),
+# h (2-FSK), taxa_sps, deslocamento_hz (sinal em relação ao LO), lo_hz, descricao.
+# Taxa de bits = taxa_sps / sps.
+
+[prova-a]
+descricao = "Prova A: DBPSK RRC a 682,7 kbit/s, banda a 99% de 0,75 MHz (docs/etapa6_prova_a.md)"
+modulacao = "dbpsk"
+pulso = "rrc"
+sps = 3
+beta = 0.25
+taxa_sps = 2.048e6
+deslocamento_hz = 425e3  # sinal de +50 a +800 kHz: longe do DC e dentro da faixa plana do RTL
+lo_hz = 919.5e6
+
+[dbpsk-256k]
+descricao = "Bancada da Etapa 5: DBPSK RRC a 256 kbit/s"
+modulacao = "dbpsk"
+pulso = "rrc"
+sps = 8
+beta = 0.35
+deslocamento_hz = 250e3
+lo_hz = 919.5e6
+
+[gfsk-128k]
+descricao = "Bancada da Etapa 5: GFSK BT 0,5 a 128 kbit/s"
+modulacao = "fsk"
+pulso = "gaussiano"
+sps = 16
+bt = 0.5
+deslocamento_hz = 250e3
+lo_hz = 919.5e6
+
+[ook-128k]
+descricao = "Bancada da Etapa 5: OOK RRC a 128 kbit/s"
+modulacao = "ook"
+pulso = "rrc"
+sps = 16
+beta = 0.35
+deslocamento_hz = 250e3
+lo_hz = 919.5e6

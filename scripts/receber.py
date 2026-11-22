@@ -9,7 +9,8 @@ menos uns 20 ms de ruído antes do primeiro quadro (comece a gravar antes do TX)
 com --ber, a BER com sequência conhecida (o TX precisa usar os payloads de
 scripts/gerar_payloads.py --conhecidos).
 
-Uso:
+Uso, com o mesmo perfil do TX (configs/perfis.toml) ou com os parâmetros soltos:
+    python scripts/receber.py dados/capturas/<captura>.npy --perfil prova-a [--ber]
     python scripts/receber.py dados/capturas/<captura>.npy --modulacao dbpsk --pulso rrc \
         --taxa-bits 256e3 --deslocamento-hz 250e3 [--ber]
 
@@ -19,6 +20,7 @@ Requisitos: RX-01, RX-03 (arquivo de saída), MET-02 a MET-05; processa dentro d
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import sys
 import time
 from pathlib import Path
@@ -26,24 +28,16 @@ from pathlib import Path
 import numpy as np
 
 from sdrlink import medicao, metricas, receptor, transmissor
-from sdrlink.modem import MODULACOES, ConfigModem
+from sdrlink.config import Perfil, argumentos_de_enlace, perfil_dos_argumentos
 from sdrlink.receptor import ConfigReceptor
 from sdrlink.registro import salvar_json, versao_do_codigo
 
-TOLERANCIA_SPS = 1e-9  # folga numérica ao conferir que a razão das taxas é inteira
 
-
-def _argumentos() -> argparse.Namespace:
+def _argumentos() -> tuple[argparse.Namespace, Perfil]:
     """Lê os parâmetros da linha de comando."""
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     p.add_argument("captura", type=Path, help="arquivo .npy (complex64) gravado pelo gravar_iq.py")
-    p.add_argument("--modulacao", choices=MODULACOES, required=True)
-    p.add_argument("--pulso", choices=("rrc", "retangular", "gaussiano"), required=True)
-    p.add_argument("--taxa-bits", type=float, required=True)
-    p.add_argument("--taxa-sps", type=float, default=2.048e6, help="taxa da captura")
-    p.add_argument(
-        "--deslocamento-hz", type=float, default=250e3, help="sinal em relação ao centro"
-    )
+    argumentos_de_enlace(p)
     p.add_argument("--limiar", type=float, default=receptor.LIMIAR_PADRAO)
     p.add_argument("--offset-max-hz", type=float, default=receptor.OFFSET_MAX_PADRAO_HZ)
     p.add_argument("--pasta", type=Path, default=None, help="padrão: a pasta da captura")
@@ -51,18 +45,15 @@ def _argumentos() -> argparse.Namespace:
         "--ber", action="store_true", help="mede a BER (payloads com sequência conhecida)"
     )
     args = p.parse_args()
-    sps = args.taxa_sps / args.taxa_bits
-    if abs(sps - round(sps)) > TOLERANCIA_SPS:
-        p.error(f"taxa da captura / taxa de bits = {sps:.4f}: precisa ser inteiro")
-    return args
+    return args, perfil_dos_argumentos(p, args)
 
 
 def main() -> int:
     """Lê a captura, recebe e grava a saída e o registro."""
-    args = _argumentos()
-    modem = ConfigModem(args.modulacao, args.pulso, round(args.taxa_sps / args.taxa_bits))
+    args, perfil = _argumentos()
+    modem = perfil.modem()
     config = ConfigReceptor(
-        modem, args.taxa_sps, args.deslocamento_hz, args.limiar, args.offset_max_hz, args.ber
+        modem, perfil.taxa_sps, perfil.deslocamento_hz, args.limiar, args.offset_max_hz, args.ber
     )
     amostras = np.load(args.captura, mmap_mode="r")  # 60 s a 2,048 MS/s = 1 GB: lê por blocos
     inicio = time.time()
@@ -73,7 +64,7 @@ def main() -> int:
     if deteccoes:
         fim = deteccoes[-1].inicio + periodo
         medidas = medicao.medir_captura(
-            amostras, deteccoes[0].inicio, fim, args.taxa_sps, args.taxa_bits
+            amostras, deteccoes[0].inicio, fim, perfil.taxa_sps, perfil.taxa_bits
         )
     ber = metricas.medir_ber(deteccoes, periodo, 2 * modem.sps) if args.ber else None
     pasta = args.pasta or args.captura.parent
@@ -83,9 +74,10 @@ def main() -> int:
         "captura": args.captura.name,
         "versao_do_codigo": versao_do_codigo(),
         "parametros": {k: str(v) for k, v in vars(args).items()},
+        "perfil": dataclasses.asdict(perfil),
         "decimacao": config.decimacao,
         "tempo_de_processamento_s": round(tempo, 1),
-        **receptor.resumo(deteccoes, len(amostras) / args.taxa_sps),
+        **receptor.resumo(deteccoes, len(amostras) / perfil.taxa_sps),
         "medidas_da_captura": medidas,
         "ber": ber,
     }
