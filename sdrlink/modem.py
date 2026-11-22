@@ -154,8 +154,10 @@ def saida_casada(amostras: Sinal, config: ConfigModem, n_simbolos: int) -> Sinal
     return casado[instantes]
 
 
-def _demodular_fsk(amostras: Sinal, config: ConfigModem, n_bits: int) -> Bits:
+def _suave_fsk(amostras: Sinal, config: ConfigModem, n_bits: int) -> NDArray[np.float64]:
     """Correlação não coerente com os dois tons, numa janela de um símbolo por bit.
+
+    Devolve |tom alto| - |tom baixo| de cada bit (positivo = 1).
 
     Raises:
         ValueError: sinal curto demais para n_bits.
@@ -172,17 +174,25 @@ def _demodular_fsk(amostras: Sinal, config: ConfigModem, n_bits: int) -> Bits:
     giro = np.exp(-1j * np.pi * config.h * np.arange(sps) / sps)  # tom de +h*Rb/2
     alto = np.abs(janelas @ giro)
     baixo = np.abs(janelas @ np.conj(giro))
-    return np.asarray(alto > baixo, dtype=np.uint8)
+    return np.asarray(alto - baixo, dtype=np.float64)
 
 
-def demodular(
+def demodular_suave(
     amostras: Sinal,
     config: ConfigModem,
     n_bits: int,
     fase: float = 0.0,
     limiar: float | None = None,
-) -> Bits:
-    """Bits a partir do sinal recebido, com o instante de amostragem conhecido.
+) -> NDArray[np.float64]:
+    """Um valor por bit, positivo quando o bit provável é 1, com módulo maior quanto mais certo.
+
+    É a entrada do decodificador de Viterbi com decisão suave (sdrlink.codigo):
+        OOK    |z| - limiar
+        BPSK   Re(z e^-jfase)
+        DBPSK  -Re(z_k conj(z_k-1))   (fase invertida = 1)
+        2-FSK  |tom alto| - |tom baixo|
+    onde z é a saída do filtro casado no instante de cada símbolo. A decisão dura
+    (demodular) é o sinal desses valores.
 
     Args:
         amostras: sinal recebido, alinhado com o início da modulação.
@@ -197,13 +207,38 @@ def demodular(
     if n_bits <= 0:
         raise ValueError(f"quantidade de bits inválida: {n_bits}")
     if config.modulacao == "fsk":
-        return _demodular_fsk(amostras, config, n_bits)
+        return _suave_fsk(amostras, config, n_bits)
     if config.modulacao == "dbpsk":
         z = saida_casada(amostras, config, n_bits + 1)
-        return (np.real(z[1:] * np.conj(z[:-1])) < 0).astype(np.uint8)
+        return np.asarray(-np.real(z[1:] * np.conj(z[:-1])), dtype=np.float64)
     z = saida_casada(amostras, config, n_bits)
     if config.modulacao == "bpsk":
-        return np.asarray(np.real(z * np.exp(-1j * fase)) > 0, dtype=np.uint8)
+        return np.asarray(np.real(z * np.exp(-1j * fase)), dtype=np.float64)
     modulo = np.abs(z)
     corte = _limiar_dois_niveis(modulo) if limiar is None else limiar
-    return np.asarray(modulo > corte, dtype=np.uint8)
+    return np.asarray(modulo - corte, dtype=np.float64)
+
+
+def demodular(
+    amostras: Sinal,
+    config: ConfigModem,
+    n_bits: int,
+    fase: float = 0.0,
+    limiar: float | None = None,
+) -> Bits:
+    """Bits a partir do sinal recebido, com o instante de amostragem conhecido.
+
+    Decisão dura: o sinal de demodular_suave (os argumentos são os mesmos).
+
+    Args:
+        amostras: sinal recebido, alinhado com o início da modulação.
+        config: a mesma configuração do modulador.
+        n_bits: quantidade de bits a recuperar.
+        fase: fase da portadora em radianos (só a BPSK coerente usa).
+        limiar: limiar da OOK; se omitido, é ajustado pelos próprios símbolos (k-médias).
+
+    Raises:
+        ValueError: n_bits não positivo ou sinal curto demais.
+    """
+    suaves = demodular_suave(amostras, config, n_bits, fase=fase, limiar=limiar)
+    return np.asarray(suaves > 0, dtype=np.uint8)

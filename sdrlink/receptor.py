@@ -41,7 +41,7 @@ from numpy.typing import NDArray
 from scipy import fft as sfft
 from scipy.signal import fftconvolve, firwin, resample_poly
 
-from sdrlink import modem, quadro
+from sdrlink import codigo, modem, quadro
 from sdrlink.modem import ConfigModem
 from sdrlink.quadro import Pacote
 
@@ -84,7 +84,10 @@ class ConfigReceptor:
         limiar: valor mínimo da métrica de correlação normalizada (0 a 1).
         offset_max_hz: maior offset residual esperado (define a grade de hipóteses).
         guardar_bits: guarda em cada detecção os bits demodulados depois do sync,
-            mesmo com CRC falho (para a BER com sequência conhecida, MET-03).
+            mesmo com CRC falho (para a BER com sequência conhecida, MET-03); com
+            fec, os bits já decodificados.
+        fec: o corpo dos quadros vem codificado (sdrlink.codigo); o RX decodifica com
+            Viterbi de decisão suave antes de interpretar.
     """
 
     modem: ConfigModem
@@ -93,6 +96,7 @@ class ConfigReceptor:
     limiar: float = LIMIAR_PADRAO
     offset_max_hz: float = OFFSET_MAX_PADRAO_HZ
     guardar_bits: bool = False
+    fec: bool = False
 
     def __post_init__(self) -> None:
         """Rejeita parâmetros incoerentes.
@@ -179,7 +183,7 @@ class ConfigReceptor:
 
     def amostras_por_quadro_max(self) -> int:
         """Duração do maior quadro possível (255 bytes) na taxa interna, com folga para a cauda."""
-        bits = quadro.bits_por_quadro(quadro.PAYLOAD_MAX_BYTES)
+        bits = quadro.bits_por_quadro(quadro.PAYLOAD_MAX_BYTES, self.fec)
         return (bits + 2 * self.modem.span) * self.modem_interno.sps
 
 
@@ -385,7 +389,8 @@ def demodular_quadro(
         config.amostras_por_quadro_max(), len(x) - int(np.floor(inicio)) - MEIO_FIR - 1
     )
     n_max = min(
-        quadro.bits_por_quadro(quadro.PAYLOAD_MAX_BYTES), (disponivel - cauda) // cm.sps - 2
+        quadro.bits_por_quadro(quadro.PAYLOAD_MAX_BYTES, config.fec),
+        (disponivel - cauda) // cm.sps - 2,
     )
     n_cabecalho = BITS_PREFIXO + quadro.BITS_CABECALHO
     if n_max <= n_cabecalho:
@@ -404,12 +409,48 @@ def demodular_quadro(
     # OOK: limiar dos 29 bits conhecidos do prefixo (o que vem depois do quadro, silêncio ou
     # outro quadro, não pode puxar o limiar; a 2ª passada com k-médias não deu ganho medido)
     limiar = _limiar_do_prefixo(cabecalho, cm) if cm.modulacao == "ook" else None
+    if config.fec:
+        return _decodificar_quadro(preparar, cm, n_max, fase, limiar)
     bits = modem.demodular(cabecalho, cm, n_cabecalho, fase=fase, limiar=limiar)
     campo = bits[BITS_PREFIXO : BITS_PREFIXO + quadro.BITS_COMPRIMENTO]
     n_bytes = max(int(quadro.bits_para_bytes(campo)[0]), PAYLOAD_MINIMO_LIDO)
     n_bits = min(n_max, BITS_PREFIXO + quadro.bits_apos_sync(n_bytes))
     bits = modem.demodular(preparar(n_bits), cm, n_bits, fase=fase, limiar=limiar)
     return bits[BITS_PREFIXO:]
+
+
+def _decodificar_quadro(
+    preparar: Callable[[int], Sinal],
+    cm: ConfigModem,
+    n_max: int,
+    fase: float,
+    limiar: float | None,
+) -> NDArray[np.uint8] | None:
+    """Saída suave do corpo codificado, Viterbi e os bits decodificados depois do sync.
+
+    O comprimento só se conhece depois de decodificar: o RX decodifica a janela de um
+    quadro de PAYLOAD_MINIMO_LIDO bytes (o da prova) e, se o comprimento decodificado
+    for maior, decodifica de novo com ele. Perto do fim da captura a janela encolhe
+    para o maior quadro que ainda cabe (um quadro curto no fim do arquivo é lido).
+    Devolve None se nem um quadro sem payload cabe.
+    """
+    # maior payload cujo quadro codificado cabe nos n_max bits disponíveis
+    cabe = ((n_max - BITS_PREFIXO) // codigo.TAXA_INVERSA - codigo.MEMORIA) // 8
+    cabe -= (quadro.BITS_CABECALHO + quadro.BITS_CRC) // 8
+    if cabe < 0:
+        return None
+    n_bytes = min(PAYLOAD_MINIMO_LIDO, cabe)
+    bits = None
+    for _ in range(2):  # no máximo uma releitura com o comprimento decodificado
+        n_info = quadro.bits_apos_sync(n_bytes)
+        n_ar = BITS_PREFIXO + codigo.bits_codificados(n_info)
+        suaves = modem.demodular_suave(preparar(n_ar), cm, n_ar, fase=fase, limiar=limiar)
+        bits = codigo.decodificar(suaves[BITS_PREFIXO:], n_info)
+        declarado = int(quadro.bits_para_bytes(bits[: quadro.BITS_COMPRIMENTO])[0])
+        if declarado <= n_bytes or n_bytes == cabe:
+            return bits  # já tem o quadro inteiro, ou não cabe mais nada
+        n_bytes = min(declarado, cabe)
+    return bits
 
 
 def ler_quadro(
