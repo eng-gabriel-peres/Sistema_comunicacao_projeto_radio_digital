@@ -95,6 +95,7 @@ ENTREGAS = {
         "Relatorio_Etapa_6_Gabriel_Peres",
         (
             ("Prova A: configuração e perfis", "etapa6_prova_a.md", None, None),
+            ("Prova B: configuração de alcance", "etapa6_prova_b.md", None, None),
             ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapas 6 e 7", None),
         ),
     ),
