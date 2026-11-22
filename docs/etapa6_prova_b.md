@@ -76,7 +76,7 @@ O JSON de cada script guarda o perfil completo, o que atende ao "registrar cada 
 ## 6. O que falta na bancada
 
 1. Medir o C/N0 em cada posição da sala e conferir a margem.
-2. Conferir o ruído de fase do Pluto e do RTL a 12,8 kbit/s: num quadro de 88 ms ele pesa mais que na prova A.
+2. Conferir o ruído de fase do Pluto e do RTL a 12,8 kbit/s: num quadro de 88 ms ele pesa mais que na prova A. **Feito sem hardware novo no bloco 21**, com os tons de 04/11: a prova B aguenta 300 Hz de largura de linha, e o ruído de fase real não aparece em um símbolo ([etapa6_imperfeicoes.md](etapa6_imperfeicoes.md)); na bancada, repetir com o par da prova (`medir_ruido_de_fase.py`).
 
 ## 7. Evidências
 

@@ -88,7 +88,7 @@ Antes dessa rodada houve duas que falharam e estão na seção 8: uma com payloa
 
 **O perfil `prova-a` passou a ser a DQPSK.** A margem cai de 9,6 para 4,9 dB, mas o goodput quase dobra, e a pontuação é relativa ao melhor goodput entre as equipes.
 
-Os 4,9 dB vêm de uma bancada de 04/11, com potência e distância que podem ser diferentes das da prova, e não incluem ruído de fase, desequilíbrio IQ real nem interferência. A DQPSK é mais sensível a todos eles que a DBPSK, porque os pontos da constelação estão a 90° e não a 180°. Por isso a regra, para aplicar na bancada antes da prova:
+Os 4,9 dB vêm de uma bancada de 04/11, com potência e distância que podem ser diferentes das da prova, e não incluem ruído de fase, desequilíbrio IQ real nem interferência. (Bloco 21: o ruído de fase do par Pluto + RTL, medido nos tons de 04/11, não tem efeito detectável em nenhum perfil, com folga de 16 a 31 vezes; ver [etapa6_imperfeicoes.md](etapa6_imperfeicoes.md).) A DQPSK é mais sensível a todos eles que a DBPSK, porque os pontos da constelação estão a 90° e não a 180°. Por isso a regra, para aplicar na bancada antes da prova:
 
 1. Transmitir 10 s com o perfil `prova-a` e processar: o `receber.py` mede o Eb/N0 da captura.
 2. **Se o Eb/N0 medido for de pelo menos 15 dB** (3 dB acima dos 12,1 dB necessários) **e a PER for de até 0,5%**: fica a DQPSK.
