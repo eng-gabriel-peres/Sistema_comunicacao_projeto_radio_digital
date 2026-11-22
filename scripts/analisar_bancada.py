@@ -27,7 +27,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 PER_MIN_GRAFICO = 1e-4  # PER zero aparece aqui no gráfico em escala logarítmica
-CORES = {"ook": "C2", "bpsk": "C4", "dbpsk": "C0", "dqpsk": "C3", "fsk": "C1"}
+CORES = {"ook": "C2", "bpsk": "C4", "dbpsk": "C0", "dqpsk": "C3", "8psk": "C5", "fsk": "C1"}
 MARCADORES = "o^vD"  # perfis da mesma modulação sem FEC; com FEC: quadrado
 
 

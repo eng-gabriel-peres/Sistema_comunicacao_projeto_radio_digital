@@ -54,11 +54,12 @@ def _bloco_pequeno(config: ConfigReceptor) -> int:
     [
         ConfigModem("dbpsk", "rrc", 8),
         ConfigModem("dqpsk", "rrc", 8),
+        ConfigModem("8psk", "rrc", 8),
         ConfigModem("ook", "rrc", 16),
         ConfigModem("fsk", "gaussiano", 16),
         ConfigModem("fsk", "retangular", 32),
     ],
-    ids=["dbpsk-256k", "dqpsk-512k", "ook-128k", "gfsk-128k", "cpfsk-64k"],
+    ids=["dbpsk-256k", "dqpsk-512k", "8psk-768k", "ook-128k", "gfsk-128k", "cpfsk-64k"],
 )
 def test_todos_os_quadros_com_offset_atraso_e_emendas(config: ConfigModem) -> None:
     rng = np.random.default_rng(1)
@@ -292,6 +293,18 @@ def test_dqpsk_da_prova_a_com_3_amostras_e_com_fec() -> None:
         d = receptor.receber(y, config, tamanho_bloco=_bloco_pequeno(config))
         assert receptor.pacotes_aceitos(d) == pacotes
         assert config.taxa_bits == pytest.approx(2 * FS / 3)
+
+
+def test_8psk_da_prova_a_com_3_amostras_e_com_fec() -> None:
+    # 2048 kbit/s no corpo (bloco 24): offset, atraso e emendas, com e sem código
+    cm = ConfigModem("8psk", "rrc", 3, beta=0.25)
+    for fec, semente in ((False, 43), (True, 44)):
+        x, pacotes, _ = _captura(cm, 8, np.random.default_rng(semente), 16.0, fec, (128, 60))
+        config = ConfigReceptor(cm, FS, 425e3, fec=fec)
+        y = canal.girar(x, 425e3 - DESLOCAMENTO, FS)  # o sinal no deslocamento do perfil
+        d = receptor.receber(y, config, tamanho_bloco=_bloco_pequeno(config))
+        assert receptor.pacotes_aceitos(d) == pacotes
+        assert config.taxa_bits == pytest.approx(FS)
 
 
 def test_fec_le_quadro_curto_no_fim_da_captura() -> None:

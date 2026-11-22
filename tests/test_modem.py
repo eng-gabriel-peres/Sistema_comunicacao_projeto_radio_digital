@@ -285,3 +285,87 @@ def test_reamostrar_simula_a_diferenca_de_relogio() -> None:
         canal.reamostrar(tom, 5000.0)
     with pytest.raises(ValueError, match="curto"):
         canal.reamostrar(tom[:10], 0.0)
+
+
+# ---- 8-PSK coerente (bloco 24) ----
+
+PSK8 = ConfigModem("8psk", "rrc", 8)
+
+
+def _quadro_8psk(n_corpo: int, semente: int) -> np.ndarray:
+    corpo = np.random.default_rng(semente).integers(0, 2, n_corpo).astype(np.uint8)
+    return np.concatenate([quadro.PREFIXO, corpo])
+
+
+@pytest.mark.parametrize("n_corpo", [1, 2, 3, 4, 32, 61, 1088])
+def test_8psk_ida_e_volta_com_qualquer_fase_e_offset(n_corpo: int) -> None:
+    bits = _quadro_8psk(n_corpo, n_corpo)
+    n = len(bits)
+    assert modem.simbolos(n, PSK8, 29) == 29 + -(-n_corpo // 3)  # corpo completa o último trio
+    sinal = modem.modular(bits, PSK8, 29)
+    assert len(sinal) == (modem.simbolos(n, PSK8, 29) + 1) * 8 + len(PSK8.formato()) - 1
+    # o RX entrega o quadro com o offset do preâmbulo já tirado: sobram até uns 500 Hz
+    for offset_hz, fase in ((0.0, 0.0), (-500.0, 2.5), (500.0, -1.0)):
+        girado = canal.girar(sinal, offset_hz, 2.048e6, fase_rad=fase)  # 256 ksímbolos/s
+        np.testing.assert_array_equal(modem.demodular(girado, PSK8, n, prefixo=29), bits)
+
+
+def test_8psk_mapa_de_gray_e_prefixo_igual_ao_da_dbpsk() -> None:
+    np.testing.assert_array_equal(modem.GRAY_8PSK, teoria.GRAY_8PSK)
+    ordem = modem.BITS_DO_INDICE_8PSK  # os bits pela fase crescente
+    assert all(bin(int(ordem[k]) ^ int(ordem[(k + 1) % 8])).count("1") == 1 for k in range(8))
+    bits = quadro.montar_quadro(quadro.Pacote(9, bytes(range(128))))
+    p8 = modem.modular(bits, PSK8, quadro.BITS_PREFIXO)
+    db = modem.modular(bits, ConfigModem("dbpsk", "rrc", 8))
+    np.testing.assert_allclose(p8[: 29 * 8], db[: 29 * 8], atol=1e-12)  # o RX acha os dois igual
+    assert modem.simbolos(len(bits), PSK8, 29) == 29 + 363
+
+
+@pytest.mark.parametrize("semente", [1, 2, 3])
+def test_8psk_estimada_bate_com_a_teoria_exata(semente: int) -> None:
+    rng = np.random.default_rng(semente)
+    bits = _quadro_8psk(300_000, semente + 10)
+    sinal = canal.girar(modem.modular(bits, PSK8, 29), 300.0, 2.048e6, fase_rad=0.7)
+    ruidoso = canal.awgn(sinal, 10.0, 8 / 3, rng)
+    ber = np.mean(modem.demodular(ruidoso, PSK8, len(bits), prefixo=29)[29:] != bits[29:])
+    assert ber == pytest.approx(float(teoria.ber_8psk(10.0)), rel=0.15)  # 1,01e-3
+
+
+def test_ber_teorica_da_8psk() -> None:
+    # exata, por integração; com Gray ela coincide com a dos vizinhos mais próximos
+    ebn0_db = np.array([6.0, 10.0, 13.0])
+    exata = teoria.ber_8psk(ebn0_db)
+    np.testing.assert_allclose(exata, [2.0482e-2, 1.0114e-3, 9.4173e-6], rtol=2e-3)
+    aproximacao = 2 / 3 * teoria.q(np.sqrt(6 * 10 ** (ebn0_db / 10)) * np.sin(np.pi / 8))
+    np.testing.assert_allclose(exata, aproximacao, rtol=1e-3)
+    ebn0 = np.arange(4.0, 16.0, 1.0)
+    assert np.all(np.diff(teoria.ber_8psk(ebn0)) < 0)
+    assert 0 <= float(teoria.ber_8psk(40.0)) < 1e-60  # sem estouro numérico em Eb/N0 alto
+    acima = ebn0[ebn0 >= 8]  # na região de trabalho a 8-PSK precisa de mais Eb/N0 que a DQPSK
+    assert np.all(teoria.ber_8psk(acima) > teoria.ber_dqpsk(acima))
+
+
+def test_8psk_saida_suave_tem_o_sinal_da_decisao_dura_e_exige_prefixo() -> None:
+    rng = np.random.default_rng(41)
+    bits = _quadro_8psk(1200, 4)
+    y = canal.awgn(modem.modular(bits, PSK8, 29), 7.0, 8 / 3, rng)
+    suaves = modem.demodular_suave(y, PSK8, len(bits), prefixo=29)
+    duros = modem.demodular(y, PSK8, len(bits), prefixo=29)
+    np.testing.assert_array_equal((suaves > 0).astype(np.uint8), duros)
+    errados = duros[29:] != bits[29:]
+    assert 0 < np.mean(errados) < 0.05
+    assert np.mean(np.abs(suaves[29:][errados])) < np.mean(np.abs(suaves[29:][~errados]))
+    with pytest.raises(ValueError, match="prefixo"):
+        modem.demodular(y, PSK8, len(bits), prefixo=4)
+
+
+def test_8psk_aguenta_o_offset_residual_ate_o_limite_da_busca() -> None:
+    # GIRO_MAX_8PSK = 0,02 rad/símbolo: 815 Hz a 256 ksímbolos/s (2,2 kHz na prova A)
+    bits = _quadro_8psk(1088, 7)
+    sinal = modem.modular(bits, PSK8, 29)
+    limite_hz = modem.GIRO_MAX_8PSK * 2.048e6 / 8 / (2 * np.pi)
+    for offset_hz in (0.9 * limite_hz, -0.9 * limite_hz):
+        girado = canal.girar(sinal, offset_hz, 2.048e6, fase_rad=0.3)
+        np.testing.assert_array_equal(modem.demodular(girado, PSK8, len(bits), prefixo=29), bits)
+    fora = canal.girar(sinal, 2.5 * limite_hz, 2.048e6, fase_rad=0.3)
+    assert np.mean(modem.demodular(fora, PSK8, len(bits), prefixo=29) != bits) > 0.05

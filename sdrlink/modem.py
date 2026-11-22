@@ -1,9 +1,9 @@
-"""Moduladores e demoduladores em banda base: OOK, BPSK, DBPSK, DQPSK e 2-FSK.
+"""Moduladores e demoduladores em banda base: OOK, BPSK, DBPSK, DQPSK, 8-PSK e 2-FSK.
 
 Requisitos: MOD-01 a MOD-03 (OOK, 2-FSK e BPSK implementados pela equipe),
 PUL-01 (pulso retangular e alternativas).
 
-Um bit por símbolo em todas as modulações, menos no corpo da DQPSK (dois). O sinal
+Um bit por símbolo em todas as modulações, menos no corpo da DQPSK (dois) e da 8-PSK (três). O sinal
 é complexo, em banda base, com sps amostras por símbolo; o deslocamento para a
 frequência de transmissão fica a cargo do TX. Os demoduladores deste módulo supõem o instante de
 amostragem conhecido (sincronismo ideal): estimar tempo, fase e offset a partir
@@ -17,6 +17,9 @@ do preâmbulo é tarefa do receptor (sub-bloco 3c).
           modular/demodular vão um por símbolo, como na DBPSK: assim o preâmbulo e o
           sync de um quadro DQPSK são idênticos aos da DBPSK e o RX acha o quadro do
           mesmo jeito
+    8-PSK 3 bits por símbolo (bloco 24), Gray, fase absoluta e detecção coerente: o
+          prefixo vai como na DBPSK e dá a fase de referência; a fase e o offset do
+          corpo saem da potência 8 dos símbolos
     2-FSK fase contínua, tons em +-h*Rb/2; detecção não coerente por correlação
           com os dois tons (ortogonais com h = 1)
 """
@@ -34,11 +37,18 @@ from sdrlink import pulsos
 Bits = NDArray[np.uint8]
 Sinal = NDArray[np.complex128]
 
-MODULACOES = ("ook", "bpsk", "dbpsk", "dqpsk", "fsk")
+MODULACOES = ("ook", "bpsk", "dbpsk", "dqpsk", "8psk", "fsk")
 # DQPSK, Gray: o par (b1, b2) gira a fase de GIROS_DQPSK[2 b1 + b2]
 GIROS_DQPSK = np.exp(1j * np.pi / 2 * np.array([0, 1, 3, 2]))  # 00: 0, 01: 90, 10: 270, 11: 180
 PULSOS_LINEARES = ("retangular", "rrc")  # OOK, BPSK, DBPSK, DQPSK: pulso de símbolo
-BITS_POR_SIMBOLO = {"dqpsk": 2}  # as outras levam 1 bit por símbolo
+BITS_POR_SIMBOLO = {"dqpsk": 2, "8psk": 3}  # as outras levam 1 bit por símbolo
+# índice de fase (k·45°) de cada valor de 3 bits b0b1b2: o inverso do Gray k ^ (k >> 1), para que
+# fases vizinhas difiram em 1 bit (a primeira versão usava o próprio Gray aqui e não era Gray)
+GRAY_8PSK = np.array([0, 1, 3, 2, 7, 6, 4, 5])
+BITS_DO_INDICE_8PSK = np.argsort(GRAY_8PSK)  # os 3 bits (b0b1b2) de cada índice de fase
+N_FFT_8PSK = 8192  # busca da frequência pela potência 8 (mínimo; maior se o corpo for maior)
+GIRO_MAX_8PSK = 0.02  # rad/símbolo de offset residual depois do preâmbulo (2,2 kHz a 682,7 ksímb/s)
+PREFIXO_MIN_8PSK = 8  # símbolos conhecidos para a fase de referência
 PULSOS_FSK = ("retangular", "gaussiano")  # 2-FSK: pulso de frequência
 ITERACOES_LIMIAR = 20
 H_MAX = 2.0  # índice de modulação máximo aceito
@@ -138,6 +148,15 @@ def _impulsos(simbolos: NDArray[np.generic], sps: int) -> NDArray[np.complex128]
     return trem
 
 
+def _simbolos_8psk(bits: Bits, prefixo: int) -> NDArray[np.complex128]:
+    """Prefixo como na DBPSK (com o símbolo de referência), corpo em 8-PSK absoluta com Gray."""
+    trios = bits[prefixo:].astype(np.intp)
+    trios = np.concatenate([trios, np.zeros((-len(trios)) % 3, dtype=np.intp)])
+    indice = GRAY_8PSK[4 * trios[0::3] + 2 * trios[1::3] + trios[2::3]]
+    referencia = np.cumprod(np.concatenate([[1.0], 1 - 2 * bits[:prefixo].astype(np.float64)]))
+    return np.concatenate([referencia, np.exp(1j * np.pi / 4 * indice)]).astype(np.complex128)
+
+
 def _simbolos_lineares(bits: Bits, modulacao: str, prefixo: int = 0) -> NDArray[np.complex128]:
     """Símbolos de OOK, BPSK, DBPSK e DQPSK (as diferenciais ganham um símbolo de referência)."""
     b = bits.astype(np.float64)
@@ -173,7 +192,10 @@ def modular(bits: Bits, config: ConfigModem, prefixo: int = 0) -> Sinal:
         # inclusiva a fase ficava adiantada 1 amostra, e o alinhamento dependia da taxa
         fase = np.concatenate([[0.0], np.cumsum(frequencia)[:-1]]) * np.pi * config.h / config.sps
         return np.exp(1j * fase)
-    valores = _simbolos_lineares(bits, config.modulacao, prefixo)
+    if config.modulacao == "8psk":
+        valores = _simbolos_8psk(bits, prefixo)
+    else:
+        valores = _simbolos_lineares(bits, config.modulacao, prefixo)
     return np.convolve(_impulsos(valores, config.sps), forma).astype(np.complex128)
 
 
@@ -241,6 +263,66 @@ def _suave_diferencial(
     return np.asarray(np.concatenate([-np.real(w[:prefixo]), pares])[:n_bits], dtype=np.float64)
 
 
+def _frequencia_8psk(v: Sinal) -> float:
+    """Giro por símbolo (rad) da potência 8: pico de |Σ v_k e^(−jωk)| dentro de ±8·GIRO_MAX_8PSK."""
+    n_fft = max(N_FFT_8PSK, 1 << int(np.ceil(np.log2(max(len(v), 1)))))  # nunca trunca o corpo
+    espectro = np.abs(np.fft.fft(v, n_fft))
+    limite = int(np.ceil(8 * GIRO_MAX_8PSK / (2 * np.pi) * n_fft))
+    candidatos = np.concatenate([np.arange(limite + 1), np.arange(n_fft - limite, n_fft)])
+    pico = int(candidatos[np.argmax(espectro[candidatos])])
+    a, b, c = (espectro[(pico + d) % n_fft] for d in (-1, 0, 1))
+    denominador = a - 2 * b + c
+    delta = 0.5 * (a - c) / denominador if denominador != 0 else 0.0
+    ciclos = (pico + delta) / n_fft
+    return float(2 * np.pi * (ciclos - np.round(ciclos)) / 8)
+
+
+def _corrigir_8psk(corpo: Sinal, fase_prefixo: float, distancia: float) -> Sinal:
+    """Tira fase e offset do corpo de uma 8-PSK.
+
+    Potência 8 para a frequência e a fase, ambiguidade de 45° pela fase do prefixo. Uma
+    passada guiada pelas decisões (reta na fase de z·conj(decisão)) foi medida e não deu
+    ganho: PER de 4,3% contra 4,45% a 12 dB em 2000 quadros (bloco 24); ficou de fora.
+    """
+    k = np.arange(len(corpo))
+    v = np.abs(corpo) * np.exp(8j * np.angle(corpo))
+    omega = _frequencia_8psk(v)
+    theta8 = float(np.angle(np.sum(v * np.exp(-8j * omega * k)))) / 8
+    previsto = fase_prefixo + omega * distancia
+    theta = theta8 + np.round((previsto - theta8) / (np.pi / 4)) * np.pi / 4
+    return np.asarray(corpo * np.exp(-1j * (theta + omega * k)), dtype=np.complex128)
+
+
+def _suave_8psk(
+    amostras: Sinal, config: ConfigModem, n_bits: int, prefixo: int
+) -> NDArray[np.float64]:
+    """8-PSK coerente: o prefixo (DBPSK) dá a fase de referência; o corpo sai em max-log.
+
+    Os `prefixo` primeiros bits saem como na DBPSK (−Re(z_k conj(z_k-1))). As decisões
+    deles reconstroem os símbolos do prefixo e dão a fase de referência, que resolve a
+    ambiguidade de 45° da potência 8. Cada bit do corpo vale max Re(z P*) entre os pontos
+    com o bit em 1 menos o máximo entre os pontos com o bit em 0.
+
+    Raises:
+        ValueError: prefixo curto demais para a fase de referência.
+    """
+    if prefixo < PREFIXO_MIN_8PSK:
+        raise ValueError(f"a 8-PSK precisa de pelo menos {PREFIXO_MIN_8PSK} bits de prefixo")
+    z = saida_casada(amostras, config, simbolos(n_bits, config, prefixo) + 1)
+    w = z[1 : prefixo + 1] * np.conj(z[:prefixo])
+    referencia = np.cumprod(np.concatenate([[1.0], np.where(np.real(w) < 0, -1.0, 1.0)]))
+    fase_prefixo = float(np.angle(np.sum(z[: prefixo + 1] * referencia)))
+    corpo = _corrigir_8psk(z[prefixo + 1 :], fase_prefixo, prefixo + 1 - prefixo / 2)
+    pontos = np.exp(1j * np.pi / 4 * np.arange(8))
+    correlacao = np.real(corpo[:, None] * np.conj(pontos)[None, :])
+    suaves = []
+    for posicao in (2, 1, 0):  # b0 é o bit mais significativo do índice
+        um = (BITS_DO_INDICE_8PSK >> posicao) & 1 == 1
+        suaves.append(correlacao[:, um].max(axis=1) - correlacao[:, ~um].max(axis=1))
+    corpo_suave = np.column_stack(suaves).ravel()
+    return np.asarray(np.concatenate([-np.real(w), corpo_suave])[:n_bits], dtype=np.float64)
+
+
 def demodular_suave(
     amostras: Sinal,
     config: ConfigModem,
@@ -256,6 +338,7 @@ def demodular_suave(
         BPSK   Re(z e^-jfase)
         DBPSK  -Re(z_k conj(z_k-1))   (fase invertida = 1)
         DQPSK  com w = z_k conj(z_k-1) e^(j pi/4): -Im(w) para o 1º bit, -Re(w) para o 2º
+        8-PSK  coerente, max-log por bit (fase e offset estimados no próprio quadro)
         2-FSK  |tom alto| - |tom baixo|
     onde z é a saída do filtro casado no instante de cada símbolo. A decisão dura
     (demodular) é o sinal desses valores.
@@ -266,20 +349,29 @@ def demodular_suave(
         n_bits: quantidade de bits a recuperar.
         fase: fase da portadora em radianos (só a BPSK coerente usa).
         limiar: limiar da OOK; se omitido, é ajustado pelos próprios símbolos (k-médias).
-        prefixo: só a DQPSK usa; os primeiros `prefixo` bits vêm um por símbolo.
+        prefixo: DQPSK e 8-PSK; os primeiros `prefixo` bits vêm um por símbolo (na
+            8-PSK eles dão a fase de referência e são obrigatórios).
 
     Raises:
-        ValueError: n_bits não positivo ou sinal curto demais.
+        ValueError: n_bits não positivo, sinal curto demais ou 8-PSK sem prefixo.
     """
     if n_bits <= 0:
         raise ValueError(f"quantidade de bits inválida: {n_bits}")
     if config.modulacao == "fsk":
         return _suave_fsk(amostras, config, n_bits)
+    if config.modulacao == "8psk":
+        return _suave_8psk(amostras, config, n_bits, prefixo)
     if config.modulacao in ("dbpsk", "dqpsk"):
         # a DBPSK é a DQPSK em que todos os bits vão um por símbolo
         um_por_simbolo = n_bits if config.modulacao == "dbpsk" else prefixo
         return _suave_diferencial(amostras, config, n_bits, um_por_simbolo)
-    z = saida_casada(amostras, config, n_bits)
+    return _suave_bpsk_ook(saida_casada(amostras, config, n_bits), config, fase, limiar)
+
+
+def _suave_bpsk_ook(
+    z: Sinal, config: ConfigModem, fase: float, limiar: float | None
+) -> NDArray[np.float64]:
+    """BPSK coerente, Re(z e^-jfase), ou OOK, |z| - limiar (k-médias se não for dado)."""
     if config.modulacao == "bpsk":
         return np.asarray(np.real(z * np.exp(-1j * fase)), dtype=np.float64)
     modulo = np.abs(z)
@@ -305,10 +397,11 @@ def demodular(
         n_bits: quantidade de bits a recuperar.
         fase: fase da portadora em radianos (só a BPSK coerente usa).
         limiar: limiar da OOK; se omitido, é ajustado pelos próprios símbolos (k-médias).
-        prefixo: só a DQPSK usa; os primeiros `prefixo` bits vêm um por símbolo.
+        prefixo: DQPSK e 8-PSK; os primeiros `prefixo` bits vêm um por símbolo (na
+            8-PSK eles dão a fase de referência e são obrigatórios).
 
     Raises:
-        ValueError: n_bits não positivo ou sinal curto demais.
+        ValueError: n_bits não positivo, sinal curto demais ou 8-PSK sem prefixo.
     """
     suaves = demodular_suave(amostras, config, n_bits, fase=fase, limiar=limiar, prefixo=prefixo)
     return np.asarray(suaves > 0, dtype=np.uint8)

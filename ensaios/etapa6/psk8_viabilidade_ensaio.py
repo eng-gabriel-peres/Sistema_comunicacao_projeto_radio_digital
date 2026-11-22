@@ -34,7 +34,7 @@ BETA = 0.25
 PREFIXO = quadro.BITS_PREFIXO
 QUADROS = 1000
 OFFSET_MAX_HZ = 500.0
-GRAY8 = np.array([0, 1, 3, 2, 6, 7, 5, 4])  # índice de fase (k·45°) do símbolo de 3 bits b2b1b0
+GRAY8 = np.array([0, 1, 3, 2, 7, 6, 4, 5])  # índice de fase (k·45°) dos 3 bits b0b1b2 (inverso do Gray; bloco 24)
 BITS_VALIDADOS = quadro.bits_apos_sync(transmissor.TAMANHO_PAYLOAD) - len(quadro.GUARDA)
 EBN0_DQPSK = np.arange(10.0, 14.5, 0.5)
 EBN0_8PSK = np.arange(11.0, 17.5, 0.5)
@@ -103,7 +103,7 @@ def _decidir(corrigido):
 
 def detectar_8psk(z, referencia):
     """Fase e offset pela potência 8 do corpo (máx. verossimilhança), ambiguidade de 45° pela
-    fase do prefixo, e uma passada guiada pelas decisões (reta de fase em z·conj(decisão))."""
+    fase do prefixo (o método do sdrlink.modem; aqui a busca de frequência não tem limite)."""
     zp, zc = z[:, : PREFIXO + 1], z[:, PREFIXO + 1 :]
     v = np.abs(zc) * np.exp(8j * np.angle(zc))
     omega = _frequencia_ml(v) / 8  # rad por símbolo
@@ -114,11 +114,8 @@ def detectar_8psk(z, referencia):
     previsto = theta_p + omega * (PREFIXO + 1 - centro)
     salto = np.round((previsto - theta8) / (np.pi / 4))
     theta = theta8 + salto * np.pi / 4
+    # (uma passada guiada pelas decisões foi medida no bloco 24 e não deu ganho: saiu)
     indice = _decidir(zc * np.exp(-1j * (theta[:, None] + omega[:, None] * k[None, :])))
-    # passada guiada pelas decisões: a fase residual de z·conj(decisão) ajustada por uma reta
-    residuo = np.unwrap(np.angle(zc * np.exp(-1j * np.pi / 4 * indice)), axis=1)
-    inclinacao, intercepto = np.polyfit(k, residuo.T, 1)
-    indice = _decidir(zc * np.exp(-1j * (intercepto[:, None] + inclinacao[:, None] * k[None, :])))
     trios = np.argsort(GRAY8)[indice]  # valor de 3 bits de cada índice de fase
     return np.stack([(trios >> 2) & 1, (trios >> 1) & 1, trios & 1], axis=-1).reshape(len(z), -1)
 
@@ -151,12 +148,6 @@ def cruzamento(ebn0, per):
     return None
 
 
-def ber_8psk_teorica(ebn0_db):
-    """8-PSK coerente com Gray (aproximação dos vizinhos mais próximos)."""
-    g = 10 ** (np.asarray(ebn0_db) / 10)
-    return 2 / 3 * teoria.q(np.sqrt(6 * g) * np.sin(np.pi / 8))
-
-
 def main():
     cm = ConfigModem("dqpsk", "rrc", SPS, beta=BETA)
     forma = cm.formato()
@@ -176,7 +167,7 @@ def main():
                 "ebn0_per_1pct_db": cruzamento(ebn0s, [c[0] for c in curva]),
             }
             print(rotulo, json.dumps(resultado[rotulo]), flush=True)
-    teor = {"dqpsk": teoria.ber_dqpsk, "8psk": ber_8psk_teorica}
+    teor = {"dqpsk": teoria.ber_dqpsk, "8psk": teoria.ber_8psk}  # 8-PSK exata (bloco 24)
     resultado["teoria_ebn0_per_1pct_db"] = {
         nome: cruzamento(e, list(1 - (1 - np.minimum(f(e), 0.5)) ** BITS_VALIDADOS))
         for nome, f, e in (("dqpsk", teor["dqpsk"], np.arange(8, 16, 0.05)),
