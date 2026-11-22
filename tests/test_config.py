@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from sdrlink import config, transmissor
+from sdrlink import config, receptor, transmissor
 from sdrlink.fm import erro_absoluto_ppm
 from sdrlink.hw.rtl_rx import ConfigRtl
 from sdrlink.modem import ConfigModem
@@ -386,3 +386,13 @@ def test_perfil_experimental_a_2_4_ms_por_segundo_cabe_em_1_mhz() -> None:
     assert alto - baixo < 0.86e6  # 15% de folga sobre 1 MHz
     assert baixo > 25e3  # longe do DC
     assert alto < 0.8 * perfil.taxa_sps / 2  # mesma fração da faixa útil do perfil a 2,048 MS/s
+
+
+def test_limiar_de_deteccao_vem_do_perfil(tmp_path: Path) -> None:
+    assert config.LIMIAR_PADRAO == receptor.LIMIAR_PADRAO
+    assert config.perfil("prova-b").limiar == 0.4
+    assert config.perfil("prova-a").limiar == receptor.LIMIAR_PADRAO
+    arquivo = _arquivo(tmp_path, PERFIL_MINIMO + "limiar = 0.45\n")
+    assert config.perfil("p", arquivo).limiar == 0.45
+    with pytest.raises(ValueError, match="limiar"):
+        config.ler_perfis(_arquivo(tmp_path, PERFIL_MINIMO + "limiar = 1.5\n"))

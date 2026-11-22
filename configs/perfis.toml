@@ -7,7 +7,8 @@
 #
 # Campos: modulacao, pulso, sps (amostras por símbolo), beta (RRC), bt (gaussiano),
 # h (2-FSK), taxa_sps, deslocamento_hz (sinal em relação ao LO), lo_hz, fec,
-# emendar_caudas (TX com as caudas do RRC somadas entre quadros), descricao.
+# emendar_caudas (TX com as caudas do RRC somadas entre quadros), limiar (detecção
+# do RX, padrão 0,5), descricao.
 # Taxa de bits = taxa_sps / sps (o dobro na DQPSK).
 
 [prova-a]
@@ -64,6 +65,7 @@ beta = 0.35
 deslocamento_hz = 250e3
 lo_hz = 919.5e6
 fec = true
+limiar = 0.4  # com FEC a detecção é o gargalo: 0,4 dB a mais de alcance (docs/etapa6_limiar.md)
 
 [prova-b-sem-fec]
 descricao = "Prova B do bloco 08: DBPSK RRC a 12,8 kbit/s sem código, C/N0 de 51,3 dB-Hz"
