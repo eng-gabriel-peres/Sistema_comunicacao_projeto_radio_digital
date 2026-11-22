@@ -40,7 +40,7 @@ IMAGEM_DBC = -45.0  # medida na captura real
 DISTANCIA_DO_DC_HZ = 50e3
 BANDA_MAX_HZ = 1e6
 PER_ALVO = 0.01
-BITS_POR_QUADRO = 1109  # quadro v2 com 128 bytes
+BITS_UTEIS = 1024  # 128 bytes de payload por quadro
 CANDIDATAS = [(8, 0.35), (6, 0.25), (4, 0.25), (3, 0.25), (2, 0.25)]  # (sps, beta)
 BETAS_SPS3 = (0.2, 0.25, 0.35)
 
@@ -132,7 +132,9 @@ def main():
                 "ebn0_per_1pct_db": None if necessario is None else round(necessario, 2),
                 "ebn0_na_bancada_db": round(disponivel, 1),
                 "margem_db": None if necessario is None else round(disponivel - necessario, 1),
-                "goodput_sem_perda_kbps": round(rb * 1024 / BITS_POR_QUADRO / 1e3, 1),
+                # período real do quadro no fluxo: 1 109 bits mais a cauda do pulso (13 bits no RRC)
+                "bits_por_quadro_no_fluxo": round(transmissor.amostras_por_quadro(cm) / sps, 1),
+                "goodput_sem_perda_kbps": round(FS * BITS_UTEIS / transmissor.amostras_por_quadro(cm) / 1e3, 1),
                 "rx_s_por_s": round(float(np.median([t for _, _, t in pontos])), 2),
                 "tx_fracao_do_tempo_real": round(tempo_do_tx(cm, desl), 2),
             })
@@ -150,7 +152,7 @@ def main():
         "taxa_sps": FS, "quadros_por_ponto": QUADROS, "offset_hz": OFFSET_HZ,
         "dc_relativo": DC_RELATIVO, "imagem_dbc": IMAGEM_DBC, "cn0_bancada_dbhz": round(cn0, 1),
         "candidatas": candidatas, "beta_com_3_amostras_por_bit": betas,
-        "versao_do_codigo": versao_do_codigo(),
+        "versao_do_codigo": versao_do_codigo(ignorar=("dados/", "docs/")),  # saídas e texto: não mudam o que roda
     }
     saida = RAIZ / "dados" / "logs" / f"prova_a_{carimbo_de_tempo()}.json"
     saida.write_text(json.dumps(resultado, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")

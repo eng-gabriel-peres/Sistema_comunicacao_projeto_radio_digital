@@ -110,7 +110,7 @@ def main():
         "tempo_rx_processamento_s": rx["tempo_de_processamento_s"],
         "dentro_dos_10_min": t_rx < LIMITE_RX_S,
         "passa_na_prova_a": avaliacao["per"] <= 0.01 and (medidas.get("banda_99_khz") or 1e9) <= 1000,
-        "versao_do_codigo": versao_do_codigo(),
+        "versao_do_codigo": versao_do_codigo(ignorar=("dados/", "docs/")),  # saídas e texto: não mudam o que roda
     }
     print(json.dumps(resultado, indent=2, ensure_ascii=False))
     saida = RAIZ / "dados" / "logs" / f"prova_a_60s_{ebn0:.0f}dB_{carimbo_de_tempo()}.json"
