@@ -19,6 +19,8 @@ Todas as fórmulas usam Eb médio por bit, a mesma definição de sdrlink.canal:
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy.optimize import minimize_scalar
@@ -95,7 +97,7 @@ def ber_ook_nao_coerente(ebn0_db: ArrayLike, limiar: str = "otimo") -> NDArray[n
     return np.asarray(resultado, dtype=np.float64).reshape(np.shape(ebn0_db))
 
 
-BER_TEORICA = {
+BER_TEORICA: dict[str, Callable[[ArrayLike], NDArray[np.float64]]] = {
     "ook": ber_ook_nao_coerente,
     "bpsk": ber_bpsk,
     "dbpsk": ber_dbpsk,
