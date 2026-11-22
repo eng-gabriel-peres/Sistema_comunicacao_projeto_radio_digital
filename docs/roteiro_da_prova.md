@@ -80,7 +80,7 @@ Se uma posição falhar com o `prova-b`, não há perfil mais sensível pronto: 
 | Item | Risco | Onde está o plano |
 |---|---|---|
 | Banda a 99% dos perfis medida no RTL | a medida do avaliador ser diferente da nossa | [etapa6_prova_a.md](etapa6_prova_a.md), seção 2.6 |
-| Python alimentando o Pluto a 2,048 MS/s por 60 s, sem buraco | quadros cortados | risco R1, [etapa3_transmissor.md](etapa3_transmissor.md) |
+| Python alimentando o Pluto a 2,048 MS/s por 60 s, sem buraco | quadros cortados | risco R1; se acontecer, `transmitir.py --pre-gerar` ([etapa6_robustez.md](etapa6_robustez.md)) |
 | DQPSK no ar: ruído de fase e desequilíbrio IQ reais | a DQPSK precisar de mais que 12 dB | regra de troca, seção 3.1 |
 | Deriva do offset na prova B (quadros de 86 ms) | pior que os 35 Hz/s medidos | [etapa6_prova_b.md](etapa6_prova_b.md) |
 | Gravação de 60 s no RTL (cerca de 1 GB em complex64) sem perder amostras | captura incompleta; só gravamos até 16 s no ar | `gravar_iq.py --segundos 63`; conferir o número de amostras no JSON |

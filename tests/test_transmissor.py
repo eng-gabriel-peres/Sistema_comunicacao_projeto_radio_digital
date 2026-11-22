@@ -1,5 +1,6 @@
 """Testes do transmissor de prova, das métricas e do envio em fluxo ao Pluto (sub-bloco 3d)."""
 
+import importlib.util
 import sys
 import types
 from pathlib import Path
@@ -263,3 +264,29 @@ def test_pacotes_que_cabem_e_o_que_o_fluxo_manda(emendar: bool) -> None:
     )
     with pytest.raises(ValueError, match="duração"):
         transmissor.pacotes_que_cabem(config, 0.0)
+
+
+def _script_transmitir() -> types.ModuleType:
+    """O scripts/transmitir.py como módulo (scripts/ não é pacote)."""
+    caminho = Path(__file__).resolve().parents[1] / "scripts" / "transmitir.py"
+    spec = importlib.util.spec_from_file_location("script_transmitir", caminho)
+    assert spec is not None and spec.loader is not None
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+@pytest.mark.parametrize("pre_gerar", [False, True])
+def test_pre_gerar_entrega_ao_pluto_os_mesmos_blocos_ja_prontos(pre_gerar: bool) -> None:
+    script = _script_transmitir()
+    config = ConfigTransmissor(DBPSK, FS, 250e3)
+    pacotes = transmissor.numerar(_payloads(30))
+    log: list[transmissor.RegistroTx] = []
+    fonte = script.fonte_de_blocos(pacotes, config, 0.05, log, pre_gerar)
+    # com pre_gerar, o log já está completo antes de o 1º bloco ir para o Pluto
+    assert (len(log) > 0) is pre_gerar
+    blocos = list(fonte)
+    referencia = [b for b, _ in transmissor.fluxo(pacotes, config, 0.05)]
+    assert len(blocos) == len(referencia)
+    assert all(np.array_equal(a, b) for a, b in zip(blocos, referencia, strict=True))
+    assert len(log) == transmissor.pacotes_que_cabem(config, 0.05)

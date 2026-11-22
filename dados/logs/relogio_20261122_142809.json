@@ -1,0 +1,83 @@
+{
+  "ensaio": "diferença de relógio de amostragem × perfis finais",
+  "ppm": [
+    0.0,
+    2.0,
+    20.0,
+    50.0,
+    100.0,
+    -100.0,
+    200.0
+  ],
+  "casos": [
+    {
+      "perfil": "prova-a",
+      "ebn0_no_ar_db": 14.0,
+      "quadros": 300,
+      "amostras_por_quadro": 1722,
+      "deriva_no_quadro_a_50_ppm_amostras": 0.09,
+      "amostras_por_simbolo": 3,
+      "certos_por_ppm": {
+        "+0": 300,
+        "+2": 300,
+        "+20": 300,
+        "+50": 300,
+        "+100": 300,
+        "-100": 300,
+        "+200": 291
+      }
+    },
+    {
+      "perfil": "prova-a-fec",
+      "ebn0_no_ar_db": 6.0,
+      "quadros": 300,
+      "amostras_por_quadro": 3348,
+      "deriva_no_quadro_a_50_ppm_amostras": 0.17,
+      "amostras_por_simbolo": 3,
+      "certos_por_ppm": {
+        "+0": 300,
+        "+2": 300,
+        "+20": 300,
+        "+50": 300,
+        "+100": 300,
+        "-100": 300,
+        "+200": 295
+      }
+    },
+    {
+      "perfil": "prova-a-dbpsk",
+      "ebn0_no_ar_db": 12.0,
+      "quadros": 300,
+      "amostras_por_quadro": 3354,
+      "deriva_no_quadro_a_50_ppm_amostras": 0.17,
+      "amostras_por_simbolo": 3,
+      "certos_por_ppm": {
+        "+0": 299,
+        "+2": 300,
+        "+20": 300,
+        "+50": 300,
+        "+100": 296,
+        "-100": 300,
+        "+200": 151
+      }
+    },
+    {
+      "perfil": "prova-b",
+      "ebn0_no_ar_db": 6.0,
+      "quadros": 60,
+      "amostras_por_quadro": 177120,
+      "deriva_no_quadro_a_50_ppm_amostras": 8.86,
+      "amostras_por_simbolo": 80,
+      "certos_por_ppm": {
+        "+0": 60,
+        "+2": 60,
+        "+20": 60,
+        "+50": 60,
+        "+100": 58,
+        "-100": 59,
+        "+200": 0
+      }
+    }
+  ],
+  "versao_do_codigo": "bloco-15-1-g042b077"
+}

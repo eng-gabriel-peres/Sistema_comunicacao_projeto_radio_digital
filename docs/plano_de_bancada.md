@@ -25,7 +25,7 @@ Antes de cada sessão: RTL ligado no USB **10 minutos** antes de medir, e os doi
 | 1.3 | Calibração do RTL | TX: `scripts/transmitir_tom.py --freq-tom-hz <tom> --duracao-s 120`; RX: `scripts/calibrar_rtl.py --freq-tom-hz <tom> --minutos-ligado 10` | correção perto de +84 ppm (mesmo par); anotar em `configs/rtl.toml` | 20 min |
 | 1.4 | Decisão do `xo_correction` do Pluto (P3) | medir o erro do Pluto contra as rádios FM e decidir | decisão registrada; se mudar, recalibrar (1.3) | 20 min |
 | 1.5 | **Gravação de 63 s no RTL** sem perder amostras | `gravar_iq.py --perfil prova-a --segundos 63` | número de amostras do JSON = 63 × 2,048 M; saturação 0 | 10 min |
-| 1.6 | **TX de 60 s no Pluto sem buraco** (risco R1) | `transmitir.py <payloads> --perfil prova-a --duracao-s 60`, gravando ao mesmo tempo | pacotes recebidos = log do TX; nenhum quadro cortado | 15 min |
+| 1.6 | **TX de 60 s no Pluto sem buraco** (risco R1) | `transmitir.py <payloads> --perfil prova-a --duracao-s 60`, gravando ao mesmo tempo; se faltar quadro, repetir com `--pre-gerar` ([etapa6_robustez.md](etapa6_robustez.md)) | pacotes recebidos = log do TX; nenhum quadro cortado | 15 min |
 | 1.7 | **Quadro v3 no ar** (sub-bloco 3e), as três modulações | `--perfil dbpsk-256k`, `gfsk-128k`, `ook-128k`, 10 s cada, `receber.py` + `avaliar.py` | PER de até 1% com sinal forte nas três | 40 min |
 | 1.8 | TX e RX em computadores diferentes (P2) | 1.7 com os dois PCs | o mesmo resultado | (junto com 1.7) |
 
@@ -67,5 +67,5 @@ Protocolo completo em [etapa5_software.md](etapa5_software.md), seção 6. Cada 
 | Nenhum quadro detectado | LO, deslocamento ou taxa diferentes no TX e no RX | o `receber.py` avisa se a gravação usou outro centro ou taxa que o perfil; usar o mesmo `--perfil` nos dois lados |
 | Detecta, mas o CRC falha sempre | offset fora de ±3 kHz, ou ganho saturando | recalibrar (1.3); o JSON mostra o offset e a saturação |
 | PER alta só na DQPSK | ruído de fase ou desequilíbrio IQ | regra de troca: `prova-a-fec` ou `prova-a-dbpsk` |
-| Quadros perdidos de tempos em tempos no meio dos 60 s | o Python não alimentou o Pluto a tempo (R1) | comparar o log do TX com a saída; se for isso, gerar o sinal todo antes de transmitir |
+| Quadros perdidos de tempos em tempos no meio dos 60 s | o Python não alimentou o Pluto a tempo (R1) | comparar o log do TX com a saída; se for isso, `transmitir.py --pre-gerar` |
 | Banda medida absurda (centenas de kHz ou mais de 1 MHz) | SNR baixa na captura | medir a banda numa posição mais próxima (o `receber.py` marca "não confiável") |

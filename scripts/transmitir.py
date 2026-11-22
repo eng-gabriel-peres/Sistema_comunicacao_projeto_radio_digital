@@ -19,7 +19,7 @@ import argparse
 import dataclasses
 import sys
 import time
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from pathlib import Path
 
@@ -44,6 +44,11 @@ def _argumentos() -> tuple[argparse.Namespace, Perfil]:
     p.add_argument("--ganho-db", type=float, default=-30.0, help="atenuação de TX (0 = máximo)")
     p.add_argument("--duracao-s", type=float, default=60.0, help="janela da prova")
     p.add_argument("--uri", default=pluto_tx.URI_PADRAO)
+    p.add_argument(
+        "--pre-gerar",
+        action="store_true",
+        help="gera o sinal inteiro antes de abrir o Pluto (risco R1; 60 s ocupam cerca de 1 GB)",
+    )
     p.add_argument(
         "--simular", type=Path, default=None, help="grava o sinal em .npy em vez de transmitir"
     )
@@ -77,6 +82,24 @@ def _blocos(
         yield bloco
 
 
+def fonte_de_blocos(
+    pacotes: list[Pacote],
+    config: ConfigTransmissor,
+    duracao_s: float,
+    log: list[RegistroTx],
+    pre_gerar: bool,
+) -> Iterable[NDArray[np.complex64]]:
+    """Os blocos para o Pluto: gerados enquanto ele transmite, ou todos antes (pre_gerar).
+
+    Gerando durante a transmissão, o Python precisa entregar cada bloco antes de o
+    Pluto acabar o anterior; com folga de cerca de 2 vezes em simulação, isso nunca foi
+    medido no hardware (risco R1). Gerando antes, o Pluto só recebe blocos prontos, ao
+    custo de memória: 60 s a 2,048 MS/s em complex64 ocupam cerca de 1 GB.
+    """
+    blocos = _blocos(pacotes, config, duracao_s, log)
+    return list(blocos) if pre_gerar else blocos
+
+
 def main() -> int:
     """Confere a banda, transmite (ou simula) e grava o log do TX."""
     args, perfil = _argumentos()
@@ -104,7 +127,8 @@ def main() -> int:
         np.save(args.simular, (sinal / pluto_tx.FUNDO_ESCALA_DAC).astype(np.complex64))
     else:
         pluto = pluto_tx.ConfigPluto(perfil.lo_hz, perfil.taxa_sps, args.ganho_db, args.uri)
-        pluto_tx.transmitir_fluxo(pluto, _blocos(pacotes, config, args.duracao_s, log))
+        blocos = fonte_de_blocos(pacotes, config, args.duracao_s, log, args.pre_gerar)
+        pluto_tx.transmitir_fluxo(pluto, blocos)
     nome = f"tx_{carimbo_de_tempo()}"
     caminho_log = transmissor.gravar_log(log, args.pasta / f"{nome}.txt")
     registro = {

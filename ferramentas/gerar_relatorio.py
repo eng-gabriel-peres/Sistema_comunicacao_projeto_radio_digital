@@ -149,6 +149,12 @@ ENTREGAS = {
             ("DQPSK para a prova A e quadro v3", "etapa6_dqpsk.md", None, None),
             ("Viterbi em lote e a reserva com FEC", "etapa6_viterbi_lote.md", None, None),
             ("Emenda das caudas do RRC", "etapa6_emenda.md", None, None),
+            (
+                "Robustez: relógio de amostragem e alimentação do Pluto",
+                "etapa6_robustez.md",
+                None,
+                None,
+            ),
             ("Roteiro da prova e ensaio geral", "roteiro_da_prova.md", None, None),
             ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapas 6 e 7", None),
         ),

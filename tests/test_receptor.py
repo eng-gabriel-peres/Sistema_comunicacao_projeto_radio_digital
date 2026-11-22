@@ -328,3 +328,12 @@ def test_fec_em_lote_igual_a_leitura_quadro_a_quadro() -> None:
         sozinho = receptor.demodular_quadro(entrada, inicio, deteccao.offset_hz, config)
         assert sozinho is not None and deteccao.bits is not None
         np.testing.assert_array_equal(deteccao.bits, sozinho)
+
+
+def test_aguenta_50_ppm_de_diferenca_de_relogio_no_quadro_longo_da_prova_b() -> None:
+    # depois da calibração sobram cerca de 2 ppm; a prova B (quadros de 177 mil amostras)
+    # aguenta 50 ppm sem perder nada (bloco 16). Aqui, quadros com FEC a 25,6 kbit/s no ar
+    cm = ConfigModem("dbpsk", "rrc", 80)
+    x, pacotes, _ = _captura(cm, 4, np.random.default_rng(61), 8.0, True)
+    d = receptor.receber(canal.reamostrar(x, 50.0), ConfigReceptor(cm, FS, DESLOCAMENTO, fec=True))
+    assert receptor.pacotes_aceitos(d) == pacotes

@@ -269,3 +269,19 @@ def test_ber_teorica_da_dqpsk() -> None:
     assert np.all(np.diff(teoria.ber_dqpsk(ebn0)) < 0)
     assert np.all(teoria.ber_dqpsk(ebn0[ebn0 >= 3]) > teoria.ber_dbpsk(ebn0[ebn0 >= 3]))
     assert np.all(teoria.ber_dqpsk(ebn0[ebn0 <= 2]) < teoria.ber_dbpsk(ebn0[ebn0 <= 2]))
+
+
+def test_reamostrar_simula_a_diferenca_de_relogio() -> None:
+    # um tom de f ciclos por amostra, amostrado 1000 ppm mais rápido, vira f (1 + 1e-3)
+    n = np.arange(20_000)
+    tom = np.exp(2j * np.pi * 0.01 * n)
+    saida = canal.reamostrar(tom, 1000.0)
+    esperado = np.exp(2j * np.pi * 0.01 * 1.001 * np.arange(len(saida)))
+    meio = slice(100, len(saida) - 100)  # longe das bordas do interpolador
+    np.testing.assert_allclose(saida[meio], esperado[meio], atol=1e-3)
+    assert len(saida) == int((len(tom) - 17) / 1.001)
+    np.testing.assert_allclose(canal.reamostrar(tom, 0.0)[meio], tom[meio], atol=1e-9)
+    with pytest.raises(ValueError, match="ppm"):
+        canal.reamostrar(tom, 5000.0)
+    with pytest.raises(ValueError, match="curto"):
+        canal.reamostrar(tom[:10], 0.0)
