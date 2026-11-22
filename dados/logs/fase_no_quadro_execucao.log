@@ -1,9 +1,0 @@
-calibracao_20261104_100631_depois prova-a {'quadro_ms': 0.84, 'janelas': 4871, 'mediana_rad': 0.0055, 'p95_rad': 0.0089, 'maximo_rad': 0.1694, 'perda_coerente_p95_db': 0.0, 'perda_coerente_maximo_db': 0.13}
-calibracao_20261104_100631_depois prova-a-fec {'quadro_ms': 1.63, 'janelas': 2505, 'mediana_rad': 0.0061, 'p95_rad': 0.0088, 'maximo_rad': 0.1867, 'perda_coerente_p95_db': 0.0, 'perda_coerente_maximo_db': 0.15}
-calibracao_20261104_100631_depois prova-a-dbpsk {'quadro_ms': 1.64, 'janelas': 2501, 'mediana_rad': 0.0061, 'p95_rad': 0.0087, 'maximo_rad': 0.1893, 'perda_coerente_p95_db': 0.0, 'perda_coerente_maximo_db': 0.16}
-calibracao_20261104_100631_depois prova-b {'quadro_ms': 86.48, 'janelas': 47, 'mediana_rad': 0.0772, 'p95_rad': 0.2268, 'maximo_rad': 0.4004, 'perda_coerente_p95_db': 0.23, 'perda_coerente_maximo_db': 0.72}
-calibracao_20261104_100917_depois prova-a {'quadro_ms': 0.84, 'janelas': 4871, 'mediana_rad': 0.0055, 'p95_rad': 0.0083, 'maximo_rad': 0.1512, 'perda_coerente_p95_db': 0.0, 'perda_coerente_maximo_db': 0.1}
-calibracao_20261104_100917_depois prova-a-fec {'quadro_ms': 1.63, 'janelas': 2505, 'mediana_rad': 0.0061, 'p95_rad': 0.0085, 'maximo_rad': 0.162, 'perda_coerente_p95_db': 0.0, 'perda_coerente_maximo_db': 0.11}
-calibracao_20261104_100917_depois prova-a-dbpsk {'quadro_ms': 1.64, 'janelas': 2501, 'mediana_rad': 0.0061, 'p95_rad': 0.0085, 'maximo_rad': 0.1221, 'perda_coerente_p95_db': 0.0, 'perda_coerente_maximo_db': 0.06}
-calibracao_20261104_100917_depois prova-b {'quadro_ms': 86.48, 'janelas': 47, 'mediana_rad': 0.0891, 'p95_rad': 0.251, 'maximo_rad': 0.3849, 'perda_coerente_p95_db': 0.28, 'perda_coerente_maximo_db': 0.66}
-registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\fase_no_quadro_20261122_195512.json

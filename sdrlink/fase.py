@@ -80,6 +80,14 @@ def frequencia_do_tom(amostras: NDArray[np.complexfloating], taxa_sps: float) ->
     return float(f[np.argmax(np.where(np.abs(f) > DC_EXCLUIDO_HZ, p, 0.0))])
 
 
+def _fase_filtrada(
+    misturado: NDArray[np.complex128], banda_hz: float, taxa_sps: float
+) -> NDArray[np.float64]:
+    """Fase desdobrada do tom já misturado para zero, filtrado em ±banda_hz (ida e volta)."""
+    filtrado = signal.filtfilt(signal.firwin(COEFICIENTES, banda_hz, fs=taxa_sps), 1.0, misturado)
+    return np.asarray(np.unwrap(np.angle(filtrado)), dtype=np.float64)
+
+
 def fase_do_tom(
     amostras: NDArray[np.complexfloating], taxa_sps: float, banda_hz: float = BANDA_PADRAO_HZ
 ) -> FaseDoTom:
@@ -96,10 +104,18 @@ def fase_do_tom(
     misturado = np.asarray(amostras, dtype=np.complex128) * np.exp(
         -2j * np.pi * f0 * np.arange(n) / taxa_sps
     )
-    filtrado = signal.filtfilt(signal.firwin(COEFICIENTES, banda_hz, fs=taxa_sps), 1.0, misturado)
-    fase = np.unwrap(np.angle(filtrado))
+    fase = _fase_filtrada(misturado, banda_hz, taxa_sps)
     mediana = float(np.median(np.diff(fase)))
-    variacao = fase[ATRASO_SALTO:] - fase[:-ATRASO_SALTO] - mediana * ATRASO_SALTO
+    # os saltos de emenda se procuram sempre na fase em banda larga: com o filtro estreito
+    # um salto se espalha por centenas de amostras e escapa (bloco 23: 12 de 37 escapavam
+    # em 2 kHz e viravam ruído de fase falso na trajetória)
+    larga = (
+        fase
+        if banda_hz >= BANDA_PADRAO_HZ
+        else _fase_filtrada(misturado, BANDA_PADRAO_HZ, taxa_sps)
+    )
+    passo = float(np.median(np.diff(larga)))
+    variacao = larga[ATRASO_SALTO:] - larga[:-ATRASO_SALTO] - passo * ATRASO_SALTO
     desvio = np.abs(variacao - np.median(variacao))
     limiar = max(SALTO_RAD, SALTO_DESVIOS * 1.4826 * float(np.median(desvio)))  # MAD → desvio
     indices = np.flatnonzero(desvio > limiar)
@@ -205,8 +221,13 @@ def descontar(medida_rad: float, branco_rad: float) -> float:
 def trajetoria(tom: FaseDoTom, n: int) -> NDArray[np.float64]:
     """Trajetória de fase medida, com n amostras, para aplicar a um sinal simulado.
 
-    Junta os trechos sem salto (cada um sem a própria rampa de frequência, que o RX
-    trata como offset), um depois do outro e sem degrau, e repete o conjunto se precisar.
+    Junta os trechos sem salto, um depois do outro e sem degrau, e tira do conjunto a
+    deriva lenta de frequência (ajuste quadrático: o RX trata o offset em cada quadro).
+    Se precisar repetir o conjunto, as cópias alternam o sentido dos incrementos de fase
+    (a frequência), como num espelho: a frequência fica contínua na emenda, e um processo
+    estacionário invertido no tempo tem a mesma estatística. A primeira versão tirava a
+    rampa de cada trecho e emendava as cópias só pela fase, e deixava degraus de
+    frequência de até 85 Hz, mais de 1 rad num quadro da prova B (bloco 23).
 
     Raises:
         ValueError: n inválido ou nenhum trecho de TRECHO_MIN amostras sem salto.
@@ -220,14 +241,18 @@ def trajetoria(tom: FaseDoTom, n: int) -> NDArray[np.float64]:
     for a, b in pairwise(limites):  # no máximo len(validas) trechos
         if not tom.validas[a] or b - a < TRECHO_MIN:
             continue
-        t = np.arange(b - a, dtype=np.float64)
-        trecho = tom.fase[a:b] - np.polyval(np.polyfit(t, tom.fase[a:b], 1), t)
+        trecho = tom.fase[a:b]
         pedacos.append(trecho - trecho[0] + ultimo)
         ultimo = float(pedacos[-1][-1])
     if not pedacos:
         raise ValueError(f"nenhum trecho de {TRECHO_MIN} amostras sem salto de fase")
     base = np.concatenate(pedacos)
-    saida = [base]
-    for _ in range(-(-n // len(base)) - 1):  # repete o conjunto, sem degrau
-        saida.append(base - base[0] + saida[-1][-1])
-    return np.asarray(np.concatenate(saida)[:n], dtype=np.float64)
+    t = np.arange(len(base), dtype=np.float64)
+    base = base - np.polyval(np.polyfit(t, base, 2), t)
+    if n <= len(base):
+        return np.asarray(base[:n] - base[0], dtype=np.float64)
+    passos = np.diff(base)
+    pedacos = [passos if k % 2 == 0 else passos[::-1] for k in range(-(-n // len(passos)))]
+    return np.asarray(
+        np.concatenate([[0.0], np.cumsum(np.concatenate(pedacos))])[:n], dtype=np.float64
+    )
