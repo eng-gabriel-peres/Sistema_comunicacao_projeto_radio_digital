@@ -79,7 +79,7 @@ Na captura real de 04/11 (Pluto da equipe → RTL, na bancada) o C/N0 foi de **7
 
 Cuidados com esse número:
 - a potência e a distância da prova são padronizadas pelo professor e podem ser diferentes das de 04/11;
-- a margem não inclui ruído de fase, não linearidade do Pluto, interferência na faixa ISM e multipercurso;
+- a margem não inclui ruído de fase, não linearidade do Pluto, interferência na faixa ISM e multipercurso; (Bloco 21: o ruído de fase do par Pluto + RTL, medido nos tons de 04/11, não tem efeito detectável em nenhum perfil, com folga de 16 a 31 vezes; ver [etapa6_imperfeicoes.md](etapa6_imperfeicoes.md).)
 - por isso o perfil `dbpsk-256k` fica pronto como reserva (14 dB de margem), e a troca leva um parâmetro.
 
 ### 2.5 Tempo de processamento e do TX

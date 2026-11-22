@@ -42,6 +42,18 @@ As duas gravações, feitas com 3 minutos de diferença, dão os mesmos números
 
 **Limite do método.** O filtro de 50 kHz não vê o ruído de fase acima de 50 kHz de afastamento. Ali o espectro do tom já está no piso branco (−79 dBc/Hz), então esse ruído de fase, se existir, se comporta como ruído branco somado ao do canal e entra no Eb/N0 medido.
 
+**A fase dentro de um quadro** (bloco 22, `ensaios/etapa6/fase_no_quadro_ensaio.py`). Uma detecção coerente estimaria a fase e o offset uma vez por quadro; o que sobra é o desvio da fase real em torno dessa reta:
+
+| Perfil | Quadro | Desvio eficaz: mediana | p95 | máximo | Perda coerente no p95 / no máximo |
+|---|---|---|---|---|---|
+| `prova-a` | 0,84 ms | 0,006 rad | 0,009 rad | 0,15 a 0,17 rad | 0 / 0,1 dB |
+| `prova-a-fec`, `prova-a-dbpsk` | 1,6 ms | 0,006 rad | 0,009 rad | 0,12 a 0,19 rad | 0 / 0,06 a 0,16 dB |
+| `prova-b` | 86 ms | 0,08 a 0,09 rad | 0,23 a 0,25 rad | 0,38 a 0,40 rad | 0,23 a 0,28 / 0,66 a 0,72 dB |
+
+Na prova B a perda da detecção coerente nos piores quadros é do tamanho do ganho que ela daria com FEC (0,3 dB, bloco 09): a detecção diferencial continua a escolha certa. Nos quadros curtos da prova A a fase quase não anda, e uma detecção coerente seria viável ali.
+
+**O nível das gravações reais.** As gravações de 04/11 ficaram entre −17 e −19 dBFS, sem saturação: os ganhos usados naquele dia já estavam dentro da janela recomendada.
+
 ## 4. Ensaio nos perfis finais
 
 `ensaios/etapa6/imperfeicoes_ensaio.py`, com offset de −1,4 kHz e o receptor completo. O Eb/N0 de referência é o de PER 1% de cada perfil (relatório final, seção 4).
@@ -128,4 +140,5 @@ Mutantes (11, todos mortos):
 | Evidência | Onde |
 |---|---|
 | Ensaio | `ensaios/etapa6/imperfeicoes_ensaio.py`, `dados/logs/imperfeicoes_20261122_161617.json`, `dados/logs/imperfeicoes_execucao.log` |
+| Fase dentro de um quadro (bloco 22) | `ensaios/etapa6/fase_no_quadro_ensaio.py`, `dados/logs/fase_no_quadro_20261122_195512.json`, `dados/logs/fase_no_quadro_execucao.log` |
 | Gravações reais usadas | `dados/calibracao/calibracao_20261104_100631_depois.npy` e `..._100917_depois.npy` (fora do git pelo tamanho; os JSON de calibração estão no git) |

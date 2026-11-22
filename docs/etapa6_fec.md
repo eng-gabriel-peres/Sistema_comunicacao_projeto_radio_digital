@@ -77,7 +77,7 @@ Escolhi o convolucional K = 7 porque:
 
 | Melhoria | Ganho medido ou estimado | Por que não agora |
 |---|---|---|
-| Detecção coerente (fase pela média de z²) | 0,3 dB com FEC, 0,8 dB sem com sincronismo ideal (seção 4) | uma fase mal estimada derruba o quadro inteiro, e o ruído de fase do Pluto e do RTL no ar ainda não foi medido |
+| Detecção coerente (fase pela média de z²) | 0,3 dB com FEC, 0,8 dB sem com sincronismo ideal (seção 4) | uma fase mal estimada derruba o quadro inteiro; medido depois (bloco 22): a fase real anda até 0,25 rad (p95) num quadro de 86 ms, uma perda de 0,2 a 0,7 dB que come o ganho |
 | Prefixo mais longo nos quadros com FEC | cerca de 0,5 dB: recupera a detecção perdida (seção 5) | muda o formato do quadro e o modelo do receptor; vale depois de medir no ar quanto a detecção perde de fato |
 | 23,3 kbit/s no ar | nenhum: precisou de mais C/N0 que 25,6 kbit/s, dentro da flutuação de 400 quadros | a folga de goodput cai para 7,3% |
 

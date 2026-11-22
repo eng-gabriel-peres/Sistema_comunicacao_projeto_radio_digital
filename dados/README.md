@@ -46,4 +46,5 @@ Todos em `logs/`, gerados pelos scripts de `ensaios/`; cada JSON traz a versão 
 | 22/11/2026 | `limiar_20261122_151453.json, prova_b_60s_6dB_20261122_151613.json` (ensaio a 5,5 dB; o nome arredonda) | Limiar de detecção 0,5 × 0,4 na prova B e a prova de 60 s | bloco 19 |
 | 22/11/2026 | `bancada_simulada_20261122_153017.json` e a pasta `bancada_simulada_20261122_153017/` | Sessão de bancada simulada com os scripts da bancada e a análise automática | bloco 20 |
 | 22/11/2026 | `imperfeicoes_20261122_161617.json` | Ruído de fase medido nos tons de 04/11, margem de ruído de fase e janela do ADC de 8 bits nos perfis finais | bloco 21 |
+| 22/11/2026 | `fase_no_quadro_20261122_195512.json` | Desvio da fase real dentro de um quadro de cada perfil | bloco 22 |
 | 04/11/2026 | `analise_crc_20261104_110847.json` | Contagens e Monte Carlo do CRC (quadro v2) | Etapa 3a |
