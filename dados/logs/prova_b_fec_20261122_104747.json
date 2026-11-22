@@ -1,0 +1,72 @@
+{
+  "ensaio": "prova B com FEC: C/N0 necessário com o código convolucional K = 7, taxa 1/2",
+  "taxa_sps": 2048000.0,
+  "quadros_por_ponto": 400,
+  "offset_hz": -1400.0,
+  "deriva_hz_por_s": -35.0,
+  "dc_relativo": 0.008,
+  "imagem_dbc": -45.0,
+  "referencia_sem_codigo": "prova_b_20261122_103822.json",
+  "melhor_cn0_sem_codigo_dbhz": 50.79,
+  "candidatas": [
+    {
+      "nome": "DBPSK 25,6 kbit/s no ar, FEC 1/2",
+      "sps": 80,
+      "taxa_no_ar": 25600.0,
+      "bits_por_quadro_no_fluxo": 2198.0,
+      "goodput_max_kbps": 11.93,
+      "folga_sobre_10_kbps_pct": 18.1,
+      "tempo_para_500_pacotes_s": 42.9,
+      "per_por_ebn0_no_ar": {
+        "2": 0.9825,
+        "3": 0.5475,
+        "4": 0.1175,
+        "5": 0.0,
+        "6": 0.0
+      },
+      "deteccoes_por_ebn0_no_ar": {
+        "2": 165,
+        "3": 298,
+        "4": 361,
+        "5": 400,
+        "6": 403
+      },
+      "errados_aceitos": 0,
+      "ebn0_no_ar_per_1pct_db": 4.35,
+      "cn0_necessario_dbhz": 48.43,
+      "rx_s_por_s": 0.49,
+      "ganho_sobre_o_melhor_sem_codigo_db": 2.36
+    },
+    {
+      "nome": "DBPSK 23,3 kbit/s no ar, FEC 1/2",
+      "sps": 88,
+      "taxa_no_ar": 23272.7,
+      "bits_por_quadro_no_fluxo": 2198.0,
+      "goodput_max_kbps": 10.84,
+      "folga_sobre_10_kbps_pct": 7.3,
+      "tempo_para_500_pacotes_s": 47.2,
+      "per_por_ebn0_no_ar": {
+        "2": 0.9825,
+        "3": 0.525,
+        "4": 0.09,
+        "5": 0.01,
+        "6": 0.0,
+        "7": 0.0
+      },
+      "deteccoes_por_ebn0_no_ar": {
+        "2": 161,
+        "3": 288,
+        "4": 375,
+        "5": 397,
+        "6": 402,
+        "7": 400
+      },
+      "errados_aceitos": 0,
+      "ebn0_no_ar_per_1pct_db": 5.0,
+      "cn0_necessario_dbhz": 48.67,
+      "rx_s_por_s": 0.49,
+      "ganho_sobre_o_melhor_sem_codigo_db": 2.12
+    }
+  ],
+  "versao_do_codigo": "bloco-08-5-g26ce554"
+}
