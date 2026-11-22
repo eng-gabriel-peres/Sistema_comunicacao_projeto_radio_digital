@@ -441,24 +441,28 @@ def _decodificar_quadro(
 
     O comprimento só se conhece depois de decodificar: o RX decodifica a janela de um
     quadro de PAYLOAD_MINIMO_LIDO bytes (o da prova) e, se o comprimento decodificado
-    for maior, decodifica de novo com ele. Devolve None se nem o quadro mínimo cabe
-    na captura.
+    for maior, decodifica de novo com ele. Perto do fim da captura a janela encolhe
+    para o maior quadro que ainda cabe (um quadro curto no fim do arquivo é lido).
+    Devolve None se nem um quadro sem payload cabe.
     """
-    n_bytes = PAYLOAD_MINIMO_LIDO
-    bits: NDArray[np.uint8] | None = None
+    # maior payload cujo quadro codificado cabe nos n_max bits disponíveis
+    cabe = ((n_max - BITS_PREFIXO) // codigo.TAXA_INVERSA - codigo.MEMORIA) // 8
+    cabe -= (quadro.BITS_CABECALHO + quadro.BITS_CRC) // 8
+    if cabe < 0:
+        return None
+    n_bytes = min(PAYLOAD_MINIMO_LIDO, cabe)
+    bits = None
     for _ in range(2):  # no máximo uma releitura com o comprimento decodificado
         n_info = quadro.bits_apos_sync(n_bytes)
         n_ar = BITS_PREFIXO + codigo.bits_codificados(n_info)
-        if n_ar > n_max:
-            return bits
         suaves = modem.demodular_suave(
             preparar(n_ar), cm, n_ar, fase=fase, limiar=limiar, prefixo=BITS_PREFIXO
         )
         bits = codigo.decodificar(suaves[BITS_PREFIXO:], n_info)
         declarado = int(quadro.bits_para_bytes(bits[: quadro.BITS_COMPRIMENTO])[0])
-        if declarado <= n_bytes:
-            return bits
-        n_bytes = declarado
+        if declarado <= n_bytes or n_bytes == cabe:
+            return bits  # já tem o quadro inteiro, ou não cabe mais nada
+        n_bytes = min(declarado, cabe)
     return bits
 
 

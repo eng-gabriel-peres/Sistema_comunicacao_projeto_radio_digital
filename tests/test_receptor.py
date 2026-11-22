@@ -279,3 +279,13 @@ def test_dqpsk_da_prova_a_com_3_amostras_e_com_fec() -> None:
         d = receptor.receber(y, config, tamanho_bloco=_bloco_pequeno(config))
         assert receptor.pacotes_aceitos(d) == pacotes
         assert config.taxa_bits == pytest.approx(2 * FS / 3)
+
+
+def test_fec_le_quadro_curto_no_fim_da_captura() -> None:
+    # a janela padrão (128 bytes) passaria do fim do arquivo; a de 60 bytes cabe
+    cm = ConfigModem("dbpsk", "rrc", 8)
+    p = Pacote(4, bytes(range(60)))
+    onda = modem.modular(quadro.montar_quadro(p, fec=True), cm)
+    x = np.concatenate([np.zeros(3000), onda, np.zeros(400)]).astype(complex)
+    d = receptor.receber(x, ConfigReceptor(cm, FS, fec=True))
+    assert receptor.pacotes_aceitos(d) == [p]
