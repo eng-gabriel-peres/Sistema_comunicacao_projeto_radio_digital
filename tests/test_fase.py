@@ -205,3 +205,31 @@ def test_script_de_bancada_mede_o_tom_e_compara_com_a_tolerancia(tmp_path: Path)
     assert _rodar_medir(fraco).returncode == 0
     registro = json.loads((tmp_path / "tom_fraco_ruido_de_fase.json").read_text(encoding="utf-8"))
     assert registro["perfis"]["prova-a"]["situacao"].startswith("inconclusivo")
+
+
+def test_saltos_achados_tambem_com_filtro_estreito() -> None:
+    """Com o filtro de 2 kHz um salto se espalha por centenas de amostras: busca em banda larga."""
+    x = _tom(largura_hz=1.0)
+    for k in range(1, 11):
+        x[k * N // 11 :] *= np.exp(0.5j)  # os que escapavam nos tons reais eram os menores
+    tom = fase.fase_do_tom(x, FS, banda_hz=2e3)
+    assert tom.saltos == 10
+    ph = fase.trajetoria(tom, N)
+    t = np.arange(1182)  # um quadro de 8-PSK: nenhum trecho com resto de salto
+    desvios = [
+        np.std(ph[k : k + 1182] - np.polyval(np.polyfit(t, ph[k : k + 1182], 1), t))
+        for k in range(0, N - 1182, 1182)
+    ]
+    assert max(desvios) < 0.06  # o Wiener de 1 Hz chega a 0,04; um salto esquecido, a 0,2
+
+
+def test_repeticao_espelhada_mantem_a_frequencia_continua() -> None:
+    """Frequência que anda devagar (caminhada aleatória): a emenda das cópias não dá degrau."""
+    rng = np.random.default_rng(9)
+    n = 2**17
+    frequencia = np.cumsum(rng.standard_normal(n)) * 1e-6  # rad por amostra
+    tom = fase.FaseDoTom(np.cumsum(frequencia), np.ones(n, dtype=bool), 0.0, 0, FS)
+    ph = fase.trajetoria(tom, 3 * n)
+    assert len(ph) == 3 * n
+    degraus = np.abs(np.diff(np.diff(ph)))
+    assert degraus.max() < 20 * np.median(degraus)

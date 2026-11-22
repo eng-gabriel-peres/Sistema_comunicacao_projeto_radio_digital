@@ -7,77 +7,77 @@
         "quadro_ms": 0.84,
         "janelas": 4871,
         "mediana_rad": 0.0055,
-        "p95_rad": 0.0089,
-        "maximo_rad": 0.1694,
+        "p95_rad": 0.0088,
+        "maximo_rad": 0.0689,
         "perda_coerente_p95_db": 0.0,
-        "perda_coerente_maximo_db": 0.13
+        "perda_coerente_maximo_db": 0.02
       },
       "prova-a-fec": {
         "quadro_ms": 1.63,
         "janelas": 2505,
         "mediana_rad": 0.0061,
-        "p95_rad": 0.0088,
-        "maximo_rad": 0.1867,
+        "p95_rad": 0.0086,
+        "maximo_rad": 0.0774,
         "perda_coerente_p95_db": 0.0,
-        "perda_coerente_maximo_db": 0.15
+        "perda_coerente_maximo_db": 0.03
       },
       "prova-a-dbpsk": {
         "quadro_ms": 1.64,
         "janelas": 2501,
         "mediana_rad": 0.0061,
-        "p95_rad": 0.0087,
-        "maximo_rad": 0.1893,
+        "p95_rad": 0.0086,
+        "maximo_rad": 0.0766,
         "perda_coerente_p95_db": 0.0,
-        "perda_coerente_maximo_db": 0.16
+        "perda_coerente_maximo_db": 0.03
       },
       "prova-b": {
         "quadro_ms": 86.48,
         "janelas": 47,
-        "mediana_rad": 0.0772,
-        "p95_rad": 0.2268,
-        "maximo_rad": 0.4004,
-        "perda_coerente_p95_db": 0.23,
-        "perda_coerente_maximo_db": 0.72
+        "mediana_rad": 0.0275,
+        "p95_rad": 0.1168,
+        "maximo_rad": 0.1684,
+        "perda_coerente_p95_db": 0.06,
+        "perda_coerente_maximo_db": 0.12
       }
     },
     "calibracao_20261104_100917_depois": {
       "prova-a": {
         "quadro_ms": 0.84,
         "janelas": 4871,
-        "mediana_rad": 0.0055,
-        "p95_rad": 0.0083,
-        "maximo_rad": 0.1512,
+        "mediana_rad": 0.0054,
+        "p95_rad": 0.0082,
+        "maximo_rad": 0.0443,
         "perda_coerente_p95_db": 0.0,
-        "perda_coerente_maximo_db": 0.1
+        "perda_coerente_maximo_db": 0.01
       },
       "prova-a-fec": {
         "quadro_ms": 1.63,
         "janelas": 2505,
-        "mediana_rad": 0.0061,
-        "p95_rad": 0.0085,
-        "maximo_rad": 0.162,
+        "mediana_rad": 0.006,
+        "p95_rad": 0.0084,
+        "maximo_rad": 0.0422,
         "perda_coerente_p95_db": 0.0,
-        "perda_coerente_maximo_db": 0.11
+        "perda_coerente_maximo_db": 0.01
       },
       "prova-a-dbpsk": {
         "quadro_ms": 1.64,
         "janelas": 2501,
         "mediana_rad": 0.0061,
-        "p95_rad": 0.0085,
-        "maximo_rad": 0.1221,
+        "p95_rad": 0.0084,
+        "maximo_rad": 0.0415,
         "perda_coerente_p95_db": 0.0,
-        "perda_coerente_maximo_db": 0.06
+        "perda_coerente_maximo_db": 0.01
       },
       "prova-b": {
         "quadro_ms": 86.48,
         "janelas": 47,
-        "mediana_rad": 0.0891,
-        "p95_rad": 0.251,
-        "maximo_rad": 0.3849,
-        "perda_coerente_p95_db": 0.28,
-        "perda_coerente_maximo_db": 0.66
+        "mediana_rad": 0.0217,
+        "p95_rad": 0.1144,
+        "maximo_rad": 0.1611,
+        "perda_coerente_p95_db": 0.06,
+        "perda_coerente_maximo_db": 0.11
       }
     }
   },
-  "versao_do_codigo": "bloco-21-3-g9c93178"
+  "versao_do_codigo": "bloco-22-2-g1919a3d"
 }

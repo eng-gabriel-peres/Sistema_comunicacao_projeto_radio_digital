@@ -46,11 +46,11 @@ As duas gravações, feitas com 3 minutos de diferença, dão os mesmos números
 
 | Perfil | Quadro | Desvio eficaz: mediana | p95 | máximo | Perda coerente no p95 / no máximo |
 |---|---|---|---|---|---|
-| `prova-a` | 0,84 ms | 0,006 rad | 0,009 rad | 0,15 a 0,17 rad | 0 / 0,1 dB |
-| `prova-a-fec`, `prova-a-dbpsk` | 1,6 ms | 0,006 rad | 0,009 rad | 0,12 a 0,19 rad | 0 / 0,06 a 0,16 dB |
-| `prova-b` | 86 ms | 0,08 a 0,09 rad | 0,23 a 0,25 rad | 0,38 a 0,40 rad | 0,23 a 0,28 / 0,66 a 0,72 dB |
+| `prova-a` | 0,84 ms | 0,005 rad | 0,008 a 0,009 rad | 0,04 a 0,07 rad | 0 / 0,01 a 0,02 dB |
+| `prova-a-fec`, `prova-a-dbpsk` | 1,6 ms | 0,006 rad | 0,008 a 0,009 rad | 0,04 a 0,08 rad | 0 / 0,01 a 0,03 dB |
+| `prova-b` | 86 ms | 0,02 a 0,03 rad | 0,11 a 0,12 rad | 0,16 a 0,17 rad | 0,06 / 0,11 a 0,12 dB |
 
-Na prova B a perda da detecção coerente nos piores quadros é do tamanho do ganho que ela daria com FEC (0,3 dB, bloco 09): a detecção diferencial continua a escolha certa. Nos quadros curtos da prova A a fase quase não anda, e uma detecção coerente seria viável ali.
+**Correção (bloco 23).** A primeira versão desta tabela dava, na prova B, 0,23 a 0,25 rad no p95 e até 0,40 rad, e concluía que a perda da detecção coerente comeria o ganho dela. Esses números vinham de artefatos da gravação na trajetória filtrada em 2 kHz (seção 6). Com eles corrigidos, a perda da fase real num quadro da prova B fica em 0,06 dB no p95 e 0,12 dB no pior quadro, contra 0,3 dB de ganho com sincronismo ideal (bloco 09). O ganho líquido possível é de cerca de 0,2 dB, menos o que um estimador real de fase perderia com 4 dB por bit no ar. É pequeno, e a detecção coerente fica como melhoria possível, não implementada. Nos quadros curtos da prova A a fase quase não anda, e uma detecção coerente é viável ali ([etapa6_8psk.md](etapa6_8psk.md)).
 
 **O nível das gravações reais.** As gravações de 04/11 ficaram entre −17 e −19 dBFS, sem saturação: os ganhos usados naquele dia já estavam dentro da janela recomendada.
 
@@ -63,10 +63,10 @@ Na prova B a perda da detecção coerente nos piores quadros é do tamanho do ga
 | Perfil | Sem | Com o tom 1 | Com o tom 2 |
 |---|---|---|---|
 | `prova-a` | 3,6% [2,8; 4,7] | 2,8% [2,1; 3,7] | 2,6% [2,0; 3,5] |
-| `prova-a-24` | 2,3% [1,7; 3,2] | 2,3% [1,6; 3,1] | 2,3% [1,6; 3,1] |
-| `prova-a-fec` | 6,1% [4,9; 7,6] | 6,8% [5,5; 8,4] | 6,7% [5,4; 8,2] |
-| `prova-a-dbpsk` | 3,6% [2,7; 4,8] | 2,9% [2,1; 4,0] | 3,2% [2,3; 4,3] |
-| `prova-b` | 10,6% [8,2; 13,7] | 7,9% [5,8; 10,7] | 10,0% [7,6; 13,0] |
+| `prova-a-24` | 2,3% [1,7; 3,2] | 2,1% [1,5; 2,9] | 2,0% [1,4; 2,8] |
+| `prova-a-fec` | 6,1% [4,9; 7,6] | 5,3% [4,2; 6,8] | 5,7% [4,5; 7,1] |
+| `prova-a-dbpsk` | 3,6% [2,7; 4,8] | 3,5% [2,6; 4,7] | 3,2% [2,3; 4,3] |
+| `prova-b` | 10,6% [8,2; 13,7] | 11,5% [8,9; 14,6] | 9,4% [7,1; 12,3] |
 
 As diferenças vão para os dois lados e cabem nos intervalos.
 
@@ -134,11 +134,12 @@ Mutantes (11, todos mortos):
 - **A detecção de saltos do primeiro rascunho via só os saltos perto de π.** O filtro espalha um salto por cerca de 40 amostras, e o limiar era por amostra. Com isso a variação medida na prova B saía inflada (0,0407 rad em vez de 0,0338). A detecção passou a olhar a variação em 64 amostras, com limiar adaptativo (8 desvios robustos, no mínimo 0,3 rad).
 - **A comparação de PER com uma semente só enganava.** Na primeira rodada a fase real "piorou" a DQPSK com FEC de 6% para 9% e "melhorou" a prova A. Era variação estatística. Refiz com 4 sementes e o intervalo de confiança.
 - **Na docstring do ruído de Wiener eu tinha escrito L(f) ≈ Δν/(πf²).** O certo é Δν/(2πf²), e o teste agora confere.
+- **A trajetória de fase filtrada em 2 kHz tinha restos das emendas de leitura (achado no bloco 23).** Com o filtro estreito, um salto se espalha por centenas de amostras, e a busca na própria fase filtrada deixava escapar 12 de 37 e 7 de 30 emendas. Além disso, as junções entre trechos e entre as cópias repetidas deixavam quinas de frequência de até 85 Hz. Os três viravam ruído de fase falso, para o lado pessimista. A correção: os saltos são procurados sempre na fase em banda larga; os trechos se juntam sem tirar a rampa de cada um; as cópias se repetem em espelho, com a frequência contínua. Testes de regressão: saltos de 0,5 rad achados com o filtro de 2 kHz (o código antigo achava 0 de 10) e repetição sem degrau de frequência. O ensaio deste bloco e o do bloco 22 foram refeitos: a conclusão de "sem efeito detectável" não mudou, mas a da detecção coerente na prova B mudou (acima).
 
 ## 7. Evidências
 
 | Evidência | Onde |
 |---|---|
-| Ensaio | `ensaios/etapa6/imperfeicoes_ensaio.py`, `dados/logs/imperfeicoes_20261122_161617.json`, `dados/logs/imperfeicoes_execucao.log` |
-| Fase dentro de um quadro (bloco 22) | `ensaios/etapa6/fase_no_quadro_ensaio.py`, `dados/logs/fase_no_quadro_20261122_195512.json`, `dados/logs/fase_no_quadro_execucao.log` |
+| Ensaio (refeito no bloco 23) | `ensaios/etapa6/imperfeicoes_ensaio.py`, `dados/logs/imperfeicoes_20261122_201847.json`, `dados/logs/imperfeicoes_execucao.log` |
+| Fase dentro de um quadro (bloco 22, refeito no 23) | `ensaios/etapa6/fase_no_quadro_ensaio.py`, `dados/logs/fase_no_quadro_20261122_201412.json`, `dados/logs/fase_no_quadro_execucao.log` |
 | Gravações reais usadas | `dados/calibracao/calibracao_20261104_100631_depois.npy` e `..._100917_depois.npy` (fora do git pelo tamanho; os JSON de calibração estão no git) |
