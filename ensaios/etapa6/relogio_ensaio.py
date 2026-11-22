@@ -28,6 +28,7 @@ RAIZ = Path(__file__).resolve().parents[2]
 PPM = (0.0, 2.0, 20.0, 50.0, 100.0, -100.0, 200.0)
 CASOS = [  # (perfil, Eb/N0 por bit no ar, quadros)
     ("prova-a", 14.0, 300),
+    ("prova-a-8psk", 15.0, 300),  # bloco 24: 2 dB acima dos 12,9 dB de PER 1%
     ("prova-a-fec", 6.0, 300),
     ("prova-a-dbpsk", 12.0, 300),
     ("prova-b", 6.0, 60),

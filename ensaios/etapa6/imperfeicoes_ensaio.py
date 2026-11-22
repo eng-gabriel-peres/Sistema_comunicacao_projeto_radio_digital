@@ -36,6 +36,7 @@ ATRASOS_LONGOS = (800, 3200)
 BANDA_TRAJETORIA_HZ = 2e3
 CASOS = [  # (perfil, Eb/N0 por bit no ar de PER 1%, quadros)
     ("prova-a", 12.0, 400),
+    ("prova-a-8psk", 12.9, 400),  # bloco 24
     ("prova-a-24", 12.2, 400),
     ("prova-a-fec", 4.0, 300),
     ("prova-a-dbpsk", 10.4, 300),
