@@ -1,7 +1,8 @@
-"""Canal simulado: ruído branco gaussiano (AWGN) com Eb/N0 definido.
+"""Canal simulado: ruído branco gaussiano (AWGN), erro de fase, offset de frequência e atraso.
 
-Requisito: Etapa 4 (BER × Eb/N0 simulada contra a teoria); usado já na Etapa 3
-para validar a cadeia completa com ruído.
+Requisito: Etapa 4 (BER × Eb/N0 simulada contra a teoria e efeito de erro de
+fase, offset de frequência e erro de temporização); usado já na Etapa 3 para
+validar a cadeia completa com ruído.
 
 Definição: Eb é a energia média por bit do sinal transmitido, medida no próprio
 sinal (potência média × amostras por bit). O ruído complexo tem variância N0 por
@@ -17,6 +18,7 @@ from numpy.typing import NDArray
 
 EBN0_MIN_DB = -20.0
 EBN0_MAX_DB = 60.0
+ATRASO_MAX_AMOSTRAS = 1e6
 
 
 def awgn(
@@ -42,3 +44,36 @@ def awgn(
     n0 = potencia * amostras_por_bit / 10 ** (ebn0_db / 10)
     ruido = rng.standard_normal(len(sinal)) + 1j * rng.standard_normal(len(sinal))
     return np.asarray(sinal + np.sqrt(n0 / 2) * ruido, dtype=np.complex128)
+
+
+def girar(
+    sinal: NDArray[np.complex128], offset_hz: float, taxa_sps: float, fase_rad: float = 0.0
+) -> NDArray[np.complex128]:
+    """Aplica um erro de fase fixo e um offset de frequência (a fase cresce com o tempo).
+
+    Raises:
+        ValueError: taxa de amostragem não positiva.
+    """
+    if taxa_sps <= 0:
+        raise ValueError(f"taxa de amostragem inválida: {taxa_sps}")
+    n = np.arange(len(sinal))
+    return np.asarray(
+        sinal * np.exp(1j * (fase_rad + 2 * np.pi * offset_hz * n / taxa_sps)), dtype=np.complex128
+    )
+
+
+def atrasar(sinal: NDArray[np.complex128], atraso_amostras: float) -> NDArray[np.complex128]:
+    """Atrasa o sinal por um número fracionário de amostras (fase linear na frequência).
+
+    O sinal é completado com zeros antes da FFT para o atraso não dar a volta no
+    fim do vetor; a saída tem o mesmo comprimento da entrada.
+
+    Raises:
+        ValueError: atraso negativo ou grande demais.
+    """
+    if not 0 <= atraso_amostras <= ATRASO_MAX_AMOSTRAS:
+        raise ValueError(f"atraso fora de 0 a {ATRASO_MAX_AMOSTRAS} amostras: {atraso_amostras}")
+    n = len(sinal) + int(np.ceil(atraso_amostras)) + 16
+    f = np.fft.fftfreq(n)
+    espectro = np.fft.fft(sinal, n) * np.exp(-2j * np.pi * f * atraso_amostras)
+    return np.asarray(np.fft.ifft(espectro)[: len(sinal)], dtype=np.complex128)

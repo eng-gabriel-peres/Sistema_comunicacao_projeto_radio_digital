@@ -13,6 +13,7 @@ Projeto Final de SCM22108 Sistemas de Comunicação, Engenharia Eletrônica, IFS
 | 3a | Quadro v2: sequência de 16 bits e CRC-16 | concluído ([registro](docs/etapa3_quadro.md)) |
 | 3b | OOK, 2-FSK e BPSK em simulação, pulsos RRC e gaussiano, banda a 99% | concluído ([registro](docs/etapa3_modulacoes.md)) |
 | 3c a 3f | RX multiquadro, TX de prova, enlace real, relatório | a fazer |
+| 4 | Simulação do canal: BER × Eb/N0 contra a teoria, fase, offset e temporização | concluído ([registro](docs/etapa4_canal.md)) |
 
 O plano completo, com os requisitos numerados e a matriz de rastreabilidade, está em [docs/00_planejamento_e_auditoria.md](docs/00_planejamento_e_auditoria.md).
 

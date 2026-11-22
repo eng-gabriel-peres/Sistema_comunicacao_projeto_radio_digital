@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from scipy.special import erfc
 
-from sdrlink import canal, espectro, modem, pulsos, quadro
+from sdrlink import canal, espectro, modem, pulsos, quadro, teoria
 from sdrlink.modem import ConfigModem
 
 CONFIGS = [
@@ -121,3 +121,46 @@ def test_filtro_casado_amostra_no_pico_do_simbolo(pulso: str) -> None:
     bits = _bits(200)
     z = modem._amostras_casadas(modem.modular(bits, config), config, 200)
     np.testing.assert_allclose(np.real(z), 2.0 * bits - 1, atol=0.02)  # amplitude exata no pico
+
+
+def test_ber_teorica_em_valores_conhecidos() -> None:
+
+    assert teoria.ber_bpsk(9.6)[()] == pytest.approx(1.0e-5, rel=0.05)  # valor clássico de tabela
+    assert teoria.ber_dbpsk(0.0)[()] == pytest.approx(0.5 * np.exp(-1))
+    assert teoria.ber_fsk_nao_coerente(10.0)[()] == pytest.approx(0.5 * np.exp(-5))
+    assert teoria.ber_bpsk(8.0, np.pi / 2)[()] == pytest.approx(0.5)  # 90 graus: cara ou coroa
+    # OOK exata: perto da aproximação 1/2 exp(-Eb/2N0) em SNR alta, e 1/2 sem sinal
+    ook = teoria.ber_ook_nao_coerente(np.array([-20.0, 14.0]), limiar="meio")
+    assert ook[0] == pytest.approx(0.5, abs=0.01)
+    assert ook[1] == pytest.approx(0.5 * np.exp(-(10**1.4) / 2), rel=0.5)
+    assert teoria.ber_ook_nao_coerente(10.0)[()] < teoria.ber_ook_nao_coerente(10.0, "meio")[()]
+    with pytest.raises(ValueError, match="limiar"):
+        teoria.ber_ook_nao_coerente(10.0, "fixo")
+
+
+def test_ber_simulada_da_ook_bate_com_a_formula_exata() -> None:
+
+    config = ConfigModem("ook", "rrc", 8)
+    bits = _bits(200_000, 6)
+    sinal = canal.awgn(modem.modular(bits, config), 10.0, 8, np.random.default_rng(7))
+    ber = np.mean(modem.demodular(sinal, config, len(bits)) != bits)
+    # o limiar por k-médias fica entre o ótimo e o da metade da amplitude
+    assert (
+        teoria.ber_ook_nao_coerente(10.0)[()] < ber < teoria.ber_ook_nao_coerente(10.0, "meio")[()]
+    )
+
+
+def test_girar_e_atrasar() -> None:
+    s = np.exp(1j * 0.3 * np.arange(64))
+    g = canal.girar(s, 1000.0, 8000.0, fase_rad=0.5)
+    np.testing.assert_allclose(np.angle(g[1] / s[1]), 0.5 + 2 * np.pi * 1000 / 8000)
+    pulso = np.zeros(64, dtype=complex)
+    pulso[10] = 1
+    np.testing.assert_allclose(canal.atrasar(pulso, 3.0)[13], 1, atol=1e-9)  # atraso inteiro
+    suave = modem.modular(_bits(40), ConfigModem("bpsk", "rrc", 8))
+    meia = canal.atrasar(canal.atrasar(suave, 0.5), 0.5)
+    np.testing.assert_allclose(meia[24:-24], canal.atrasar(suave, 1.0)[24:-24], atol=1e-4)  # miolo
+    with pytest.raises(ValueError, match="atraso"):
+        canal.atrasar(pulso, -1.0)
+    with pytest.raises(ValueError, match="taxa"):
+        canal.girar(pulso, 10.0, 0.0)

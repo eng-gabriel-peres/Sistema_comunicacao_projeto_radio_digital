@@ -201,7 +201,7 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | PLT-03 | 🟡 | Referência em Python; 2-FSK e BPSK ainda não existem | 3 |
 | PLT-05 | 🟡 | Faixa definida (915 a 928 MHz) e conferida no código (`conferir_faixa_autorizada`: sinal, vazamento do LO e imagem IQ); os ensaios de 04/11 usaram o LO em 915,0 MHz, na borda (A20); próximos ensaios no meio da faixa | 2, 3 |
 | MOD-01 | ✅ | Enlace real em 04/11: 8 de 8 recepções da referência com CRC OK; 698 de 698 quadros em 16 s, PER 0%, BER 0 em 117 264 bits ([etapa2_recepcao_ook.md](etapa2_recepcao_ook.md), [auditoria_etapas_1_2.md](auditoria_etapas_1_2.md)) | 2 |
-| MOD-02, MOD-03 | 🟡 | 2-FSK (CPFSK e GFSK) e BPSK/DBPSK implementadas e validadas em simulação: ida e volta, quadro v2 com CRC, BER contra a teoria ([etapa3_modulacoes.md](etapa3_modulacoes.md)); falta o enlace real (3e) | 3 |
+| MOD-02, MOD-03 | 🟡 | 2-FSK (CPFSK e GFSK) e BPSK/DBPSK implementadas e validadas em simulação: ida e volta, quadro v2 com CRC, BER contra a teoria ([etapa3_modulacoes.md](etapa3_modulacoes.md)); BPSK implementada como DBPSK, comparada com a BPSK coerente em simulação e justificada pelo offset medido ([etapa4_canal.md](etapa4_canal.md)); falta o enlace real (3e) | 3, 4 |
 | MOD-04 | ❌ (opcional) | Avaliar na Etapa 6 | 6 |
 | PUL-01 | ✅ (simulação) | RRC β = 0,35 e gaussiano BT = 0,5 escolhidos pela banda a 99% simulada contra a teoria: pulso retangular limitaria a BPSK a cerca de 49 kbit/s em 1 MHz, o RRC permite cerca de 860 kbit/s; falta medir no RTL | 3 |
 | PKT-01 a PKT-03 | ✅ (código) | Quadro v2 com sequência de 16 bits e CRC-16 sobre cabeçalho e payload; CRC justificado com contagem exata de erros não detectados ([etapa3_quadro.md](etapa3_quadro.md)); A3 e A9 tratados; falta usar no enlace (3c a 3e) | 3 |
@@ -319,6 +319,8 @@ Sistema_comunicacao_projeto_radio_digital/
 ### Etapa 4 (até 26/11)
 
 Canal simulado com AWGN, erro de fase, offset de frequência e erro de temporização nas três modulações; curvas BER × Eb/N0 contra a teoria; efeito de um offset residual típico; se a escolha for DBPSK, a comparação com BPSK coerente.
+
+**Feito em 21/11/2026** ([etapa4_canal.md](etapa4_canal.md)): simulação a menos de 0,1 dB da teoria; a BPSK coerente só aguenta offset de Δf/Rb < 7,7 × 10⁻⁵ (7,7 Hz a 100 kbit/s), então a BPSK do projeto é a **DBPSK** (perde 1,1 dB a 10⁻³ e tolera o offset medido a partir de 50 kbit/s).
 
 ### Etapa 5 (até 03/12)
 

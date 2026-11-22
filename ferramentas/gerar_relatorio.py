@@ -4,7 +4,7 @@ Os documentos do repositório são a fonte única: o relatório só os junta na
 ordem da entrega, com capa e sumário, e imprime em PDF pelo Edge (ou Chrome)
 em modo headless. Assim o PDF nunca diverge do que está versionado.
 
-Uso: python -m ferramentas.gerar_relatorio
+Uso: python -m ferramentas.gerar_relatorio [etapas-1-2 | etapa-3 | etapa-4]
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ import html
 import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
@@ -21,31 +22,65 @@ import markdown  # type: ignore[import-untyped]
 from sdrlink.registro import RAIZ, versao_do_codigo
 
 DOCS = RAIZ / "docs"
-SAIDA = RAIZ / "entregas" / "Relatorio_Etapas_1_2_Gabriel_Peres.pdf"
 NAVEGADORES = (
     Path("C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"),
     Path("C:/Program Files/Google/Chrome/Application/chrome.exe"),
 )
 TEMPO_MAX_IMPRESSAO_S = 120
 
-# (título da parte, arquivo, título de seção onde começa, título onde termina)
-PARTES = (
-    ("Calibração do RTL-SDR (Etapa 1)", "calibracao_rtl.md", None, None),
-    (
-        "Estudo e auditoria do código de referência (Etapa 2)",
-        "00_planejamento_e_auditoria.md",
-        "## 4. Auditoria do código de referência",
-        "## 6. Matriz de rastreabilidade",
+# Parte: (título, arquivo em docs/, título de seção onde começa, título onde termina)
+Parte = tuple[str, str, str | None, str | None]
+
+
+@dataclass(frozen=True)
+class Entrega:
+    """Uma entrega da disciplina: título da capa, arquivo de saída e partes, em ordem."""
+
+    titulo: str
+    arquivo: str
+    partes: tuple[Parte, ...]
+
+
+ENTREGAS = {
+    "etapas-1-2": Entrega(
+        "Relatório das Etapas 1 e 2",
+        "Relatorio_Etapas_1_2_Gabriel_Peres",
+        (
+            ("Calibração do RTL-SDR (Etapa 1)", "calibracao_rtl.md", None, None),
+            (
+                "Estudo e auditoria do código de referência (Etapa 2)",
+                "00_planejamento_e_auditoria.md",
+                "## 4. Auditoria do código de referência",
+                "## 6. Matriz de rastreabilidade",
+            ),
+            (
+                "Recepção da OOK de referência no enlace real (Etapa 2)",
+                "etapa2_recepcao_ook.md",
+                None,
+                None,
+            ),
+            ("Auditoria de conformidade das Etapas 1 e 2", "auditoria_etapas_1_2.md", None, None),
+            ("Anexo A: registro de uso de IA", "registro_ia.md", None, "## Etapa 3"),
+        ),
     ),
-    (
-        "Recepção da OOK de referência no enlace real (Etapa 2)",
-        "etapa2_recepcao_ook.md",
-        None,
-        None,
+    "etapa-3": Entrega(
+        "Relatório da Etapa 3",
+        "Relatorio_Etapa_3_Gabriel_Peres",
+        (
+            ("Quadro v2: número de sequência e CRC-16", "etapa3_quadro.md", None, None),
+            ("OOK, 2-FSK e BPSK em simulação", "etapa3_modulacoes.md", None, None),
+            ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapa 3", "## Etapa 4"),
+        ),
     ),
-    ("Auditoria de conformidade das Etapas 1 e 2", "auditoria_etapas_1_2.md", None, None),
-    ("Anexo A: registro de uso de IA", "registro_ia.md", None, "## Etapa 3"),
-)
+    "etapa-4": Entrega(
+        "Relatório da Etapa 4",
+        "Relatorio_Etapa_4_Gabriel_Peres",
+        (
+            ("Simulação do canal", "etapa4_canal.md", None, None),
+            ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapa 4", "## Etapa 5"),
+        ),
+    ),
+}
 
 IMAGEM = re.compile(r"!\[([^\]]*)\]\(([^)\s]+)\)")
 LINK = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)\s]+)\)")
@@ -111,11 +146,13 @@ def ajustar_referencias(texto: str, pasta: Path) -> str:
     return LINK.sub(link, IMAGEM.sub(imagem, texto))
 
 
-def capa_e_sumario() -> str:
+def capa_e_sumario(entrega: Entrega) -> str:
     """HTML da capa (identificação e versão do código) e do sumário."""
-    itens = "".join(f"<li>{i}. {html.escape(t)}</li>" for i, (t, *_) in enumerate(PARTES, 1))
+    itens = "".join(
+        f"<li>{i}. {html.escape(t)}</li>" for i, (t, *_) in enumerate(entrega.partes, 1)
+    )
     return (
-        '<div class="capa"><h1>Link de Comunicação SDR<br>Relatório das Etapas 1 e 2</h1>'
+        f'<div class="capa"><h1>Link de Comunicação SDR<br>{html.escape(entrega.titulo)}</h1>'
         "<p>SCM22108 Sistemas de Comunicação, Engenharia Eletrônica, IFSC</p>"
         "<p>Gabriel de Oliveira Peres, matrícula 201920800001</p>"
         f"<p>{date.today():%d/%m/%Y}</p>"
@@ -125,20 +162,58 @@ def capa_e_sumario() -> str:
     )
 
 
-def montar_html() -> str:
+ITEM_DE_LISTA = re.compile(r"^\s*(?:[-*]|\d+\.) ")
+RECUO_ANINHADO = "    "  # o python-markdown exige 4 espaços para lista aninhada
+
+
+def _ajustar_linha(linha: str, anterior: str) -> list[str]:
+    """Uma linha fora de bloco de código, já ajustada (com a linha em branco que faltar)."""
+    if not ITEM_DE_LISTA.match(linha):
+        return [linha]
+    recuo = len(linha) - len(linha.lstrip(" "))
+    ajustada = RECUO_ANINHADO + linha.lstrip(" ") if 0 < recuo < len(RECUO_ANINHADO) else linha
+    paragrafo_antes = (
+        anterior.strip()
+        and not ITEM_DE_LISTA.match(anterior)
+        and not anterior.startswith((" ", "|", ">"))
+    )
+    return ["", ajustada] if paragrafo_antes else [ajustada]
+
+
+def normalizar_listas(texto: str) -> str:
+    """Ajusta listas do Markdown do GitHub para o python-markdown.
+
+    O python-markdown exige 4 espaços para lista aninhada (os documentos usam 3,
+    alinhados ao texto do item numerado) e uma linha em branco antes da lista.
+    Blocos de código (logs) ficam como estão.
+    """
+    saida: list[str] = []
+    em_codigo = False
+    for linha in texto.split("\n"):
+        if linha.lstrip().startswith("```"):
+            em_codigo = not em_codigo
+        if em_codigo:
+            saida.append(linha)
+            continue
+        saida.extend(_ajustar_linha(linha, saida[-1] if saida else ""))
+    return "\n".join(saida)
+
+
+def montar_html(entrega: Entrega) -> str:
     """Junta capa, sumário e as partes num documento HTML só."""
     conversor = markdown.Markdown(extensions=["tables", "fenced_code", "sane_lists"])
-    corpo = [capa_e_sumario()]
-    for n, (titulo, arquivo, inicio, fim) in enumerate(PARTES, 1):
+    corpo = [capa_e_sumario(entrega)]
+    for n, (titulo, arquivo, inicio, fim) in enumerate(entrega.partes, 1):
         caminho = DOCS / arquivo
         texto = trecho(caminho.read_text(encoding="utf-8"), inicio, fim)
         texto = re.sub(r"\A# [^\n]*\n", "", texto)  # o título da parte substitui o do documento
+        texto = normalizar_listas(texto)
         texto = ajustar_referencias(texto, caminho.parent)
         corpo.append(f'<h1 class="parte">{n}. {html.escape(titulo)}</h1>')
         corpo.append(conversor.reset().convert(texto))
     return (
         '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
-        f"<title>Relatório Etapas 1 e 2</title><style>{CSS}</style></head>"
+        f"<title>{html.escape(entrega.titulo)}</title><style>{CSS}</style></head>"
         f"<body>{''.join(corpo)}</body></html>"
     )
 
@@ -169,12 +244,18 @@ def imprimir_pdf(pagina: Path, saida: Path) -> None:
 
 
 def main() -> int:
-    """Gera o HTML intermediário e o PDF da entrega."""
-    pagina = RAIZ / "entregas" / "relatorio_etapas_1_2.html"
+    """Gera o HTML intermediário e o PDF da entrega pedida (padrão: etapas-1-2)."""
+    chave = sys.argv[1] if len(sys.argv) > 1 else "etapas-1-2"
+    if chave not in ENTREGAS:
+        print(f"entrega desconhecida: {chave}; opções: {', '.join(ENTREGAS)}")
+        return 2
+    entrega = ENTREGAS[chave]
+    pagina = RAIZ / "entregas" / f"{entrega.arquivo}.html"
+    saida = RAIZ / "entregas" / f"{entrega.arquivo}.pdf"
     pagina.parent.mkdir(parents=True, exist_ok=True)
-    pagina.write_text(montar_html(), encoding="utf-8", newline="\n")
-    imprimir_pdf(pagina, SAIDA)
-    print(f"PDF gerado: {SAIDA} ({SAIDA.stat().st_size / 1e6:.2f} MB)")
+    pagina.write_text(montar_html(entrega), encoding="utf-8", newline="\n")
+    imprimir_pdf(pagina, saida)
+    print(f"PDF gerado: {saida} ({saida.stat().st_size / 1e6:.2f} MB)")
     return 0
 
 
