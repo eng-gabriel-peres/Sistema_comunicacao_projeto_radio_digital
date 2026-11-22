@@ -32,6 +32,12 @@ dados/calibracao/*
 dados/logs/*
 !dados/logs/*.log
 !dados/logs/*.json
+# Sessões de bancada (bloco 20): os registros JSON e a análise (md e png) de cada ponto.
+!dados/logs/*/
+dados/logs/*/*
+!dados/logs/*/*.json
+!dados/logs/*/*.md
+!dados/logs/*/*.png
 *.npy
 *.bin
 *.iq

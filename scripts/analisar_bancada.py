@@ -80,14 +80,15 @@ def main() -> int:
     if not pontos:
         p.error(f"nenhum registro *{bancada.SUFIXO_RX} em {args.pasta}")
     perdas = [v for v in (bancada.perda_db(ponto) for ponto in pontos) if v is not None]
+    criterio = f"sem FEC e com pelo menos {bancada.ERROS_MIN_BER} erros contados"
     resumo = f"{len(pontos)} pontos; perda do enlace em relação à teoria: " + (
-        f"mediana de {np.median(perdas):+.2f} dB ({len(perdas)} pontos com BER)"
+        f"mediana de {np.median(perdas):+.2f} dB ({len(perdas)} pontos {criterio})"
         if perdas
-        else "sem pontos com BER"
+        else f"nenhum ponto {criterio}"
     )
     texto = (
         f"# Análise da sessão {args.pasta.name}\n\n"
-        f"Versão do código: `{versao_do_codigo()}`. {resumo}.\n\n"
+        f"Versão do código: `{versao_do_codigo(ignorar=('dados/', 'docs/'))}`. {resumo}.\n\n"
         + bancada.tabela_markdown(pontos)
         + "\n![BER e PER × Eb/N0](analise_bancada.png)\n"
     )
