@@ -27,37 +27,52 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 PER_MIN_GRAFICO = 1e-4  # PER zero aparece aqui no gráfico em escala logarítmica
+CORES = {"ook": "C2", "bpsk": "C4", "dbpsk": "C0", "dqpsk": "C3", "fsk": "C1"}
+MARCADORES = "o^vD"  # perfis da mesma modulação sem FEC; com FEC: quadrado
+
+
+def _estilos(pontos: list[bancada.PontoMedido]) -> dict[str, dict[str, str]]:
+    """Cor da modulação (a da curva teórica) e marcador por perfil, iguais nos dois painéis."""
+    estilos: dict[str, dict[str, str]] = {}
+    for perfil in sorted({p.perfil for p in pontos}):
+        ponto = next(p for p in pontos if p.perfil == perfil)
+        vizinhos = sum(
+            e["modulacao"] == ponto.modulacao and e["fec"] == "" for e in estilos.values()
+        )
+        estilos[perfil] = {
+            "modulacao": ponto.modulacao,
+            "fec": " (com FEC)" if ponto.fec else "",
+            "color": CORES.get(ponto.modulacao, "k"),
+            "marker": "s" if ponto.fec else MARCADORES[vizinhos % len(MARCADORES)],
+            "linestyle": "-." if ponto.fec else "-",
+        }
+    return estilos
 
 
 def _figura(pontos: list[bancada.PontoMedido], caminho: Path) -> None:
-    """BER e PER × Eb/N0 medido por perfil, com a BER teórica de cada modulação."""
+    """BER e PER × Eb/N0 medido por perfil, com a BER teórica (sem código) de cada modulação."""
     fig, (esq, dir_) = plt.subplots(1, 2, figsize=(12, 4.8))
     eixo = np.linspace(0, 20, 201)
     for modulacao in sorted({p.modulacao for p in pontos if p.modulacao in teoria.BER_TEORICA}):
-        esq.semilogy(
-            eixo, teoria.BER_TEORICA[modulacao](eixo), "--", lw=1, label=f"teoria {modulacao}"
-        )
-    for perfil in sorted({p.perfil for p in pontos}):
+        cor = CORES.get(modulacao, "k")
+        curva = teoria.BER_TEORICA[modulacao](eixo)
+        esq.semilogy(eixo, curva, "--", color=cor, lw=1, label=f"teoria {modulacao}")
+    for perfil, estilo in _estilos(pontos).items():
         do_perfil = sorted(
             (p for p in pontos if p.perfil == perfil and p.ebn0_db is not None),
             key=lambda p: p.ebn0_db or 0.0,
         )
-        com_ber = [p for p in do_perfil if p.ber]
+        traco = {k: estilo[k] for k in ("color", "marker", "linestyle")}
+        rotulo = f"{perfil}{estilo['fec']}"
+        com_ber = [p for p in do_perfil if p.ber]  # BER 0 não aparece em escala log
         if com_ber:
             esq.semilogy(
-                [p.ebn0_db for p in com_ber],
-                [p.ber for p in com_ber],
-                "o-",
-                label=f"medido {perfil}",
+                [p.ebn0_db for p in com_ber], [p.ber for p in com_ber], **traco, label=rotulo
             )
         com_per = [p for p in do_perfil if p.per is not None]
         if com_per:
-            dir_.semilogy(
-                [p.ebn0_db for p in com_per],
-                [max(p.per or 0.0, PER_MIN_GRAFICO) for p in com_per],
-                "o-",
-                label=perfil,
-            )
+            per = [max(p.per or 0.0, PER_MIN_GRAFICO) for p in com_per]
+            dir_.semilogy([p.ebn0_db for p in com_per], per, **traco, label=rotulo)
     esq.set_ylim(1e-6, 0.5)
     esq.set_title("BER × Eb/N0 medido na captura")
     dir_.axhline(0.01, color="k", ls="--", lw=1)
