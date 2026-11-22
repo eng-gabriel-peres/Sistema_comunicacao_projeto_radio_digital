@@ -81,7 +81,11 @@ def main() -> int:
     """Confere a banda, transmite (ou simula) e grava o log do TX."""
     args, perfil = _argumentos()
     config = ConfigTransmissor(
-        perfil.modem(), perfil.taxa_sps, perfil.deslocamento_hz, fec=perfil.fec
+        perfil.modem(),
+        perfil.taxa_sps,
+        perfil.deslocamento_hz,
+        fec=perfil.fec,
+        emendar_caudas=perfil.emendar_caudas,
     )
     baixo, alto = _conferir_banda(config, perfil.lo_hz)
     pacotes = transmissor.numerar(transmissor.ler_payloads(args.payloads))

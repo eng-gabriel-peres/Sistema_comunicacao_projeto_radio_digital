@@ -85,6 +85,11 @@ class ConfigModem:
         return _formato(self)
 
     @property
+    def linear(self) -> bool:
+        """Modulação linear (soma de pulsos): OOK, BPSK, DBPSK e DQPSK; a 2-FSK não é."""
+        return self.modulacao != "fsk"
+
+    @property
     def bits_por_simbolo(self) -> int:
         """Bits levados por símbolo no corpo: 2 na DQPSK, 1 nas outras."""
         return 2 if self.modulacao == "dqpsk" else 1

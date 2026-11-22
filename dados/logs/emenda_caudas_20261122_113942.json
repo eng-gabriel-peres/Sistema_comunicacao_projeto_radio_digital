@@ -1,0 +1,107 @@
+{
+  "ensaio": "emenda das caudas do RRC: goodput × sensibilidade",
+  "quadros_por_ponto": 1000,
+  "candidatas": [
+    {
+      "nome": "DQPSK 1365 kbit/s (prova-a)",
+      "emendar_caudas": false,
+      "simbolos_por_quadro_no_fluxo": 586,
+      "goodput_sem_perda_kbps": 1192.9,
+      "per_por_ebn0": {
+        "10": 0.276,
+        "11": 0.065,
+        "12": 0.012,
+        "13": 0.0,
+        "14": 0.0
+      },
+      "nao_detectados_por_ebn0": {
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "errados_aceitos": 0,
+      "ebn0_per_1pct_db": 12.04
+    },
+    {
+      "nome": "DQPSK 1365 kbit/s (prova-a)",
+      "emendar_caudas": true,
+      "simbolos_por_quadro_no_fluxo": 574,
+      "goodput_sem_perda_kbps": 1217.9,
+      "per_por_ebn0": {
+        "10": 0.333,
+        "11": 0.092,
+        "12": 0.011,
+        "13": 0.003,
+        "14": 0.0
+      },
+      "nao_detectados_por_ebn0": {
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "errados_aceitos": 0,
+      "ebn0_per_1pct_db": 12.07
+    },
+    {
+      "nome": "DBPSK 682,7 kbit/s (prova-a-dbpsk)",
+      "emendar_caudas": false,
+      "simbolos_por_quadro_no_fluxo": 1130,
+      "goodput_sem_perda_kbps": 618.6,
+      "per_por_ebn0": {
+        "8": 0.58,
+        "9": 0.168,
+        "10": 0.02,
+        "11": 0.003,
+        "12": 0.0
+      },
+      "nao_detectados_por_ebn0": {
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0
+      },
+      "errados_aceitos": 0,
+      "ebn0_per_1pct_db": 10.37
+    },
+    {
+      "nome": "DBPSK 682,7 kbit/s (prova-a-dbpsk)",
+      "emendar_caudas": true,
+      "simbolos_por_quadro_no_fluxo": 1118,
+      "goodput_sem_perda_kbps": 625.3,
+      "per_por_ebn0": {
+        "8": 0.61,
+        "9": 0.169,
+        "10": 0.025,
+        "11": 0.002,
+        "12": 0.0
+      },
+      "nao_detectados_por_ebn0": {
+        "8": 3,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0
+      },
+      "errados_aceitos": 0,
+      "ebn0_per_1pct_db": 10.36
+    }
+  ],
+  "comparacao": [
+    {
+      "nome": "DQPSK 1365 kbit/s (prova-a)",
+      "ganho_de_goodput_pct": 2.1,
+      "custo_em_ebn0_db": 0.03
+    },
+    {
+      "nome": "DBPSK 682,7 kbit/s (prova-a-dbpsk)",
+      "ganho_de_goodput_pct": 1.08,
+      "custo_em_ebn0_db": -0.01
+    }
+  ],
+  "versao_do_codigo": "bloco-11-2-g43039a9"
+}

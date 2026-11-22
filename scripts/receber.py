@@ -65,7 +65,9 @@ def main() -> int:
     inicio = time.time()
     deteccoes = receptor.receber(amostras, config)
     tempo = time.time() - inicio
-    periodo = transmissor.amostras_por_quadro(modem, fec=perfil.fec)
+    periodo = transmissor.amostras_por_quadro(
+        modem, fec=perfil.fec, emendar_caudas=perfil.emendar_caudas
+    )
     medidas: dict[str, object] = {"medido": False, "motivo": "nenhum quadro detectado"}
     if deteccoes:
         fim = deteccoes[-1].inicio + periodo

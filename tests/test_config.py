@@ -152,7 +152,7 @@ def _rodar(script: str, *argumentos: str) -> subprocess.CompletedProcess[str]:
 
 def test_tx_e_rx_com_o_mesmo_perfil_fecham_o_enlace(tmp_path: Path) -> None:
     payloads = tmp_path / "payloads.bin"
-    payloads.write_bytes(bytes(range(128)) * 40)
+    payloads.write_bytes(bytes(range(128)) * 100)  # mais do que cabe na janela
     sinal = tmp_path / "prova_a.npy"
     tx = _rodar(
         "transmitir.py",
@@ -174,6 +174,10 @@ def test_tx_e_rx_com_o_mesmo_perfil_fecham_o_enlace(tmp_path: Path) -> None:
     assert saida == log_tx and saida.count("\n") >= 20
     registro = json.loads((tmp_path / "prova_a_rx.json").read_text(encoding="utf-8"))
     assert registro["perfil"]["nome"] == "prova-a" and registro["perfil"]["sps"] == 3
+    # o TX aplicou a emenda do perfil: na janela de 0,04 s cabem os quadros do período curto
+    perfil = config.perfil("prova-a")
+    periodo = transmissor.amostras_por_quadro(perfil.modem(), emendar_caudas=True)
+    assert log_tx.count("\n") == -(-int(0.04 * perfil.taxa_sps) // periodo)
 
 
 def test_scripts_recusam_perfil_inexistente_ou_parametros_faltando(tmp_path: Path) -> None:
@@ -247,3 +251,14 @@ def test_perfis_da_prova_b_passam_dos_10_kbps_com_per_de_1_pct(
     goodput_com_per_1pct = 1024 / periodo_s * 0.99
     assert goodput_com_per_1pct > 10e3 * (1 + folga_minima)
     assert 500 * periodo_s < 50  # os 500 pacotes cabem em menos de 50 s
+
+
+def test_emenda_das_caudas_so_nos_perfis_da_prova_a(tmp_path: Path) -> None:
+    perfis = config.ler_perfis(config.ARQUIVO_PERFIS)
+    for nome, perfil in perfis.items():
+        assert perfil.emendar_caudas is nome.startswith("prova-a"), nome  # a B vale sensibilidade
+    arquivo = _arquivo(tmp_path, PERFIL_MINIMO + "emendar_caudas = true\n")
+    assert config.perfil("p", arquivo).emendar_caudas is True
+    assert config.montar_perfil("p", {"emendar_caudas": False}, arquivo).emendar_caudas is False
+    with pytest.raises(ValueError, match="não é bool"):
+        config.ler_perfis(_arquivo(tmp_path, PERFIL_MINIMO + "emendar_caudas = 1\n"))

@@ -6,7 +6,8 @@
 # JSON de cada script guarda o perfil completo que foi usado.
 #
 # Campos: modulacao, pulso, sps (amostras por símbolo), beta (RRC), bt (gaussiano),
-# h (2-FSK), taxa_sps, deslocamento_hz (sinal em relação ao LO), lo_hz, fec, descricao.
+# h (2-FSK), taxa_sps, deslocamento_hz (sinal em relação ao LO), lo_hz, fec,
+# emendar_caudas (TX com as caudas do RRC somadas entre quadros), descricao.
 # Taxa de bits = taxa_sps / sps (o dobro na DQPSK).
 
 [prova-a]
@@ -18,6 +19,7 @@ beta = 0.25
 taxa_sps = 2.048e6
 deslocamento_hz = 425e3  # sinal de +50 a +800 kHz: longe do DC e dentro da faixa plana do RTL
 lo_hz = 919.5e6
+emendar_caudas = true  # +2,1% de goodput na DQPSK, +1,1% na DBPSK (docs/etapa6_emenda.md)
 
 [prova-a-fec]
 descricao = "Reserva 1 da prova A: DQPSK com FEC, goodput da DBPSK com 3,3 dB a mais de margem (docs/etapa6_viterbi_lote.md)"
@@ -29,6 +31,7 @@ taxa_sps = 2.048e6
 deslocamento_hz = 425e3
 lo_hz = 919.5e6
 fec = true
+emendar_caudas = true  # +2,1% de goodput na DQPSK, +1,1% na DBPSK (docs/etapa6_emenda.md)
 
 [prova-a-dbpsk]
 descricao = "Reserva 2 da prova A: DBPSK RRC a 682,7 kbit/s, sem FEC (docs/etapa6_prova_a.md)"
@@ -39,6 +42,7 @@ beta = 0.25
 taxa_sps = 2.048e6
 deslocamento_hz = 425e3  # sinal de +50 a +800 kHz: longe do DC e dentro da faixa plana do RTL
 lo_hz = 919.5e6
+emendar_caudas = true  # +2,1% de goodput na DQPSK, +1,1% na DBPSK (docs/etapa6_emenda.md)
 
 [prova-b]
 descricao = "Prova B: DBPSK RRC com FEC a 25,6 kbit/s no ar, C/N0 de 48,4 dB-Hz (docs/etapa6_fec.md)"
