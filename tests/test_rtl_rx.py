@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from sdrlink import canal
 from sdrlink.hw import rtl_rx
 from sdrlink.hw.rtl_rx import ConfigRtl
 
@@ -25,6 +26,23 @@ def test_fracao_saturada() -> None:
     assert rtl_rx.fracao_saturada(amostras) == pytest.approx(0.5)
     with pytest.raises(ValueError, match="vazio"):
         rtl_rx.fracao_saturada(np.zeros(0, dtype=np.complex64))
+
+
+def test_nivel_eficaz_e_a_janela_do_adc() -> None:
+    rng = np.random.default_rng(5)
+    x = rng.standard_normal(100_000) + 1j * rng.standard_normal(100_000)
+    for nivel in (-40.0, -20.0, -12.0):  # sem saturação; em −6 dBFS o corte já baixa o eficaz
+        assert rtl_rx.nivel_eficaz_dbfs(canal.quantizar_8_bits(x, nivel)) == pytest.approx(
+            nivel, abs=0.3
+        )
+    assert rtl_rx.nivel_eficaz_dbfs(np.zeros(4, complex)) == rtl_rx.NIVEL_PISO_DBFS
+    with pytest.raises(ValueError, match="vazio"):
+        rtl_rx.nivel_eficaz_dbfs(np.zeros(0, complex))
+    assert rtl_rx.aviso_de_nivel(-20.0) is None
+    assert rtl_rx.aviso_de_nivel(rtl_rx.NIVEL_MIN_DBFS) is None
+    assert rtl_rx.aviso_de_nivel(rtl_rx.NIVEL_MAX_DBFS) is None
+    assert "subir o ganho" in (rtl_rx.aviso_de_nivel(-35.0) or "")
+    assert "baixar o ganho" in (rtl_rx.aviso_de_nivel(-3.0) or "")
 
 
 def test_config_valida_e_aceita() -> None:

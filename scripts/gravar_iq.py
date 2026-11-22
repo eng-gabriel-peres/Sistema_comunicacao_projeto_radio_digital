@@ -19,7 +19,14 @@ from pathlib import Path
 import numpy as np
 
 from sdrlink.config import correcao_rtl_ppm_padrao, perfil
-from sdrlink.hw.rtl_rx import AMOSTRAS_POR_LEITURA, ConfigRtl, capturar, fracao_saturada
+from sdrlink.hw.rtl_rx import (
+    AMOSTRAS_POR_LEITURA,
+    ConfigRtl,
+    aviso_de_nivel,
+    capturar,
+    fracao_saturada,
+    nivel_eficaz_dbfs,
+)
 from sdrlink.registro import RAIZ, carimbo_de_tempo, salvar_json, versao_do_codigo
 
 SEGUNDOS_MAX = 70.0  # 60 s de prova com folga antes e depois; 70 s a 2,4 MS/s = 1,3 GB
@@ -80,8 +87,13 @@ def main() -> int:
         "perfil": args.perfil,
         "amostras": len(captura.amostras),
         "fracao_saturada": fracao_saturada(captura.amostras),
+        "nivel_eficaz_dbfs": round(nivel_eficaz_dbfs(captura.amostras), 1),
     }
     print(f"Gravado: {base.with_suffix('.npy')} ({len(captura.amostras)} amostras)")
+    print(f"Nível eficaz: {metadados['nivel_eficaz_dbfs']} dBFS")
+    aviso = aviso_de_nivel(nivel_eficaz_dbfs(captura.amostras))
+    if aviso:
+        print(f"AVISO: {aviso}")
     print(f"Metadados: {salvar_json(base.with_suffix('.json'), metadados)}")
     return 0
 

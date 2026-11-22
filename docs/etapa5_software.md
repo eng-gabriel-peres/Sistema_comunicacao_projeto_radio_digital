@@ -199,7 +199,7 @@ python scripts/gerar_payloads.py --conhecidos 20000 dados/capturas/payloads_ber.
    python scripts/receber.py <captura>.npy --perfil dbpsk-256k --ber
    ```
 
-   O resultado traz banda a 99%, Eb/N0, BER, saturação e offset.
+   O resultado traz banda a 99%, Eb/N0, BER, saturação, offset e avisos de nível: o `gravar_iq.py` registra o nível eficaz da gravação, e o ganho do RX deve deixá-lo entre −20 e −12 dBFS (janela sem perda de −30 a −6 dBFS, bloco 21).
 4. PER e goodput:
 
    ```

@@ -363,14 +363,16 @@ def test_receber_junta_os_metadados_da_gravacao_e_avisa_divergencias(tmp_path: P
         "ganho_db": 30.0,
         "correcao_ppm": 84,
         "fracao_saturada": 0.0,
+        "nivel_eficaz_dbfs": -38.0,
     }
     captura.with_suffix(".json").write_text(json.dumps(metadados), encoding="utf-8")
     rx = _rodar("receber.py", str(captura), "--perfil", "prova-a")
     assert rx.returncode == 0, rx.stderr
     assert "AVISO: gravada com centro em 919.600000 MHz" in rx.stdout
+    assert "AVISO: nível de -38.0 dBFS" in rx.stdout
     registro = json.loads((tmp_path / "cap_rx.json").read_text(encoding="utf-8"))
     assert registro["gravacao"]["metadados"]["ganho_db"] == 30.0
-    assert len(registro["gravacao"]["avisos"]) == 1
+    assert len(registro["gravacao"]["avisos"]) == 2
     captura.with_suffix(".json").unlink()
     sem = _rodar("receber.py", str(captura), "--perfil", "prova-a")
     assert sem.returncode == 0, sem.stderr

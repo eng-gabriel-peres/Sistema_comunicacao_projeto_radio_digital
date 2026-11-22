@@ -1,4 +1,4 @@
-"""Canal simulado: AWGN, erro de fase, offset de frequência, atraso e diferença de relógio.
+"""Canal simulado: AWGN, fase, offset, atraso, relógio, ruído de fase e o ADC de 8 bits do RTL.
 
 Requisito: Etapa 4 (BER × Eb/N0 simulada contra a teoria e efeito de erro de
 fase, offset de frequência e erro de temporização); usado já na Etapa 3 para
@@ -23,6 +23,7 @@ PPM_MAX = 1000.0  # diferença de relógio aceita na simulação
 MEIO_INTERPOLADOR = 16  # interpolador de reamostrar: 33 coeficientes (sinc com janela de Kaiser)
 _JANELA_INTERPOLADOR = np.kaiser(2 * MEIO_INTERPOLADOR + 1, 8.0)
 BLOCO_REAMOSTRAGEM = 2**16  # amostras de saída por bloco (memória: bloco × 33 complexos)
+ESCALA_ADC_RTL = 127.5  # a do pyrtlsdr (sdrlink.hw.rtl_rx.ESCALA_ADC; o teste confere)
 
 
 def awgn(
@@ -117,3 +118,46 @@ def reamostrar(sinal: NDArray[np.complex128], ppm: float) -> NDArray[np.complex1
         indices = base[:, None] + vizinhos[None, :] + MEIO_INTERPOLADOR
         saida[k : k + len(base)] = np.sum(estendido[indices] * pesos, axis=1)
     return saida
+
+
+def ruido_de_fase(
+    n: int, largura_hz: float, taxa_sps: float, rng: np.random.Generator
+) -> NDArray[np.float64]:
+    """Trajetória de fase de um oscilador com ruído de fase de Wiener (largura de linha Δν).
+
+    A fase anda ao acaso: a cada amostra soma um passo gaussiano de variância
+    2π·Δν/taxa. Em τ segundos a variação de fase tem variância 2π·Δν·τ, e o espectro
+    do oscilador é uma lorentziana com L(f) ≈ Δν/(2π f²) longe da portadora.
+
+    Raises:
+        ValueError: tamanho, largura ou taxa inválidos.
+    """
+    if n <= 0 or largura_hz < 0 or taxa_sps <= 0:
+        raise ValueError(f"parâmetros inválidos: n={n}, largura={largura_hz}, taxa={taxa_sps}")
+    passos = rng.standard_normal(n) * np.sqrt(2 * np.pi * largura_hz / taxa_sps)
+    return np.asarray(np.cumsum(passos), dtype=np.float64)
+
+
+def quantizar_8_bits(sinal: NDArray[np.complex128], nivel_dbfs: float) -> NDArray[np.complex128]:
+    """O sinal como o ADC de 8 bits do RTL o entrega, com valor eficaz em nivel_dbfs.
+
+    O sinal é escalado para que o valor eficaz de I e de Q fique nivel_dbfs abaixo do
+    fundo de escala, arredondado para os 256 níveis do ADC e saturado nos extremos,
+    na mesma escala do pyrtlsdr: (byte − 127,5) / 127,5.
+
+    Raises:
+        ValueError: sinal nulo ou nível acima do fundo de escala.
+    """
+    if nivel_dbfs > 0:
+        raise ValueError(f"nível acima do fundo de escala: {nivel_dbfs} dBFS")
+    eficaz = np.sqrt(np.mean(np.abs(sinal) ** 2) / 2)  # por componente
+    if eficaz == 0:
+        raise ValueError("sinal nulo")
+    escala = 10 ** (nivel_dbfs / 20) / eficaz * ESCALA_ADC_RTL
+    return np.asarray(_adc(sinal.real, escala) + 1j * _adc(sinal.imag, escala), dtype=np.complex128)
+
+
+def _adc(v: NDArray[np.float64], escala: float) -> NDArray[np.float64]:
+    """Uma componente pelo ADC: byte = 127,5 + v·escala arredondado, saturado em 0 e 255."""
+    byte = np.clip(np.round(v * escala + ESCALA_ADC_RTL), 0, 255)
+    return np.asarray((byte - ESCALA_ADC_RTL) / ESCALA_ADC_RTL, dtype=np.float64)
