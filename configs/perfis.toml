@@ -6,7 +6,7 @@
 # JSON de cada script guarda o perfil completo que foi usado.
 #
 # Campos: modulacao, pulso, sps (amostras por bit), beta (RRC), bt (gaussiano),
-# h (2-FSK), taxa_sps, deslocamento_hz (sinal em relação ao LO), lo_hz, descricao.
+# h (2-FSK), taxa_sps, deslocamento_hz (sinal em relação ao LO), lo_hz, fec, descricao.
 # Taxa de bits = taxa_sps / sps.
 
 [prova-a]
@@ -17,6 +17,34 @@ sps = 3
 beta = 0.25
 taxa_sps = 2.048e6
 deslocamento_hz = 425e3  # sinal de +50 a +800 kHz: longe do DC e dentro da faixa plana do RTL
+lo_hz = 919.5e6
+
+[prova-b]
+descricao = "Prova B: DBPSK RRC com FEC a 25,6 kbit/s no ar, C/N0 de 48,4 dB-Hz (docs/etapa6_fec.md)"
+modulacao = "dbpsk"
+pulso = "rrc"
+sps = 80  # goodput sem perdas de 11,93 kbit/s: 18,1% de folga sobre os 10 kbit/s com PER de 1%
+beta = 0.35
+deslocamento_hz = 250e3
+lo_hz = 919.5e6
+fec = true
+
+[prova-b-sem-fec]
+descricao = "Prova B do bloco 08: DBPSK RRC a 12,8 kbit/s sem código, C/N0 de 51,3 dB-Hz"
+modulacao = "dbpsk"
+pulso = "rrc"
+sps = 160
+beta = 0.35
+deslocamento_hz = 250e3
+lo_hz = 919.5e6
+
+[prova-b-limite]
+descricao = "Prova B no limite: DBPSK RRC a 11,6 kbit/s, +0,4 dB, só 5,1% de folga no goodput"
+modulacao = "dbpsk"
+pulso = "rrc"
+sps = 176
+beta = 0.35
+deslocamento_hz = 250e3
 lo_hz = 919.5e6
 
 [dbpsk-256k]
