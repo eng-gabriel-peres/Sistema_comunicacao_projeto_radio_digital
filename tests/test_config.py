@@ -262,3 +262,26 @@ def test_emenda_das_caudas_so_nos_perfis_da_prova_a(tmp_path: Path) -> None:
     assert config.montar_perfil("p", {"emendar_caudas": False}, arquivo).emendar_caudas is False
     with pytest.raises(ValueError, match="não é bool"):
         config.ler_perfis(_arquivo(tmp_path, PERFIL_MINIMO + "emendar_caudas = 1\n"))
+
+
+def test_transmitir_avisa_quando_faltam_payloads(tmp_path: Path) -> None:
+    payloads = tmp_path / "poucos.bin"
+    payloads.write_bytes(bytes(128) * 5)  # em 0,04 s cabem 48 quadros do prova-a
+    tx = _rodar(
+        "transmitir.py",
+        str(payloads),
+        "--perfil",
+        "prova-a",
+        "--duracao-s",
+        "0.04",
+        "--simular",
+        str(tmp_path / "x.npy"),
+        "--pasta",
+        str(tmp_path),
+    )
+    assert tx.returncode == 0, tx.stderr
+    assert "AVISO" in tx.stdout and "5 payloads" in tx.stdout and "cabem 48" in tx.stdout
+    registro = json.loads(next(tmp_path.glob("tx_*.json")).read_text(encoding="utf-8"))
+    assert (
+        registro["payloads_suficientes"] is False and registro["pacotes_que_cabem_na_janela"] == 48
+    )

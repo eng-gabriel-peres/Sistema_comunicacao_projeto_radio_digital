@@ -244,3 +244,22 @@ def test_emenda_nao_vale_para_a_2fsk() -> None:
     ]
     sem = [b for b, _ in transmissor.fluxo(pacotes, ConfigTransmissor(gfsk, FS), 1.0)]
     np.testing.assert_array_equal(np.concatenate(com), np.concatenate(sem))
+
+
+@pytest.mark.parametrize("emendar", [False, True])
+def test_pacotes_que_cabem_e_o_que_o_fluxo_manda(emendar: bool) -> None:
+    config = ConfigTransmissor(
+        ConfigModem("dqpsk", "rrc", 3, beta=0.25), FS, 425e3, emendar_caudas=emendar
+    )
+    cabem = transmissor.pacotes_que_cabem(config, 0.05)
+    pacotes = transmissor.numerar([bytes(128)] * (cabem + 10))
+    enviados = [r for _, rs in transmissor.fluxo(pacotes, config, 0.05) for r in rs]
+    assert len(enviados) == cabem
+    assert (
+        transmissor.pacotes_que_cabem(
+            ConfigTransmissor(config.modem, FS, 425e3, emendar_caudas=True), 60.0
+        )
+        > 2**16
+    )
+    with pytest.raises(ValueError, match="duração"):
+        transmissor.pacotes_que_cabem(config, 0.0)

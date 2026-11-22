@@ -1,0 +1,10 @@
+== prova-a a 14.0 dB
+{"perfil": "prova-a", "ebn0_no_ar_db": 14.0, "ebn0_necessario_db": 12.07, "origem": "bloco 12, DQPSK com emenda", "modulacao": "dqpsk", "fec": false, "emendar_caudas": true, "transmitidos": 71359, "recebidos_certos": 71357, "per": 2.8027298588825517e-05, "goodput_kbps": 1217.8, "conteudo_diferente": 0, "espurios": 0, "banda_99_medida_khz": 748.6, "tempo_rx_processamento_s": 74.5, "passa": true, "registro": "prova_a_60s_14dB_20261122_115342.json"}
+== prova-a-fec a 6.0 dB
+{"perfil": "prova-a-fec", "ebn0_no_ar_db": 6.0, "ebn0_necessario_db": 4.04, "origem": "bloco 10, DQPSK com FEC", "modulacao": "dqpsk", "fec": true, "emendar_caudas": true, "transmitidos": 36703, "recebidos_certos": 36703, "per": 0.0, "goodput_kbps": 626.4, "conteudo_diferente": 0, "espurios": 0, "banda_99_medida_khz": 750.0, "tempo_rx_processamento_s": 89.1, "passa": true, "registro": "prova_a_fec_60s_6dB_20261122_115606.json"}
+== prova-a-dbpsk a 12.0 dB
+{"perfil": "prova-a-dbpsk", "ebn0_no_ar_db": 12.0, "ebn0_necessario_db": 10.36, "origem": "bloco 12, DBPSK com emenda", "modulacao": "dbpsk", "fec": false, "emendar_caudas": true, "transmitidos": 36637, "recebidos_certos": 36631, "per": 0.00016376886753828097, "goodput_kbps": 625.2, "conteudo_diferente": 0, "espurios": 0, "banda_99_medida_khz": 749.2, "tempo_rx_processamento_s": 65.6, "passa": true, "registro": "prova_a_dbpsk_60s_12dB_20261122_115803.json"}
+== prova-b a 6.0 dB
+{"perfil": "prova-b", "ebn0_no_ar_db": 6.0, "ebn0_necessario_db": 4.35, "origem": "bloco 09, DBPSK com FEC a 25,6 kbit/s", "modulacao": "dbpsk", "fec": true, "emendar_caudas": false, "transmitidos": 694, "recebidos_certos": 694, "per": 0.0, "goodput_kbps": 11.8, "conteudo_diferente": 0, "espurios": 0, "banda_99_medida_khz": 266.3, "tempo_rx_processamento_s": 25.2, "passa": true, "registro": "prova_b_60s_6dB_20261122_115927.json"}
+todos passam: True
+registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\ensaio_geral_20261122_115928.json
