@@ -48,12 +48,14 @@ class ConfigTransmissor:
         taxa_sps: taxa de amostragem do DAC (a mesma do RX, para sps inteiro dos dois lados).
         deslocamento_hz: posição do sinal em relação ao LO.
         amplitude: pico desejado do sinal, em unidades do DAC.
+        fec: codifica o corpo de cada quadro (sdrlink.codigo, bloco 09).
     """
 
     modem: ConfigModem
     taxa_sps: float
     deslocamento_hz: float = 250e3
     amplitude: float = AMPLITUDE_PADRAO
+    fec: bool = False
 
     def __post_init__(self) -> None:
         """Rejeita parâmetros incoerentes.
@@ -164,7 +166,7 @@ def fluxo(
     for p in pacotes:
         if posicao >= limite:
             break
-        onda = modem.modular(quadro.montar_quadro(p), config.modem) * escala
+        onda = modem.modular(quadro.montar_quadro(p, config.fec), config.modem) * escala
         deslocada = onda * np.exp(giro * np.arange(posicao, posicao + len(onda)))  # fase contínua
         acumulado = np.concatenate([acumulado, deslocada])
         pendentes.append(RegistroTx(p, posicao))
@@ -195,7 +197,9 @@ def gravar_log(registros: list[RegistroTx], caminho: Path) -> Path:
     return caminho
 
 
-def amostras_por_quadro(config: ConfigModem, tamanho_payload: int = TAMANHO_PAYLOAD) -> int:
+def amostras_por_quadro(
+    config: ConfigModem, tamanho_payload: int = TAMANHO_PAYLOAD, fec: bool = False
+) -> int:
     """Duração de um quadro no fluxo do TX, em amostras: o período entre quadros consecutivos."""
-    vazio = quadro.montar_quadro(Pacote(0, bytes(tamanho_payload)))
+    vazio = quadro.montar_quadro(Pacote(0, bytes(tamanho_payload)), fec)
     return len(modem.modular(vazio, config))

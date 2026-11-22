@@ -180,3 +180,13 @@ def test_registro_vai_com_o_bloco_em_que_o_quadro_comeca() -> None:
     assert sum(len(rs) for _, rs in saida) == 7
     for k, (_, rs) in enumerate(saida):
         assert all(k * 20_000 <= r.amostra_inicio < (k + 1) * 20_000 for r in rs)
+
+
+def test_fluxo_com_fec_e_periodo_do_quadro_codificado() -> None:
+    cm = ConfigModem("dbpsk", "rrc", 8)
+    assert transmissor.amostras_por_quadro(cm) == 1122 * 8
+    assert transmissor.amostras_por_quadro(cm, fec=True) == (2185 + 13) * 8
+    config = ConfigTransmissor(cm, FS, 250e3, fec=True)
+    pacotes = transmissor.numerar([bytes(128)] * 3)
+    registros = [r for _, rs in transmissor.fluxo(pacotes, config, 1.0) for r in rs]
+    assert [r.amostra_inicio for r in registros] == [k * (2185 + 13) * 8 for k in range(3)]

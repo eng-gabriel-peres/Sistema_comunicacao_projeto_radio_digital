@@ -190,3 +190,26 @@ def test_ber_da_gfsk_na_referencia_da_etapa_4() -> None:
     assert np.mean(modem.demodular(sinal, config, len(bits)) != bits) == pytest.approx(
         2.0e-3, rel=0.3
     )
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        ConfigModem("ook", "rrc", 8),
+        ConfigModem("bpsk", "rrc", 8),
+        ConfigModem("dbpsk", "rrc", 8),
+        ConfigModem("fsk", "gaussiano", 16),
+    ],
+    ids=["ook", "bpsk", "dbpsk", "gfsk"],
+)
+def test_saida_suave_tem_o_sinal_da_decisao_dura(config: ConfigModem) -> None:
+    rng = np.random.default_rng(41)
+    bits = rng.integers(0, 2, 400).astype(np.uint8)
+    y = modem.modular(bits, config)
+    y = canal.awgn(y, 3.0, config.sps, rng)  # Eb/N0 baixo: alguns bits errados em todas
+    suaves = modem.demodular_suave(y, config, 400)
+    duros = modem.demodular(y, config, 400)
+    np.testing.assert_array_equal((suaves > 0).astype(np.uint8), duros)
+    assert 0.75 < np.mean(duros == bits) < 1  # erra alguns, acerta a maioria
+    errados = duros != bits
+    assert np.mean(np.abs(suaves[errados])) < np.mean(np.abs(suaves[~errados]))  # menos certeza

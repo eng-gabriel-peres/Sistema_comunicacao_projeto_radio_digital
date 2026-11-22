@@ -80,7 +80,9 @@ def _blocos(
 def main() -> int:
     """Confere a banda, transmite (ou simula) e grava o log do TX."""
     args, perfil = _argumentos()
-    config = ConfigTransmissor(perfil.modem(), perfil.taxa_sps, perfil.deslocamento_hz)
+    config = ConfigTransmissor(
+        perfil.modem(), perfil.taxa_sps, perfil.deslocamento_hz, fec=perfil.fec
+    )
     baixo, alto = _conferir_banda(config, perfil.lo_hz)
     pacotes = transmissor.numerar(transmissor.ler_payloads(args.payloads))
     log: list[RegistroTx] = []

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from sdrlink import quadro
+from sdrlink import codigo, quadro
 from sdrlink.quadro import Pacote
 
 PAYLOAD_PROVA = bytes(range(128))  # 128 bytes, como na prova
@@ -87,3 +87,16 @@ def test_validacoes() -> None:
         quadro.bits_apos_sync(256)
     with pytest.raises(ValueError, match="bytes inteiros"):
         quadro.bits_para_bytes(np.ones(7, dtype=np.uint8))
+
+
+def test_quadro_com_fec_codifica_so_o_corpo() -> None:
+    p = Pacote(513, bytes(range(128)))
+    simples, codificado = quadro.montar_quadro(p), quadro.montar_quadro(p, fec=True)
+    assert len(simples) == quadro.bits_por_quadro(128) == 1109
+    assert len(codificado) == quadro.bits_por_quadro(128, fec=True) == 2185
+    np.testing.assert_array_equal(codificado[:29], simples[:29])  # preâmbulo e sync iguais
+    np.testing.assert_array_equal(codificado[-16:], simples[-16:])  # guarda igual
+    corpo = codificado[29:-16]
+    assert len(corpo) == quadro.bits_no_ar_apos_sync(128, fec=True) == 2 * (1064 + 6)
+    decodificado = codigo.decodificar(2.0 * corpo - 1, quadro.bits_apos_sync(128))
+    assert quadro.interpretar(decodificado).pacote == p

@@ -66,6 +66,7 @@ class Perfil:
         taxa_sps: taxa do DAC do Pluto e do RTL (a mesma dos dois lados).
         deslocamento_hz: posição do sinal em relação ao LO.
         lo_hz: frequência do LO do Pluto e do centro do RTL.
+        fec: código convolucional no corpo dos quadros (sdrlink.codigo, bloco 09).
         descricao: para que serve o perfil.
     """
 
@@ -79,6 +80,7 @@ class Perfil:
     taxa_sps: float = 2.048e6
     deslocamento_hz: float = 250e3
     lo_hz: float = 919.5e6
+    fec: bool = False
     descricao: str = ""
 
     def __post_init__(self) -> None:
@@ -104,8 +106,8 @@ class Perfil:
 
 
 CAMPOS_PERFIL = tuple(c.name for c in dataclasses.fields(Perfil) if c.name != "nome")
-_TIPOS = {"modulacao": str, "pulso": str, "descricao": str, "sps": int}
-Valor = str | float  # valor de um campo de perfil (int é aceito como float)
+_TIPOS = {"modulacao": str, "pulso": str, "descricao": str, "sps": int, "fec": bool}
+Valor = str | float | bool  # valor de um campo de perfil (int é aceito como float)
 
 
 def _valor(nome_perfil: str, campo: str, valor: object) -> Valor:
@@ -117,6 +119,8 @@ def _valor(nome_perfil: str, campo: str, valor: object) -> Valor:
     if campo not in CAMPOS_PERFIL:
         raise ValueError(f"perfil {nome_perfil}: campo desconhecido {campo!r}")
     tipo = _TIPOS.get(campo, float)
+    if tipo is bool and isinstance(valor, bool):
+        return valor
     if not isinstance(valor, bool):
         if tipo is str and isinstance(valor, str):
             return valor
@@ -202,11 +206,26 @@ def argumentos_de_enlace(p: argparse.ArgumentParser) -> None:
     p.add_argument("--taxa-sps", type=float, default=None, help="padrão: 2,048 MS/s")
     p.add_argument("--deslocamento-hz", type=float, default=None, help="sinal em relação ao LO")
     p.add_argument("--lo-hz", type=float, default=None, help="padrão: 919,5 MHz (decisão D5)")
+    p.add_argument(
+        "--fec",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="código convolucional no corpo dos quadros (--no-fec desliga o do perfil)",
+    )
 
 
 def perfil_dos_argumentos(p: argparse.ArgumentParser, args: argparse.Namespace) -> Perfil:
     """Perfil pedido na linha de comando; um erro encerra o script com a mensagem."""
-    campos = ("modulacao", "pulso", "taxa_bits", "beta", "taxa_sps", "deslocamento_hz", "lo_hz")
+    campos = (
+        "modulacao",
+        "pulso",
+        "taxa_bits",
+        "beta",
+        "taxa_sps",
+        "deslocamento_hz",
+        "lo_hz",
+        "fec",
+    )
     try:
         return montar_perfil(args.perfil, {c: getattr(args, c) for c in campos})
     except ValueError as erro:

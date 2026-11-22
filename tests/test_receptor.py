@@ -16,13 +16,24 @@ OFFSET = -1600.0  # pior offset residual medido em 04/11 (A18)
 
 
 def _captura(
-    config: ConfigModem, n: int, rng: np.random.Generator, ebn0_db: float = 14.0
+    config: ConfigModem,
+    n: int,
+    rng: np.random.Generator,
+    ebn0_db: float = 14.0,
+    fec: bool = False,
+    tamanhos: tuple[int, ...] = (128,),
 ) -> tuple[np.ndarray, list[Pacote], list[float]]:
-    """Captura simulada: n quadros v2 separados por silêncio, com atraso, offset e ruído."""
-    pacotes = [Pacote(s, rng.integers(0, 256, 128, dtype=np.uint8).tobytes()) for s in range(n)]
+    """Captura simulada: n quadros v2 separados por silêncio, com atraso, offset e ruído.
+
+    O Eb/N0 é por bit no ar; os tamanhos de payload se repetem em ciclo.
+    """
+    pacotes = [
+        Pacote(s, rng.integers(0, 256, tamanhos[s % len(tamanhos)], dtype=np.uint8).tobytes())
+        for s in range(n)
+    ]
     partes, inicios, pos = [np.zeros(2000, dtype=complex)], [], 2000.37
     for p in pacotes:
-        onda = modem.modular(quadro.montar_quadro(p), config)
+        onda = modem.modular(quadro.montar_quadro(p, fec), config)
         intervalo = int(rng.integers(300, 3000))
         inicios.append(pos)
         partes += [onda, np.zeros(intervalo, dtype=complex)]
@@ -215,3 +226,38 @@ def test_pulso_em_cache_e_so_leitura() -> None:
     assert forma is ConfigModem("dbpsk", "rrc", 8).formato()  # calculado uma vez
     with pytest.raises(ValueError, match="read-only"):
         forma[0] = 1.0
+
+
+def test_fec_le_quadros_de_varios_tamanhos_com_offset_e_emendas() -> None:
+    # 128 bytes (a janela padrão), 40 (menor que a janela) e 200 (exige a releitura)
+    cm = ConfigModem("dbpsk", "rrc", 8)
+    x, pacotes, inicios = _captura(cm, 9, np.random.default_rng(31), 9.0, True, (128, 40, 200))
+    config = ConfigReceptor(cm, FS, DESLOCAMENTO, fec=True)
+    d = receptor.receber(x, config, tamanho_bloco=_bloco_pequeno(config))
+    assert receptor.pacotes_aceitos(d) == pacotes
+    assert all(abs(a.inicio - b) < 0.4 for a, b in zip(d, inicios, strict=True))
+
+
+def test_fec_recebe_onde_sem_codigo_falha() -> None:
+    # mesmo Eb/N0 por bit útil (8 dB) e mesma taxa útil (128 kbit/s): sem código a PER passa de
+    # 25%; com o código no ar a 256 kbit/s (4,99 dB por bit no ar), os 20 quadros chegam
+    sem = ConfigModem("dbpsk", "rrc", 16)
+    com = ConfigModem("dbpsk", "rrc", 8)
+    x, pacotes, _ = _captura(sem, 20, np.random.default_rng(32), 8.0)
+    certos_sem = set(
+        receptor.pacotes_aceitos(receptor.receber(x, ConfigReceptor(sem, FS, DESLOCAMENTO)))
+    )
+    x, pacotes_fec, _ = _captura(com, 20, np.random.default_rng(32), 8.0 - 3.0103, True)
+    config = ConfigReceptor(com, FS, DESLOCAMENTO, fec=True)
+    certos_com = set(receptor.pacotes_aceitos(receptor.receber(x, config)))
+    assert len(certos_sem & set(pacotes)) <= 15
+    assert certos_com == set(pacotes_fec)
+
+
+def test_fec_com_captura_curta_nao_le_o_quadro() -> None:
+    cm = ConfigModem("dbpsk", "rrc", 8)
+    bits = quadro.montar_quadro(Pacote(1, bytes(128)), fec=True)
+    onda = modem.modular(bits, cm)
+    x = np.concatenate([np.zeros(3000), onda[: 40 * 8 * 8]]).astype(complex)  # só 320 bits
+    d = receptor.receber(x, ConfigReceptor(cm, FS, fec=True))
+    assert [a.situacao for a in d] == ["curto"]

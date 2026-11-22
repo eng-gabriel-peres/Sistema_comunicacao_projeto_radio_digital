@@ -27,7 +27,7 @@ from pathlib import Path
 
 import numpy as np
 
-from sdrlink import medicao, metricas, receptor, transmissor
+from sdrlink import medicao, metricas, quadro, receptor, transmissor
 from sdrlink.config import Perfil, argumentos_de_enlace, perfil_dos_argumentos
 from sdrlink.receptor import ConfigReceptor
 from sdrlink.registro import salvar_json, versao_do_codigo
@@ -53,19 +53,31 @@ def main() -> int:
     args, perfil = _argumentos()
     modem = perfil.modem()
     config = ConfigReceptor(
-        modem, perfil.taxa_sps, perfil.deslocamento_hz, args.limiar, args.offset_max_hz, args.ber
+        modem,
+        perfil.taxa_sps,
+        perfil.deslocamento_hz,
+        args.limiar,
+        args.offset_max_hz,
+        args.ber,
+        perfil.fec,
     )
     amostras = np.load(args.captura, mmap_mode="r")  # 60 s a 2,048 MS/s = 1 GB: lê por blocos
     inicio = time.time()
     deteccoes = receptor.receber(amostras, config)
     tempo = time.time() - inicio
-    periodo = transmissor.amostras_por_quadro(modem)
+    periodo = transmissor.amostras_por_quadro(modem, fec=perfil.fec)
     medidas: dict[str, object] = {"medido": False, "motivo": "nenhum quadro detectado"}
     if deteccoes:
         fim = deteccoes[-1].inicio + periodo
         medidas = medicao.medir_captura(
             amostras, deteccoes[0].inicio, fim, perfil.taxa_sps, perfil.taxa_bits
         )
+        ebn0 = medidas.get("ebn0_estimado_db")
+        if perfil.fec and isinstance(ebn0, float):
+            # o Eb/N0 medido é por bit no ar; por bit útil, soma a razão do código
+            informacao = quadro.bits_apos_sync(transmissor.TAMANHO_PAYLOAD)
+            no_ar = quadro.bits_no_ar_apos_sync(transmissor.TAMANHO_PAYLOAD, fec=True)
+            medidas["ebn0_por_bit_util_db"] = round(ebn0 + 10 * np.log10(no_ar / informacao), 2)
     ber = metricas.medir_ber(deteccoes, periodo, 2 * modem.sps) if args.ber else None
     pasta = args.pasta or args.captura.parent
     nome = args.captura.stem

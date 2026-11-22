@@ -24,6 +24,8 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
+from sdrlink import codigo
+
 Bits = NDArray[np.uint8]
 
 PREAMBULO = np.array([1, 0] * 8, dtype=np.uint8)  # 16 bits alternados, para o limiar e o relógio
@@ -103,11 +105,18 @@ def _protegido(pacote: Pacote) -> bytes:
     return bytes([len(pacote.payload)]) + pacote.sequencia.to_bytes(2, "big") + pacote.payload
 
 
-def montar_quadro(pacote: Pacote) -> Bits:
-    """Bits completos de um quadro, do preâmbulo à guarda."""
+def montar_quadro(pacote: Pacote, fec: bool = False) -> Bits:
+    """Bits completos de um quadro, do preâmbulo à guarda.
+
+    Com fec, o que vem depois do sync (comprimento, sequência, payload e CRC) passa
+    pelo código convolucional de sdrlink.codigo; preâmbulo, sync e guarda não mudam,
+    para a detecção do RX ser a mesma com e sem código.
+    """
     protegido = _protegido(pacote)
-    corpo = protegido + crc16(protegido).to_bytes(2, "big")
-    return np.concatenate([PREAMBULO, SYNC, bytes_para_bits(corpo), GUARDA])
+    corpo = bytes_para_bits(protegido + crc16(protegido).to_bytes(2, "big"))
+    if fec:
+        corpo = codigo.codificar(corpo)
+    return np.concatenate([PREAMBULO, SYNC, corpo, GUARDA])
 
 
 def bits_apos_sync(n_bytes_payload: int) -> int:
@@ -156,6 +165,17 @@ def interpretar(bits: Bits) -> Leitura:
     return Leitura(pacote, "ok", total)
 
 
-def bits_por_quadro(n_bytes_payload: int) -> int:
-    """Tamanho do quadro completo em bits (1109 para os 128 bytes da prova)."""
-    return len(PREAMBULO) + len(SYNC) + bits_apos_sync(n_bytes_payload) + len(GUARDA)
+def bits_no_ar_apos_sync(n_bytes_payload: int, fec: bool = False) -> int:
+    """Bits transmitidos depois do sync: os de bits_apos_sync, ou os codificados com fec.
+
+    Raises:
+        ValueError: tamanho fora de 0 a 255.
+    """
+    n = bits_apos_sync(n_bytes_payload)
+    return codigo.bits_codificados(n) if fec else n
+
+
+def bits_por_quadro(n_bytes_payload: int, fec: bool = False) -> int:
+    """Tamanho do quadro completo em bits (1109 para os 128 bytes da prova; 2185 com fec)."""
+    depois = bits_no_ar_apos_sync(n_bytes_payload, fec)
+    return len(PREAMBULO) + len(SYNC) + depois + len(GUARDA)

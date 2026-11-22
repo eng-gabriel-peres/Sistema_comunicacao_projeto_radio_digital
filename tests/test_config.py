@@ -177,3 +177,43 @@ def test_scripts_recusam_perfil_inexistente_ou_parametros_faltando(tmp_path: Pat
     assert sem.returncode == 2 and "disponíveis" in sem.stderr
     falta = _rodar("transmitir.py", str(tmp_path / "x.bin"), "--modulacao", "dbpsk")
     assert falta.returncode == 2 and "informe" in falta.stderr
+
+
+def test_perfil_com_fec(tmp_path: Path) -> None:
+    arquivo = _arquivo(tmp_path, PERFIL_MINIMO + "fec = true\n")
+    assert config.perfil("p", arquivo).fec is True
+    assert config.montar_perfil("p", {"fec": False}, arquivo).fec is False  # --no-fec
+    assert (
+        config.montar_perfil(None, {"modulacao": "dbpsk", "pulso": "rrc", "taxa_bits": 256e3}).fec
+        is False
+    )
+    with pytest.raises(ValueError, match="não é bool"):
+        config.ler_perfis(_arquivo(tmp_path, PERFIL_MINIMO + "fec = 1\n"))
+
+
+def test_tx_e_rx_com_fec_pela_linha_de_comando(tmp_path: Path) -> None:
+    payloads = tmp_path / "payloads.bin"
+    payloads.write_bytes(bytes(range(128)) * 30)
+    sinal = tmp_path / "fec.npy"
+    comum = ("--perfil", "dbpsk-256k", "--fec")
+    tx = _rodar(
+        "transmitir.py",
+        str(payloads),
+        *comum,
+        "--duracao-s",
+        "0.1",
+        "--simular",
+        str(sinal),
+        "--pasta",
+        str(tmp_path),
+    )
+    assert tx.returncode == 0, tx.stderr
+    rx = _rodar("receber.py", str(sinal), *comum)
+    assert rx.returncode == 0, rx.stderr
+    log_tx = next(tmp_path.glob("tx_*.txt")).read_text(encoding="utf-8")
+    assert (tmp_path / "fec_saida.txt").read_text(encoding="utf-8") == log_tx
+    assert log_tx.count("\n") >= 10
+    registro = json.loads((tmp_path / "fec_rx.json").read_text(encoding="utf-8"))
+    assert (
+        registro["perfil"]["fec"] is True and registro["perfil"]["nome"] == "dbpsk-256k (alterado)"
+    )
