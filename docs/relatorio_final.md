@@ -13,7 +13,7 @@ Estado em 22/11/2026: **tudo o que dá para fazer sem hardware está feito e val
 | Prova B (maior alcance) | perfil `prova-b`: **DBPSK com código convolucional K = 7, 25,6 kbit/s no ar**: goodput de 11,8 kbit/s, 500 pacotes em 43 s, **C/N0 necessário de 48,4 dB-Hz**, 20,2 dB menos que o `prova-a` (cerca de 10 vezes a distância no espaço livre) |
 | Comparação com a OOK de referência | a referência entrega **7,3 kbit/s** (21 bytes por quadro, 10 kbit/s, pulso retangular; captura real de 04/11). O `prova-a` chega a **1 218 kbit/s em simulação, cerca de 167 vezes**, na mesma banda de 1 MHz |
 | Simulação × teoria | BER de BPSK, DBPSK, DQPSK e 2-FSK a menos de 0,08 dB das fórmulas; a DQPSK bate com a fórmula exata (Marcum) a 0,5% |
-| Qualidade | 235 testes automáticos; portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; 21 tags, uma ou mais por bloco; toda evidência com a versão do código que a gerou |
+| Qualidade | 235 testes automáticos; portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; 19 tags, uma ou mais por bloco; toda evidência com a versão do código que a gerou |
 | Falta | bancada: o enlace no ar com o quadro v3, as medições da Etapa 5, e as provas (seção 8) |
 
 ## 2. O sistema
@@ -120,7 +120,7 @@ A prova de 60 s simulada com cada perfil final, pelos comandos da prova, no cana
 | B7 | 10 | quatro testes passavam pela semente (offset a 300 Hz por quadro, centro da banda, GFSK com DC, instante com FEC) | mudança de formato que trocou todos os bits | testes reescritos a partir da distribuição em várias sementes |
 | B8 | 13 | **banda medida de 1 884 kHz** num sinal de 30 kHz, com SNR de −13 dB na captura | ensaio geral da prova B | a medida marca "não confiável" abaixo de −5 dB; medir na posição mais próxima |
 
-E falhas de processo, registradas nos blocos: um commit intermediário feito sem o portão (bloco 10, corrigido no commit seguinte); dois ensaios disparados sem aviso de término e vigiados depois; o computador desligou no meio de uma varredura (bloco 08), refeita com pico de memória de 1,1 GB. No bloco 14 uma cadeia de comandos seguiu depois de o lint barrar o commit, e a tag `bloco-14` foi criada e publicada no commit do bloco 13; como tag publicada não se move, a do bloco 14 é a `bloco-14-rev2` (a mesma convenção de `bloco-01-rev2` e `bloco-02-rev3`).
+E falhas de processo, registradas nos blocos: um commit intermediário feito sem o portão (bloco 10, corrigido no commit seguinte); dois ensaios disparados sem aviso de término e vigiados depois; o computador desligou no meio de uma varredura (bloco 08), refeita com pico de memória de 1,1 GB. No bloco 14 uma cadeia de comandos seguiu depois de o lint barrar o commit, e a tag `bloco-14` foi criada e publicada no commit do bloco 13; como tag publicada não se move, a do bloco 14 é a `bloco-14-rev2` (a mesma convenção de `bloco-01-rev2` e `bloco-02-rev3`). Depois, a pedido, a `bloco-14` errada foi apagada, junto com a `bloco-06-rx-rapido` (uma tag leve do bloco 06, que o `git describe` ignorava; a anotada é a `bloco-06`).
 
 ## 7. O que dá para melhorar
 
