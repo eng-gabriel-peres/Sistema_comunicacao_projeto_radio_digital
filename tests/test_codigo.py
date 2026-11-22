@@ -95,3 +95,28 @@ def test_palavra_de_um_bit_corrige_quaisquer_4_erros() -> None:
             recebido = palavra.copy()
             recebido[list(posicoes)] *= -1
             assert codigo.decodificar(recebido, 1)[0] == bit, posicoes
+
+
+def test_lote_igual_a_um_por_vez_inclusive_acima_do_tamanho_do_lote() -> None:
+    rng = np.random.default_rng(8)
+    n, palavras = 200, codigo.LOTE_MAX + 44  # dois lotes
+    bits = rng.integers(0, 2, (palavras, n)).astype(np.uint8)
+    limpo = np.stack([2.0 * codigo.codificar(b) - 1 for b in bits])
+    ruidoso = limpo + 0.9 * rng.standard_normal(limpo.shape)  # muitos erros: testa o caminho todo
+    lote = codigo.decodificar_lote(ruidoso, n)
+    um_por_vez = np.stack([codigo.decodificar(linha, n) for linha in ruidoso])
+    np.testing.assert_array_equal(lote, um_por_vez)
+    assert lote.shape == (palavras, n) and np.any(lote != bits)
+    sobra = np.concatenate([ruidoso, rng.standard_normal((palavras, 30))], axis=1)
+    np.testing.assert_array_equal(codigo.decodificar_lote(sobra, n), lote)  # colunas a mais
+
+
+def test_lote_rejeita_entradas_invalidas() -> None:
+    with pytest.raises(ValueError, match="matriz"):
+        codigo.decodificar_lote(np.zeros(100), 10)
+    with pytest.raises(ValueError, match="matriz"):
+        codigo.decodificar_lote(np.zeros((0, 100)), 10)
+    with pytest.raises(ValueError, match="matriz"):
+        codigo.decodificar_lote(np.zeros((3, 20)), 10)
+    with pytest.raises(ValueError, match="quantidade"):
+        codigo.decodificar_lote(np.zeros((3, 20)), 0)

@@ -382,10 +382,32 @@ def _limiar_do_prefixo(trecho: Sinal, cm: ConfigModem) -> float:
     return float(np.mean(modulo[prefixo == 1]) + np.mean(modulo[prefixo == 0])) / 2
 
 
-def demodular_quadro(
+@dataclass(frozen=True)
+class _Contexto:
+    """O que a leitura de um quadro precisa depois de achar instante e offset."""
+
+    preparar: Callable[[int], Sinal]
+    cm: ConfigModem
+    n_max: int
+    fase: float
+    limiar: float | None
+    cabecalho: Sinal
+
+
+@dataclass(frozen=True)
+class _PrimeiraLeitura:
+    """Saída suave do corpo codificado de um quadro, ainda sem decodificar (FEC em lote)."""
+
+    contexto: _Contexto
+    cabe: int
+    n_bytes: int
+    suaves: NDArray[np.float64]
+
+
+def _contexto(
     x: Sinal, inicio: float, offset_hz: float, config: ConfigReceptor
-) -> NDArray[np.uint8] | None:
-    """Corrige instante, offset e fase de um quadro e devolve os bits depois do sync.
+) -> _Contexto | None:
+    """Prepara a leitura de um quadro: janela disponível, fase (BPSK) e limiar (OOK).
 
     Devolve None se a captura acaba antes do cabeçalho.
     """
@@ -408,62 +430,101 @@ def demodular_quadro(
         z = _alinhar(x, inicio, (n_simbolos + 2) * cm.sps + cauda)
         return np.asarray(z * _fasor(-offset_hz / config.taxa_interna, len(z)))
 
-    # primeiro só o cabeçalho, para saber o tamanho; depois exatamente o quadro (antes a
-    # janela era sempre a do maior quadro possível, 2093 bits, quase o dobro do da prova)
     cabecalho = preparar(n_cabecalho)
     modelo = config.modelo()
     fase = float(np.angle(np.vdot(modelo, cabecalho[: len(modelo)])))  # só a BPSK coerente usa
     # OOK: limiar dos 29 bits conhecidos do prefixo (o que vem depois do quadro, silêncio ou
     # outro quadro, não pode puxar o limiar; a 2ª passada com k-médias não deu ganho medido)
     limiar = _limiar_do_prefixo(cabecalho, cm) if cm.modulacao == "ook" else None
+    return _Contexto(preparar, cm, n_max, fase, limiar, cabecalho)
+
+
+def demodular_quadro(
+    x: Sinal, inicio: float, offset_hz: float, config: ConfigReceptor
+) -> NDArray[np.uint8] | None:
+    """Corrige instante, offset e fase de um quadro e devolve os bits depois do sync.
+
+    Devolve None se a captura acaba antes do cabeçalho.
+    """
+    ctx = _contexto(x, inicio, offset_hz, config)
+    if ctx is None:
+        return None
     if config.fec:
-        return _decodificar_quadro(preparar, cm, n_max, fase, limiar)
+        primeira = _primeira_leitura(ctx)
+        if primeira is None:
+            return None
+        n_info = quadro.bits_apos_sync(primeira.n_bytes)
+        return _concluir(primeira, codigo.decodificar(primeira.suaves, n_info))
+    # primeiro só o cabeçalho, para saber o tamanho; depois exatamente o quadro (antes a
+    # janela era sempre a do maior quadro possível, 2093 bits, quase o dobro do da prova)
+    cm, fase, limiar, n_max = ctx.cm, ctx.fase, ctx.limiar, ctx.n_max
+    n_cabecalho = BITS_PREFIXO + quadro.BITS_CABECALHO
     bits = modem.demodular(
-        cabecalho, cm, n_cabecalho, fase=fase, limiar=limiar, prefixo=BITS_PREFIXO
+        ctx.cabecalho, cm, n_cabecalho, fase=fase, limiar=limiar, prefixo=BITS_PREFIXO
     )
     campo = bits[BITS_PREFIXO : BITS_PREFIXO + quadro.BITS_COMPRIMENTO]
     n_bytes = max(int(quadro.bits_para_bytes(campo)[0]), PAYLOAD_MINIMO_LIDO)
     n_bits = min(n_max, BITS_PREFIXO + quadro.bits_apos_sync(n_bytes))
     bits = modem.demodular(
-        preparar(n_bits), cm, n_bits, fase=fase, limiar=limiar, prefixo=BITS_PREFIXO
+        ctx.preparar(n_bits), cm, n_bits, fase=fase, limiar=limiar, prefixo=BITS_PREFIXO
     )
     return bits[BITS_PREFIXO:]
 
 
-def _decodificar_quadro(
-    preparar: Callable[[int], Sinal],
-    cm: ConfigModem,
-    n_max: int,
-    fase: float,
-    limiar: float | None,
-) -> NDArray[np.uint8] | None:
-    """Saída suave do corpo codificado, Viterbi e os bits decodificados depois do sync.
+def _suaves_do_corpo(ctx: _Contexto, n_bytes: int) -> NDArray[np.float64]:
+    """Saída suave do corpo codificado de um quadro de n_bytes de payload."""
+    n_ar = BITS_PREFIXO + codigo.bits_codificados(quadro.bits_apos_sync(n_bytes))
+    suaves = modem.demodular_suave(
+        ctx.preparar(n_ar), ctx.cm, n_ar, fase=ctx.fase, limiar=ctx.limiar, prefixo=BITS_PREFIXO
+    )
+    return np.asarray(suaves[BITS_PREFIXO:], dtype=np.float64)
+
+
+def _primeira_leitura(ctx: _Contexto) -> _PrimeiraLeitura | None:
+    """Saída suave da janela de PAYLOAD_MINIMO_LIDO bytes (ou da maior que cabe).
 
     O comprimento só se conhece depois de decodificar: o RX decodifica a janela de um
     quadro de PAYLOAD_MINIMO_LIDO bytes (o da prova) e, se o comprimento decodificado
-    for maior, decodifica de novo com ele. Perto do fim da captura a janela encolhe
-    para o maior quadro que ainda cabe (um quadro curto no fim do arquivo é lido).
-    Devolve None se nem um quadro sem payload cabe.
+    for maior, decodifica de novo com ele (_concluir). Perto do fim da captura a janela
+    encolhe para o maior quadro que ainda cabe. Devolve None se nem um quadro sem
+    payload cabe.
     """
     # maior payload cujo quadro codificado cabe nos n_max bits disponíveis
-    cabe = ((n_max - BITS_PREFIXO) // codigo.TAXA_INVERSA - codigo.MEMORIA) // 8
+    cabe = ((ctx.n_max - BITS_PREFIXO) // codigo.TAXA_INVERSA - codigo.MEMORIA) // 8
     cabe -= (quadro.BITS_CABECALHO + quadro.BITS_CRC) // 8
     if cabe < 0:
         return None
     n_bytes = min(PAYLOAD_MINIMO_LIDO, cabe)
-    bits = None
-    for _ in range(2):  # no máximo uma releitura com o comprimento decodificado
-        n_info = quadro.bits_apos_sync(n_bytes)
-        n_ar = BITS_PREFIXO + codigo.bits_codificados(n_info)
-        suaves = modem.demodular_suave(
-            preparar(n_ar), cm, n_ar, fase=fase, limiar=limiar, prefixo=BITS_PREFIXO
-        )
-        bits = codigo.decodificar(suaves[BITS_PREFIXO:], n_info)
-        declarado = int(quadro.bits_para_bytes(bits[: quadro.BITS_COMPRIMENTO])[0])
-        if declarado <= n_bytes or n_bytes == cabe:
-            return bits  # já tem o quadro inteiro, ou não cabe mais nada
-        n_bytes = min(declarado, cabe)
-    return bits
+    return _PrimeiraLeitura(ctx, cabe, n_bytes, _suaves_do_corpo(ctx, n_bytes))
+
+
+def _concluir(primeira: _PrimeiraLeitura, bits: NDArray[np.uint8]) -> NDArray[np.uint8]:
+    """Bits do quadro: os da primeira leitura, ou os de uma releitura com o comprimento lido."""
+    declarado = int(quadro.bits_para_bytes(bits[: quadro.BITS_COMPRIMENTO])[0])
+    if declarado <= primeira.n_bytes or primeira.n_bytes == primeira.cabe:
+        return bits  # já tem o quadro inteiro, ou não cabe mais nada
+    n_bytes = min(declarado, primeira.cabe)  # releitura (rara: payload maior que o da prova)
+    return codigo.decodificar(
+        _suaves_do_corpo(primeira.contexto, n_bytes), quadro.bits_apos_sync(n_bytes)
+    )
+
+
+def _decodificar_em_lote(
+    primeiras: list[_PrimeiraLeitura | None],
+) -> list[NDArray[np.uint8] | None]:
+    """Decodifica juntas as primeiras leituras de mesmo tamanho e conclui cada uma.
+
+    Um quadro por vez, o laço do Viterbi em Python dominava o tempo do RX com FEC (6,9 s
+    por segundo de captura na DQPSK a 1,4 Mbit/s, bloco 10). Em lote o resultado é o
+    mesmo, bit a bit.
+    """
+    decodificados: dict[int, NDArray[np.uint8]] = {}
+    for n_bytes in {p.n_bytes for p in primeiras if p is not None}:
+        indices = [k for k, p in enumerate(primeiras) if p is not None and p.n_bytes == n_bytes]
+        matriz = np.stack([primeiras[k].suaves for k in indices])  # type: ignore[union-attr]
+        lote = codigo.decodificar_lote(matriz, quadro.bits_apos_sync(n_bytes))
+        decodificados.update(zip(indices, lote, strict=True))
+    return [None if p is None else _concluir(p, decodificados[k]) for k, p in enumerate(primeiras)]
 
 
 def ler_quadro(
@@ -500,16 +561,23 @@ def receber_bloco(
         fftconvolve(base, config.filtro_deteccao(), mode="same"), dtype=np.complex128
     )
     metrica, grosso = metrica_de_correlacao(filtrado, config)
+    # a 2-FSK demodula do sinal já filtrado na banda do pulso: o correlator dela não
+    # rejeita sinais fortes fora da banda (pico de DC do RTL, outros sinais ISM), e um
+    # pico de DC do tamanho do sinal multiplicava a BER por 25 (21/11/2026); OOK e
+    # DBPSK passam pelo filtro casado RRC, que já os rejeita
+    entrada = filtrado if config.modem.modulacao == "fsk" else base
+    achados = [
+        (p, estimar_offset(filtrado, p, float(grosso[p]), config), _refinar(metrica, p))
+        for p in picos(metrica, config.limiar, DISTANCIA_MIN_BITS * config.modem_interno.sps)
+    ]
+    if config.fec:  # Viterbi em lote: todos os quadros do bloco de uma vez
+        contextos = [_contexto(entrada, inicio, offset, config) for _, offset, inicio in achados]
+        primeiras = [None if c is None else _primeira_leitura(c) for c in contextos]
+        lidos = _decodificar_em_lote(primeiras)
+    else:
+        lidos = [demodular_quadro(entrada, inicio, offset, config) for _, offset, inicio in achados]
     deteccoes = []
-    for p in picos(metrica, config.limiar, DISTANCIA_MIN_BITS * config.modem_interno.sps):
-        offset = estimar_offset(filtrado, p, float(grosso[p]), config)
-        inicio = _refinar(metrica, p)
-        # a 2-FSK demodula do sinal já filtrado na banda do pulso: o correlator dela não
-        # rejeita sinais fortes fora da banda (pico de DC do RTL, outros sinais ISM), e um
-        # pico de DC do tamanho do sinal multiplicava a BER por 25 (21/11/2026); OOK e
-        # DBPSK passam pelo filtro casado RRC, que já os rejeita
-        entrada = filtrado if config.modem.modulacao == "fsk" else base
-        bits = demodular_quadro(entrada, inicio, offset, config)
+    for (p, offset, inicio), bits in zip(achados, lidos, strict=True):
         leitura = quadro.Leitura(None, "curto", 0) if bits is None else interpretador(bits)
         guardados = bits if config.guardar_bits else None
         deteccoes.append(

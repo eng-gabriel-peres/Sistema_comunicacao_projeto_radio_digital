@@ -1,0 +1,63 @@
+{
+  "ensaio": "Viterbi em lote contra um quadro por vez",
+  "referencia": "bloco-10",
+  "casos": [
+    {
+      "caso": "DQPSK 1365 kbit/s no ar com FEC, 4 dB",
+      "deteccoes": 600,
+      "aceitos": 597,
+      "identicos": true,
+      "rx_s_por_s": [
+        1.61,
+        12.73
+      ],
+      "aceleracao": 7.9
+    },
+    {
+      "caso": "DQPSK 1365 kbit/s no ar com FEC, 6 dB",
+      "deteccoes": 600,
+      "aceitos": 600,
+      "identicos": true,
+      "rx_s_por_s": [
+        1.53,
+        12.96
+      ],
+      "aceleracao": 8.5
+    },
+    {
+      "caso": "DBPSK 25,6 kbit/s no ar com FEC (prova-b), 4 dB",
+      "deteccoes": 78,
+      "aceitos": 77,
+      "identicos": true,
+      "rx_s_por_s": [
+        0.39,
+        0.58
+      ],
+      "aceleracao": 1.5
+    },
+    {
+      "caso": "DBPSK, payloads de 40/128/200 bytes e curto no fim",
+      "deteccoes": 8,
+      "aceitos": 8,
+      "identicos": true,
+      "rx_s_por_s": [
+        2.31,
+        3.8
+      ],
+      "aceleracao": 1.6
+    },
+    {
+      "caso": "DQPSK, payloads de 40/128/200 bytes e curto no fim",
+      "deteccoes": 8,
+      "aceitos": 8,
+      "identicos": true,
+      "rx_s_por_s": [
+        5.1,
+        10.52
+      ],
+      "aceleracao": 2.1
+    }
+  ],
+  "todos_identicos": true,
+  "versao_do_codigo": "bloco-10-2-g432980e"
+}

@@ -63,7 +63,7 @@ Nenhum pacote errado foi aceito em nenhuma candidata.
 
 - **A DQPSK custou 1,7 dB de Eb/N0** nesta rodada. A mesma configuração, com o quadro v2, tinha dado 1,3 dB, e a teoria dá cerca de 1,4 dB entre as duas detecções diferenciais. A diferença entre as duas rodadas é a flutuação de 1 000 quadros por ponto (cerca de ±0,2 dB em cada curva).
 - **A DQPSK a 1 024 kbit/s** (4 amostras por símbolo, 563 kHz) não compensa: precisa de quase o mesmo Eb/N0 e dá 25% menos goodput. A banda menor só ajudaria se a de 747 kHz ficasse perto do limite na medição do RTL.
-- **A DQPSK com FEC** dá o mesmo goodput da DBPSK (620 contra 619 kbit/s) com **3,3 dB a menos de C/N0** (65,4 contra 68,7 dB-Hz): seria uma reserva melhor que a DBPSK. Mas o RX levou **6,9 s por segundo de captura**, cerca de 7 minutos para a prova de 60 s, perto do limite de 10 minutos e num computador que ainda não conheço. O gargalo é o Viterbi, que hoje decodifica um quadro por vez num laço em Python. Fica como próximo passo: decodificar muitos quadros de uma vez (os 64 estados de todos os quadros na mesma operação do NumPy) deve tirar o laço do caminho.
+- **A DQPSK com FEC** dá o mesmo goodput da DBPSK (620 contra 619 kbit/s) com **3,3 dB a menos de C/N0** (65,4 contra 68,7 dB-Hz): seria uma reserva melhor que a DBPSK. Mas o RX levou **6,9 s por segundo de captura**, cerca de 7 minutos para a prova de 60 s, perto do limite de 10 minutos e num computador que ainda não conheço. O gargalo é o Viterbi, que hoje decodifica um quadro por vez num laço em Python. Fica como próximo passo: decodificar muitos quadros de uma vez (os 64 estados de todos os quadros na mesma operação do NumPy) deve tirar o laço do caminho. **Feito no bloco 11** ([etapa6_viterbi_lote.md](etapa6_viterbi_lote.md)): o RX caiu para cerca de 1,5 s por segundo, e a DQPSK com FEC virou a reserva 1 da prova A (`prova-a-fec`).
 
 ## 5. Prova de 60 s simulada
 
@@ -93,6 +93,8 @@ Os 4,9 dB vêm de uma bancada de 04/11, com potência e distância que podem ser
 1. Transmitir 10 s com o perfil `prova-a` e processar: o `receber.py` mede o Eb/N0 da captura.
 2. **Se o Eb/N0 medido for de pelo menos 15 dB** (3 dB acima dos 12,1 dB necessários) **e a PER for de até 0,5%**: fica a DQPSK.
 3. Senão: `--perfil prova-a-dbpsk` (10,3 dB necessários).
+
+**Atualização (bloco 11):** a regra ganhou um degrau intermediário, a DQPSK com FEC (`prova-a-fec`), com o mesmo goodput da DBPSK e 3,3 dB a mais de margem. A regra completa está em [etapa6_viterbi_lote.md](etapa6_viterbi_lote.md), seção 5.
 
 ## 7. Testes
 

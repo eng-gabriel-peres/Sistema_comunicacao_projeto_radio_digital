@@ -30,6 +30,8 @@ ESTADOS = 2**MEMORIA  # 64
 GERADORES = (0o171, 0o133)
 TAXA_INVERSA = len(GERADORES)  # 2 bits codificados por bit de entrada
 BITS_MAX = 1_000_000
+LOTE_MAX = 256  # palavras por lote do Viterbi
+DIMENSOES_LOTE = 2  # matriz de palavras × bits codificados
 
 
 def _paridade(valor: int) -> int:
@@ -105,26 +107,61 @@ def decodificar(suaves: NDArray[np.floating[Any]], n_bits: int) -> NDArray[np.ui
     """
     if not 0 < n_bits <= BITS_MAX:
         raise ValueError(f"quantidade de bits inválida: {n_bits}")
-    passos = n_bits + MEMORIA
-    if len(suaves) < TAXA_INVERSA * passos:
-        raise ValueError(f"{len(suaves)} valores suaves; são precisos {TAXA_INVERSA * passos}")
+    if len(suaves) < bits_codificados(n_bits):
+        raise ValueError(f"{len(suaves)} valores suaves; são precisos {bits_codificados(n_bits)}")
+    lote = decodificar_lote(np.asarray(suaves)[None, : bits_codificados(n_bits)], n_bits)
+    return np.asarray(lote[0], dtype=np.uint8)
+
+
+def decodificar_lote(suaves: NDArray[np.floating[Any]], n_bits: int) -> NDArray[np.uint8]:
+    """Viterbi de várias palavras do mesmo tamanho de uma vez (uma por linha de `suaves`).
+
+    O laço é sobre os passos da treliça; em cada passo, os 64 estados de todas as
+    palavras são atualizados na mesma operação do NumPy. Decodificar um quadro por vez
+    deixava o laço em Python com só 64 estados por passo: na DQPSK com FEC a 1,4 Mbit/s
+    o RX levava 6,9 s por segundo de captura (bloco 10). As palavras vão em lotes de
+    até LOTE_MAX, para a memória das decisões (passos × lote × 64 bytes) ficar limitada.
+
+    Raises:
+        ValueError: n_bits inválido, matriz vazia ou com colunas de menos.
+    """
+    if not 0 < n_bits <= BITS_MAX:
+        raise ValueError(f"quantidade de bits inválida: {n_bits}")
+    matriz = np.asarray(suaves, dtype=np.float64)
+    if (
+        matriz.ndim != DIMENSOES_LOTE
+        or len(matriz) == 0
+        or matriz.shape[1] < bits_codificados(n_bits)
+    ):
+        raise ValueError(f"esperada uma matriz com {bits_codificados(n_bits)} colunas ou mais")
+    partes = [
+        _viterbi(matriz[k : k + LOTE_MAX, : bits_codificados(n_bits)], n_bits)
+        for k in range(0, len(matriz), LOTE_MAX)
+    ]
+    return np.concatenate(partes)
+
+
+def _viterbi(matriz: NDArray[np.float64], n_bits: int) -> NDArray[np.uint8]:
+    """Viterbi de um lote: matriz (palavras × bits codificados) já conferida."""
     antecessores, sinais = _trelica()
-    pares = np.asarray(suaves[: TAXA_INVERSA * passos], dtype=np.float64).reshape(
-        passos, TAXA_INVERSA
-    )
-    ramos = np.einsum("skg,tg->tsk", sinais, pares)  # métrica de cada ramo em cada passo
-    metrica = np.full(ESTADOS, -np.inf)
-    metrica[0] = 0.0  # o codificador começa no estado zero
-    decisoes = np.zeros((passos, ESTADOS), dtype=np.uint8)
+    palavras = len(matriz)
+    passos = n_bits + MEMORIA
+    pares = matriz.reshape(palavras, passos, TAXA_INVERSA)
+    ramos_por_par = sinais.reshape(ESTADOS * 2, TAXA_INVERSA).T  # (2, 128)
+    metrica = np.full((palavras, ESTADOS), -np.inf)
+    metrica[:, 0] = 0.0  # o codificador começa no estado zero
+    decisoes = np.zeros((passos, palavras, ESTADOS), dtype=np.uint8)
     for t in range(passos):
-        candidatos = metrica[antecessores] + ramos[t]
-        escolha = np.argmax(candidatos, axis=1)
+        ramos = (pares[:, t, :] @ ramos_por_par).reshape(palavras, ESTADOS, 2)
+        candidatos = metrica[:, antecessores] + ramos
+        escolha = candidatos[:, :, 1] > candidatos[:, :, 0]
         decisoes[t] = escolha
-        metrica = candidatos[np.arange(ESTADOS), escolha]
-        metrica -= metrica.max()  # evita crescer sem limite
-    estado = 0  # a cauda leva o codificador de volta ao estado zero
-    saida = np.zeros(passos, dtype=np.uint8)
+        metrica = np.where(escolha, candidatos[:, :, 1], candidatos[:, :, 0])
+        metrica -= metrica.max(axis=1, keepdims=True)  # evita crescer sem limite
+    linhas = np.arange(palavras)
+    estado = np.zeros(palavras, dtype=np.intp)  # a cauda leva o codificador de volta ao estado zero
+    saida = np.zeros((palavras, passos), dtype=np.uint8)
     for t in range(passos - 1, -1, -1):
-        saida[t] = estado >> (MEMORIA - 1)
-        estado = int(antecessores[estado, decisoes[t, estado]])
-    return saida[:n_bits]
+        saida[:, t] = estado >> (MEMORIA - 1)
+        estado = antecessores[estado, decisoes[t, linhas, estado]]
+    return saida[:, :n_bits]

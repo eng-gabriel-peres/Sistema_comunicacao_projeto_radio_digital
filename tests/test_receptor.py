@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from scipy import signal
 
 from sdrlink import canal, modem, quadro, receptor
 from sdrlink.modem import ConfigModem
@@ -309,3 +310,21 @@ def test_dqpsk_usa_a_taxa_de_simbolos_no_filtro_e_no_modelo() -> None:
     np.testing.assert_array_equal(dq.filtro_deteccao(), db.filtro_deteccao())
     np.testing.assert_allclose(dq.modelo(), db.modelo(), atol=1e-12)
     assert dq.taxa_bits == 2 * db.taxa_bits
+
+
+def test_fec_em_lote_igual_a_leitura_quadro_a_quadro() -> None:
+    # o receptor decodifica todos os quadros de um bloco de uma vez (bloco 11); cada quadro
+    # tem de sair igual ao da leitura individual (demodular_quadro), bit a bit
+    cm = ConfigModem("dqpsk", "rrc", 4)
+    # _captura dá o Eb/N0 por símbolo: 9 dB na DQPSK são 6 dB por bit
+    x, pacotes, _ = _captura(cm, 9, np.random.default_rng(51), 9.0, True, (128, 40, 200))
+    config = ConfigReceptor(cm, FS, DESLOCAMENTO, fec=True, guardar_bits=True)
+    d = receptor.receber(x, config)
+    assert receptor.pacotes_aceitos(d) == pacotes
+    base = x * np.exp(-2j * np.pi * DESLOCAMENTO / FS * np.arange(len(x)))
+    entrada = signal.resample_poly(base, 1, config.decimacao) if config.decimacao > 1 else base
+    for deteccao in d:
+        inicio = deteccao.inicio / config.decimacao
+        sozinho = receptor.demodular_quadro(entrada, inicio, deteccao.offset_hz, config)
+        assert sozinho is not None and deteccao.bits is not None
+        np.testing.assert_array_equal(deteccao.bits, sozinho)

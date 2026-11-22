@@ -98,6 +98,7 @@ ENTREGAS = {
             ("Prova B: configuração de alcance", "etapa6_prova_b.md", None, None),
             ("FEC para a prova B", "etapa6_fec.md", None, None),
             ("DQPSK para a prova A e quadro v3", "etapa6_dqpsk.md", None, None),
+            ("Viterbi em lote e a reserva com FEC", "etapa6_viterbi_lote.md", None, None),
             ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapas 6 e 7", None),
         ),
     ),
