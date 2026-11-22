@@ -337,3 +337,42 @@ def test_receber_mede_ber_banda_e_ebn0_com_os_perfis_da_prova(tmp_path: Path, pe
         assert medidas["ebn0_por_bit_util_db"] == pytest.approx(ebn0_por_bit + 3.03, abs=0.6)
     else:
         assert "ebn0_por_bit_util_db" not in medidas
+
+
+def test_receber_junta_os_metadados_da_gravacao_e_avisa_divergencias(tmp_path: Path) -> None:
+    # o ganho do RX vem do JSON do gravar_iq.py (seção 7 do enunciado); centro errado vira aviso
+    payloads = tmp_path / "p.bin"
+    payloads.write_bytes(bytes(128) * 60)
+    captura = tmp_path / "cap.npy"
+    tx = _rodar(
+        "transmitir.py",
+        str(payloads),
+        "--perfil",
+        "prova-a",
+        "--duracao-s",
+        "0.02",
+        "--simular",
+        str(captura),
+        "--pasta",
+        str(tmp_path),
+    )
+    assert tx.returncode == 0, tx.stderr
+    metadados = {
+        "centro_hz": 919.6e6,
+        "taxa_sps": 2.048e6,
+        "ganho_db": 30.0,
+        "correcao_ppm": 84,
+        "fracao_saturada": 0.0,
+    }
+    captura.with_suffix(".json").write_text(json.dumps(metadados), encoding="utf-8")
+    rx = _rodar("receber.py", str(captura), "--perfil", "prova-a")
+    assert rx.returncode == 0, rx.stderr
+    assert "AVISO: gravada com centro em 919.600000 MHz" in rx.stdout
+    registro = json.loads((tmp_path / "cap_rx.json").read_text(encoding="utf-8"))
+    assert registro["gravacao"]["metadados"]["ganho_db"] == 30.0
+    assert len(registro["gravacao"]["avisos"]) == 1
+    captura.with_suffix(".json").unlink()
+    sem = _rodar("receber.py", str(captura), "--perfil", "prova-a")
+    assert sem.returncode == 0, sem.stderr
+    registro = json.loads((tmp_path / "cap_rx.json").read_text(encoding="utf-8"))
+    assert registro["gravacao"]["encontrada"] is False

@@ -1,0 +1,178 @@
+{
+  "ensaio": "banda a 99% medida × SNR na captura (perfil prova-b)",
+  "banda_no_tx_khz": 29.9,
+  "limite_de_confianca_db": -5.0,
+  "pontos": [
+    {
+      "captura": "curta",
+      "ebn0_por_bit_db": 6.0,
+      "snr_na_captura_db": -12.9,
+      "bandas_khz": [
+        1884.0,
+        1151.7,
+        26.7,
+        519.0
+      ],
+      "confiavel": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "captura": "curta",
+      "ebn0_por_bit_db": 10.0,
+      "snr_na_captura_db": -9.0,
+      "bandas_khz": [
+        763.8,
+        30.4,
+        28.3,
+        333.1
+      ],
+      "confiavel": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "captura": "curta",
+      "ebn0_por_bit_db": 15.0,
+      "snr_na_captura_db": -4.0,
+      "bandas_khz": [
+        30.9,
+        30.0,
+        29.3,
+        30.8
+      ],
+      "confiavel": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "captura": "curta",
+      "ebn0_por_bit_db": 20.0,
+      "snr_na_captura_db": 1.0,
+      "bandas_khz": [
+        30.2,
+        29.9,
+        29.7,
+        30.1
+      ],
+      "confiavel": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "captura": "curta",
+      "ebn0_por_bit_db": 30.0,
+      "snr_na_captura_db": 11.0,
+      "bandas_khz": [
+        29.9,
+        29.9,
+        29.9,
+        29.9
+      ],
+      "confiavel": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "captura": "longa",
+      "ebn0_por_bit_db": 6.0,
+      "snr_na_captura_db": -12.9,
+      "bandas_khz": [
+        635.2,
+        673.3,
+        29.8,
+        182.2
+      ],
+      "confiavel": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "captura": "longa",
+      "ebn0_por_bit_db": 10.0,
+      "snr_na_captura_db": -9.0,
+      "bandas_khz": [
+        430.0,
+        260.4,
+        29.8,
+        29.9
+      ],
+      "confiavel": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "captura": "longa",
+      "ebn0_por_bit_db": 15.0,
+      "snr_na_captura_db": -4.0,
+      "bandas_khz": [
+        30.3,
+        30.5,
+        29.9,
+        29.8
+      ],
+      "confiavel": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "captura": "longa",
+      "ebn0_por_bit_db": 20.0,
+      "snr_na_captura_db": 1.0,
+      "bandas_khz": [
+        30.0,
+        30.1,
+        29.9,
+        29.9
+      ],
+      "confiavel": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "captura": "longa",
+      "ebn0_por_bit_db": 30.0,
+      "snr_na_captura_db": 11.0,
+      "bandas_khz": [
+        29.9,
+        29.9,
+        29.9,
+        29.9
+      ],
+      "confiavel": [
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  ],
+  "versao_do_codigo": "bloco-14-rev2-7-gf76099b"
+}
