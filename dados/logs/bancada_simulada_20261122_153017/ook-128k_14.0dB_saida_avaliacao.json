@@ -1,0 +1,14 @@
+{
+  "versao_do_codigo": "bloco-19-2-gbbfa41b-sujo",
+  "log_tx": "tx_20261122_153134.txt",
+  "saida_rx": "ook-128k_14.0dB_saida.txt",
+  "transmitidos": 227,
+  "recebidos_certos": 226,
+  "conteudo_diferente": 0,
+  "espurios": 0,
+  "duplicados": 0,
+  "perdidos": 1,
+  "per": 0.004405286343612335,
+  "goodput_bps": 115712.0,
+  "duracao_s": 2.0
+}

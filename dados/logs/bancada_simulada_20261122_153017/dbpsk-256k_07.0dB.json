@@ -1,0 +1,9 @@
+{
+  "simulada": true,
+  "ebn0_verdadeiro_db": 7.0,
+  "centro_hz": 919500000.0,
+  "taxa_sps": 2048000.0,
+  "ganho_db": null,
+  "fracao_saturada": 0.0,
+  "amostras": 5218304
+}

@@ -88,6 +88,7 @@ ENTREGAS = {
         "Relatorio_Etapa_5_Gabriel_Peres",
         (
             ("Caracterização: ferramentas e protocolo", "etapa5_software.md", None, None),
+            ("Análise automática da sessão de bancada", "etapa5_analise_bancada.md", None, None),
             ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapa 5", "## Etapas 6 e 7"),
         ),
     ),
@@ -126,6 +127,12 @@ ENTREGAS = {
             ),
             ("Etapa 4: simulação do canal", "etapa4_canal.md", None, None),
             ("Etapa 5: caracterização (ferramentas e protocolo)", "etapa5_software.md", None, None),
+            (
+                "Etapa 5b: análise automática da sessão de bancada",
+                "etapa5_analise_bancada.md",
+                None,
+                None,
+            ),
             ("Etapa 6a: configuração da prova A", "etapa6_prova_a.md", None, None),
             ("Etapa 6b: configuração da prova B", "etapa6_prova_b.md", None, None),
             ("Etapa 6c: FEC para a prova B", "etapa6_fec.md", None, None),

@@ -1,0 +1,89 @@
+{
+  "captura": "prova-b_04.0dB.npy",
+  "versao_do_codigo": "bloco-19-2-gbbfa41b-sujo",
+  "parametros": {
+    "captura": "C:\\Users\\User\\Documents\\IFSC\\SISTEMA_COMUNICACAO\\Trabalho_SiSCOM\\Sistema_comunicacao_projeto_radio_digital\\dados\\capturas\\sessao_simulada_20261122_153017\\prova-b_04.0dB.npy",
+    "perfil": "prova-b",
+    "modulacao": "None",
+    "pulso": "None",
+    "taxa_bits": "None",
+    "beta": "None",
+    "taxa_sps": "None",
+    "deslocamento_hz": "None",
+    "lo_hz": "None",
+    "fec": "None",
+    "emendar_caudas": "None",
+    "limiar": "None",
+    "offset_max_hz": "3000.0",
+    "pasta": "None",
+    "ber": "True"
+  },
+  "perfil": {
+    "nome": "prova-b",
+    "modulacao": "dbpsk",
+    "pulso": "rrc",
+    "sps": 80,
+    "beta": 0.35,
+    "bt": 0.5,
+    "h": 1.0,
+    "taxa_sps": 2048000.0,
+    "deslocamento_hz": 250000.0,
+    "lo_hz": 919500000.0,
+    "fec": true,
+    "emendar_caudas": false,
+    "limiar": 0.4,
+    "descricao": "Prova B: DBPSK RRC com FEC a 25,6 kbit/s no ar, C/N0 de 48,4 dB-Hz (docs/etapa6_fec.md)"
+  },
+  "decimacao": 10,
+  "tempo_de_processamento_s": 1.0,
+  "duracao_s": 2.676,
+  "deteccoes": 24,
+  "crc_ok": 23,
+  "crc_falho": 1,
+  "cortados": 0,
+  "pacotes_aceitos": 23,
+  "repeticoes_descartadas": 0,
+  "offset_residual_mediano_hz": -1385.0,
+  "offset_residual_p5_p95_hz": [
+    -1450.7,
+    -1314.8
+  ],
+  "metrica_minima_aceitos": 0.446,
+  "medidas_da_captura": {
+    "medido": true,
+    "banda_99_khz": 186.0,
+    "banda_99_limites_khz": [
+      235.1,
+      421.1
+    ],
+    "snr_na_captura_db": -15.1,
+    "banda_99_confiavel": false,
+    "ebn0_estimado_db": 3.9,
+    "amostras_de_ruido": 1021949,
+    "amostras_de_sinal": 4194304,
+    "ebn0_por_bit_util_db": 6.93
+  },
+  "ber": {
+    "quadros_comparados": 24,
+    "quadros_com_crc_falho_comparados": 1,
+    "deteccoes_fora_de_posicao": 0,
+    "segmentos": 1,
+    "bits_comparados": 24576,
+    "bits_errados": 5,
+    "ber": 0.00020345052083333334
+  },
+  "gravacao": {
+    "encontrada": true,
+    "arquivo": "prova-b_04.0dB.json",
+    "metadados": {
+      "simulada": true,
+      "ebn0_verdadeiro_db": 4.0,
+      "centro_hz": 919500000.0,
+      "taxa_sps": 2048000.0,
+      "ganho_db": null,
+      "fracao_saturada": 0.0,
+      "amostras": 5480448
+    },
+    "avisos": []
+  }
+}

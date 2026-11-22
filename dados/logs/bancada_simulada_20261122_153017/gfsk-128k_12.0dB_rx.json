@@ -1,0 +1,88 @@
+{
+  "captura": "gfsk-128k_12.0dB.npy",
+  "versao_do_codigo": "bloco-19-2-gbbfa41b-sujo",
+  "parametros": {
+    "captura": "C:\\Users\\User\\Documents\\IFSC\\SISTEMA_COMUNICACAO\\Trabalho_SiSCOM\\Sistema_comunicacao_projeto_radio_digital\\dados\\capturas\\sessao_simulada_20261122_153017\\gfsk-128k_12.0dB.npy",
+    "perfil": "gfsk-128k",
+    "modulacao": "None",
+    "pulso": "None",
+    "taxa_bits": "None",
+    "beta": "None",
+    "taxa_sps": "None",
+    "deslocamento_hz": "None",
+    "lo_hz": "None",
+    "fec": "None",
+    "emendar_caudas": "None",
+    "limiar": "None",
+    "offset_max_hz": "3000.0",
+    "pasta": "None",
+    "ber": "True"
+  },
+  "perfil": {
+    "nome": "gfsk-128k",
+    "modulacao": "fsk",
+    "pulso": "gaussiano",
+    "sps": 16,
+    "beta": 0.35,
+    "bt": 0.5,
+    "h": 1.0,
+    "taxa_sps": 2048000.0,
+    "deslocamento_hz": 250000.0,
+    "lo_hz": 919500000.0,
+    "fec": false,
+    "emendar_caudas": false,
+    "limiar": 0.5,
+    "descricao": "Bancada da Etapa 5: GFSK BT 0,5 a 128 kbit/s"
+  },
+  "decimacao": 2,
+  "tempo_de_processamento_s": 1.7,
+  "duracao_s": 2.548,
+  "deteccoes": 228,
+  "crc_ok": 195,
+  "crc_falho": 33,
+  "cortados": 0,
+  "pacotes_aceitos": 195,
+  "repeticoes_descartadas": 0,
+  "offset_residual_mediano_hz": -1429.6,
+  "offset_residual_p5_p95_hz": [
+    -1584.7,
+    -1314.8
+  ],
+  "metrica_minima_aceitos": 0.693,
+  "medidas_da_captura": {
+    "medido": true,
+    "banda_99_khz": 217.7,
+    "banda_99_limites_khz": [
+      134.6,
+      352.4
+    ],
+    "snr_na_captura_db": -0.4,
+    "banda_99_confiavel": true,
+    "ebn0_estimado_db": 12.01,
+    "amostras_de_ruido": 1021951,
+    "amostras_de_sinal": 4100528
+  },
+  "ber": {
+    "quadros_comparados": 227,
+    "quadros_com_crc_falho_comparados": 32,
+    "deteccoes_fora_de_posicao": 1,
+    "segmentos": 1,
+    "bits_comparados": 232448,
+    "bits_errados": 34,
+    "ber": 0.0001462692731277533
+  },
+  "gravacao": {
+    "encontrada": true,
+    "arquivo": "gfsk-128k_12.0dB.json",
+    "metadados": {
+      "simulada": true,
+      "ebn0_verdadeiro_db": 12.0,
+      "centro_hz": 919500000.0,
+      "taxa_sps": 2048000.0,
+      "ganho_db": null,
+      "fracao_saturada": 0.0,
+      "amostras": 5218304
+    },
+    "avisos": []
+  }
+}
