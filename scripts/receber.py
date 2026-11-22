@@ -39,7 +39,9 @@ def _argumentos() -> tuple[argparse.Namespace, Perfil]:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     p.add_argument("captura", type=Path, help="arquivo .npy (complex64) gravado pelo gravar_iq.py")
     argumentos_de_enlace(p)
-    p.add_argument("--limiar", type=float, default=receptor.LIMIAR_PADRAO)
+    p.add_argument(
+        "--limiar", type=float, default=None, help="padrão: o do perfil (0,5; 0,4 no prova-b)"
+    )
     p.add_argument("--offset-max-hz", type=float, default=receptor.OFFSET_MAX_PADRAO_HZ)
     p.add_argument("--pasta", type=Path, default=None, help="padrão: a pasta da captura")
     p.add_argument(
@@ -103,7 +105,7 @@ def main() -> int:
         modem,
         perfil.taxa_sps,
         perfil.deslocamento_hz,
-        args.limiar,
+        perfil.limiar if args.limiar is None else args.limiar,
         args.offset_max_hz,
         args.ber,
         perfil.fec,

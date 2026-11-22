@@ -31,6 +31,7 @@ ARQUIVO_RTL = RAIZ / "configs" / "rtl.toml"
 ARQUIVO_PERFIS = RAIZ / "configs" / "perfis.toml"
 CORRECAO_MAXIMA_PPM = 200
 TOLERANCIA_SPS = 1e-9  # folga numérica ao conferir que as amostras por símbolo são inteiras
+LIMIAR_PADRAO = 0.5  # o mesmo de receptor.LIMIAR_PADRAO (teste confere)
 FAIXA_LO_HZ = (915e6, 928e6)  # faixa autorizada (PLT-05); a conferência fina é do pluto_tx
 
 
@@ -69,6 +70,7 @@ class Perfil:
         lo_hz: frequência do LO do Pluto e do centro do RTL.
         fec: código convolucional no corpo dos quadros (sdrlink.codigo, bloco 09).
         emendar_caudas: TX com as caudas do RRC somadas entre quadros (bloco 12).
+        limiar: limiar da métrica de detecção do RX (bloco 19: 0,4 na prova B com FEC).
         descricao: para que serve o perfil.
     """
 
@@ -84,6 +86,7 @@ class Perfil:
     lo_hz: float = 919.5e6
     fec: bool = False
     emendar_caudas: bool = False
+    limiar: float = LIMIAR_PADRAO
     descricao: str = ""
 
     def __post_init__(self) -> None:
@@ -95,6 +98,8 @@ class Perfil:
         self.modem()
         if self.taxa_sps <= 0 or abs(self.deslocamento_hz) >= self.taxa_sps / 2:
             raise ValueError(f"{self.nome}: taxa ou deslocamento inválidos")
+        if not 0 < self.limiar < 1:
+            raise ValueError(f"{self.nome}: limiar de detecção fora de (0, 1): {self.limiar}")
         if self.emendar_caudas and not self.modem().linear:
             raise ValueError(f"{self.nome}: emendar_caudas só vale para modulações lineares")
         if not FAIXA_LO_HZ[0] <= self.lo_hz <= FAIXA_LO_HZ[1]:
