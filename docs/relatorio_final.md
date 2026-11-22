@@ -60,6 +60,7 @@ arquivo do avaliador ─► transmitir.py ─► Pluto ─► ar ─► RTL ─�
 | 12 | `bloco-12` | caudas do RRC emendadas: +2,1% de goodput na DQPSK | [etapa6_emenda.md](etapa6_emenda.md) |
 | 13 | `bloco-13` | roteiro da prova e ensaio geral com os quatro perfis finais | [roteiro_da_prova.md](roteiro_da_prova.md) |
 | 14 | `bloco-14-rev2` | este relatório final consolidado | este documento |
+| 16 | `bloco-16` | diferença de relógio de amostragem (±50 ppm sem perda em todos os perfis) e opção de gerar o sinal todo antes de transmitir (risco R1) | [etapa6_robustez.md](etapa6_robustez.md) |
 | 15 | `bloco-15` | auditoria completa contra o enunciado, do código e dos documentos; correções; plano de bancada | [auditoria_final.md](auditoria_final.md), [plano_de_bancada.md](plano_de_bancada.md) |
 
 ## 4. Resultados finais (ensaio geral, sem hardware)
