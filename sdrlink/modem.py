@@ -18,6 +18,7 @@ do preâmbulo é tarefa do receptor (sub-bloco 3c).
 
 from __future__ import annotations
 
+import functools
 from dataclasses import dataclass
 
 import numpy as np
@@ -73,14 +74,23 @@ class ConfigModem:
         self.formato()  # valida sps, beta, bt e span
 
     def formato(self) -> NDArray[np.float64]:
-        """Pulso de símbolo (lineares) ou de frequência (fsk)."""
-        if self.pulso == "rrc":
-            return pulsos.rrc(self.beta, self.sps, self.span)
-        if self.pulso == "gaussiano":
-            return pulsos.gaussiano(self.bt, self.sps, self.span)
-        if self.modulacao == "fsk":
-            return np.ones(self.sps)  # pulso de frequência retangular: CPFSK
-        return pulsos.retangular(self.sps)
+        """Pulso de símbolo (lineares) ou de frequência (fsk), calculado uma vez."""
+        return _formato(self)
+
+
+@functools.cache
+def _formato(config: ConfigModem) -> NDArray[np.float64]:
+    """Pulso da configuração, só leitura (o mesmo vetor é devolvido a todos os chamadores)."""
+    if config.pulso == "rrc":
+        forma = pulsos.rrc(config.beta, config.sps, config.span)
+    elif config.pulso == "gaussiano":
+        forma = pulsos.gaussiano(config.bt, config.sps, config.span)
+    elif config.modulacao == "fsk":
+        forma = np.ones(config.sps)  # pulso de frequência retangular: CPFSK
+    else:
+        forma = pulsos.retangular(config.sps)
+    forma.setflags(write=False)
+    return forma
 
 
 def _impulsos(simbolos: NDArray[np.float64], sps: int) -> NDArray[np.float64]:
