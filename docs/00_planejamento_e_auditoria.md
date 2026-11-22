@@ -206,7 +206,7 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | PUL-01 | ✅ (simulação) | RRC β = 0,35 e gaussiano BT = 0,5 escolhidos pela banda a 99% simulada contra a teoria: pulso retangular limitaria a BPSK a cerca de 49 kbit/s em 1 MHz, o RRC permite cerca de 860 kbit/s; falta medir no RTL | 3 |
 | PKT-01 a PKT-03 | ✅ (código) | Quadro v2 com sequência de 16 bits e CRC-16 sobre cabeçalho e payload; CRC justificado com contagem exata de erros não detectados ([etapa3_quadro.md](etapa3_quadro.md)); A3 e A9 tratados; falta usar no enlace (3c a 3e) | 3 |
 | PKT-04 | 🟡 | Quadro aceita os 128 bytes da prova; falta o TX ler os payloads de arquivo (A4, sub-bloco 3d) | 3 |
-| RX-01, RX-03 | ❌ | Achados A1, A2 | 3, 5 |
+| RX-01, RX-03 | ✅ (simulação e captura real) | Receptor multiquadro com limiar medido, offset e instante estimados por quadro, processamento em blocos e arquivo de saída (`scripts/receber.py`); 698/698 na captura real da OOK de 04/11; perda de implementação de 0 a 0,3 dB; A1 e A2 tratados ([etapa3_receptor.md](etapa3_receptor.md)); falta o ensaio com o quadro v2 no ar (3e) | 3 |
 | RX-02 | 🟡 | Captura contínua em bytes brutos sem perda (A8 e A17 corrigidos); falta a gravação de 60 s em arquivo | 3 |
 | TX-01 | ❌ | Achado A4 | 3 |
 | CAL-01, CAL-02 | ✅ | Recalibrado em 04/11 com o Pluto da equipe: correção adotada +84 ppm (medições de 84,04 e 84,21), resíduo com 84 de −356 a −524 Hz ([calibracao_rtl.md](calibracao_rtl.md)); em 22/10, com o Pluto do professor, era +77; achados A5 a A7, A15 e A16 tratados | 1 |
