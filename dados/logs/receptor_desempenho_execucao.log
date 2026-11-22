@@ -4,6 +4,6 @@ A GFSK, 128 kbit/s {'6 dB': {'verdadeiro_min': 0.475, 'verdadeiro_mediana': 0.61
 A OOK RRC, 128 kbit/s {'6 dB': {'verdadeiro_min': 0.426, 'verdadeiro_mediana': 0.594, 'falso_q9999': 0.31, 'falso_max': 0.392}, '8 dB': {'verdadeiro_min': 0.589, 'verdadeiro_mediana': 0.665, 'falso_q9999': 0.334, 'falso_max': 0.473}, '10 dB': {'verdadeiro_min': 0.626, 'verdadeiro_mediana': 0.732, 'falso_q9999': 0.345, 'falso_max': 0.527}}
 B DBPSK RRC, 256 kbit/s [(6.0, 1.0, 0.995), (7.0, 0.915, 0.92), (8.0, 0.53, 0.51), (9.0, 0.12, 0.18), (10.0, 0.02, 0.015)]
 B DBPSK RRC, 10,24 kbit/s [(6.0, 1.0, 1.0), (7.0, 0.92, 0.95), (8.0, 0.485, 0.585), (9.0, 0.125, 0.145), (10.0, 0.02, 0.015)]
-B GFSK, 128 kbit/s [(10.0, 1.0, 1.0), (11.0, 0.905, 0.945), (12.0, 0.54, 0.68), (13.0, 0.16, 0.24), (14.0, 0.025, 0.045)]
+B GFSK, 128 kbit/s [(10.0, 1.0, 0.94), (11.0, 0.815, 0.555), (12.0, 0.415, 0.175), (13.0, 0.095, 0.025), (14.0, 0.01, 0.005)]
 B OOK RRC, 128 kbit/s [(10.0, 0.91, 0.92), (11.0, 0.49, 0.505), (12.0, 0.14, 0.13), (13.0, 0.03, 0.03), (14.0, 0.005, 0.005)]
-registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\receptor_desempenho_20261121_215254.json
+registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\receptor_desempenho_20261122_000354.json

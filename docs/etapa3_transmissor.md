@@ -29,10 +29,10 @@ Testes: [`tests/test_transmissor.py`](../tests/test_transmissor.py).
 |---|---|---|---|---|---|---|---|
 | DBPSK RRC 256 kbit/s, 12 dB | 2 282 | 2 282 | **0%** | **233,7 kbit/s** | 0 | −1 386 Hz | cerca de 3,6 min |
 | DBPSK RRC 256 kbit/s, 10 dB | 2 282 | 2 227 | 2,4% | 228,0 kbit/s | 0 | −1 384 Hz | cerca de 3,9 min |
-| GFSK 128 kbit/s, 15 dB | 1 142 | 1 135 | 0,6% | 116,2 kbit/s | 0 | −1 428 Hz | cerca de 2,6 min |
+| GFSK 128 kbit/s, 15 dB | 1 142 | 1 142 | **0%** | 116,9 kbit/s | 0 | −1 428 Hz | cerca de 2,6 min |
 | OOK RRC 128 kbit/s, 15 dB | 1 142 | 1 142 | **0%** | 116,9 kbit/s | 0 | −1 497 Hz | cerca de 2,8 min |
 
-Registro: `dados/logs/enlace_simulado_20261121_231317.json` e `dados/logs/enlace_simulado_execucao.log`.
+Registro: `dados/logs/enlace_simulado_20261121_235020.json` e `dados/logs/enlace_simulado_execucao.log`. A primeira execução (`..._231317`) deu PER de 0,6% na GFSK, por causa da janela da 2-FSK adiantada (achado A22) e do correlator sem filtro de banda (A23), corrigidos na Etapa 5. Os outros casos não mudaram.
 
 O que isso mostra:
 
@@ -149,5 +149,5 @@ Um sétimo mutante, que entregava todos os pacotes pendentes junto com o bloco e
 
 | Evidência | Onde |
 |---|---|
-| Rodada simulada | `dados/logs/enlace_simulado_20261121_231317.json`, `dados/logs/enlace_simulado_execucao.log` |
+| Rodada simulada | `dados/logs/enlace_simulado_20261121_235020.json` (refeita depois de A22 e A23), `dados/logs/enlace_simulado_execucao.log` |
 | Código e testes | `sdrlink/transmissor.py`, `sdrlink/metricas.py`, `sdrlink/hw/pluto_tx.py`, `scripts/transmitir.py`, `tests/test_transmissor.py` |

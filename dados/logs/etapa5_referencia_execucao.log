@@ -1,0 +1,22 @@
+DBPSK RRC, 256 kbit/s {'ebn0_verdadeiro_db': 6.0, 'ebn0_estimado_db': 5.98, 'banda_99_khz': 295.3, 'per': 1.0, 'goodput_kbps': 0.0, 'ber': 0.009810499863238512, 'quadros_na_ber': 457}
+DBPSK RRC, 256 kbit/s {'ebn0_verdadeiro_db': 7.0, 'ebn0_estimado_db': 6.99, 'banda_99_khz': 300.0, 'per': 0.9387, 'goodput_kbps': 14.3, 'ber': 0.003476733451859956, 'quadros_na_ber': 457}
+DBPSK RRC, 256 kbit/s {'ebn0_verdadeiro_db': 8.0, 'ebn0_estimado_db': 8.01, 'banda_99_khz': 296.4, 'per': 0.5536, 'goodput_kbps': 104.4, 'ber': 0.0009402352297592998, 'quadros_na_ber': 457}
+DBPSK RRC, 256 kbit/s {'ebn0_verdadeiro_db': 9.0, 'ebn0_estimado_db': 8.98, 'banda_99_khz': 297.2, 'per': 0.1532, 'goodput_kbps': 198.1, 'ber': 0.00017308875820568927, 'quadros_na_ber': 457}
+DBPSK RRC, 256 kbit/s {'ebn0_verdadeiro_db': 10.0, 'ebn0_estimado_db': 10.02, 'banda_99_khz': 294.6, 'per': 0.0263, 'goodput_kbps': 227.8, 'ber': 3.205347374179431e-05, 'quadros_na_ber': 457}
+DBPSK RRC, 256 kbit/s {'ebn0_verdadeiro_db': 11.0, 'ebn0_estimado_db': 11.0, 'banda_99_khz': 296.6, 'per': 0.0, 'goodput_kbps': 234.0, 'ber': 0.0, 'quadros_na_ber': 457}
+DBPSK RRC, 256 kbit/s {'ebn0_verdadeiro_db': 12.0, 'ebn0_estimado_db': 11.98, 'banda_99_khz': 296.3, 'per': 0.0, 'goodput_kbps': 234.0, 'ber': 0.0, 'quadros_na_ber': 457}
+GFSK, 128 kbit/s {'ebn0_verdadeiro_db': 9.0, 'ebn0_estimado_db': 9.05, 'banda_99_khz': 219.4, 'per': 1.0, 'goodput_kbps': 0.0, 'ber': 0.00724532614628821, 'quadros_na_ber': 229}
+GFSK, 128 kbit/s {'ebn0_verdadeiro_db': 10.0, 'ebn0_estimado_db': 9.98, 'banda_99_khz': 208.2, 'per': 0.9389, 'goodput_kbps': 7.2, 'ber': 0.00269514192139738, 'quadros_na_ber': 229}
+GFSK, 128 kbit/s {'ebn0_verdadeiro_db': 11.0, 'ebn0_estimado_db': 11.0, 'banda_99_khz': 205.2, 'per': 0.5371, 'goodput_kbps': 54.3, 'ber': 0.0007505458515283843, 'quadros_na_ber': 229}
+GFSK, 128 kbit/s {'ebn0_verdadeiro_db': 12.0, 'ebn0_estimado_db': 12.04, 'banda_99_khz': 213.7, 'per': 0.1441, 'goodput_kbps': 100.4, 'ber': 0.00015778520742358077, 'quadros_na_ber': 229}
+GFSK, 128 kbit/s {'ebn0_verdadeiro_db': 13.0, 'ebn0_estimado_db': 13.01, 'banda_99_khz': 208.8, 'per': 0.0218, 'goodput_kbps': 114.7, 'ber': 2.1322325327510916e-05, 'quadros_na_ber': 229}
+GFSK, 128 kbit/s {'ebn0_verdadeiro_db': 14.0, 'ebn0_estimado_db': 14.02, 'banda_99_khz': 207.3, 'per': 0.0, 'goodput_kbps': 117.2, 'ber': 0.0, 'quadros_na_ber': 229}
+GFSK, 128 kbit/s {'ebn0_verdadeiro_db': 15.0, 'ebn0_estimado_db': 15.01, 'banda_99_khz': 209.4, 'per': 0.0, 'goodput_kbps': 117.2, 'ber': 0.0, 'quadros_na_ber': 229}
+OOK RRC, 128 kbit/s {'ebn0_verdadeiro_db': 9.0, 'ebn0_estimado_db': 9.0, 'banda_99_khz': 139.3, 'per': 1.0, 'goodput_kbps': 0.0, 'ber': 0.007117392194323144, 'quadros_na_ber': 229}
+OOK RRC, 128 kbit/s {'ebn0_verdadeiro_db': 10.0, 'ebn0_estimado_db': 9.98, 'banda_99_khz': 141.1, 'per': 0.8996, 'goodput_kbps': 11.8, 'ber': 0.002767637827510917, 'quadros_na_ber': 229}
+OOK RRC, 128 kbit/s {'ebn0_verdadeiro_db': 11.0, 'ebn0_estimado_db': 11.01, 'banda_99_khz': 143.7, 'per': 0.5197, 'goodput_kbps': 56.3, 'ber': 0.0008187772925764192, 'quadros_na_ber': 229}
+OOK RRC, 128 kbit/s {'ebn0_verdadeiro_db': 12.0, 'ebn0_estimado_db': 11.99, 'banda_99_khz': 142.8, 'per': 0.2009, 'goodput_kbps': 93.7, 'ber': 0.00020042985807860263, 'quadros_na_ber': 229}
+OOK RRC, 128 kbit/s {'ebn0_verdadeiro_db': 13.0, 'ebn0_estimado_db': 13.01, 'banda_99_khz': 141.9, 'per': 0.0349, 'goodput_kbps': 113.2, 'ber': 2.9851255458515282e-05, 'quadros_na_ber': 229}
+OOK RRC, 128 kbit/s {'ebn0_verdadeiro_db': 14.0, 'ebn0_estimado_db': 13.99, 'banda_99_khz': 143.6, 'per': 0.0044, 'goodput_kbps': 116.7, 'ber': 4.264465065502183e-06, 'quadros_na_ber': 229}
+OOK RRC, 128 kbit/s {'ebn0_verdadeiro_db': 15.0, 'ebn0_estimado_db': 14.99, 'banda_99_khz': 141.5, 'per': 0.0, 'goodput_kbps': 117.2, 'ber': 0.0, 'quadros_na_ber': 229}
+registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\logs\etapa5_referencia_20261121_234655.json

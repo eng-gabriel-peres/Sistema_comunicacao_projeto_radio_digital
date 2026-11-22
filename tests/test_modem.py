@@ -164,3 +164,29 @@ def test_girar_e_atrasar() -> None:
         canal.atrasar(pulso, -1.0)
     with pytest.raises(ValueError, match="taxa"):
         canal.girar(pulso, 10.0, 0.0)
+
+
+@pytest.mark.parametrize("pulso", ["retangular", "gaussiano"])
+def test_janela_da_2fsk_esta_no_ponto_otimo(pulso: str) -> None:
+    # deslocar o sinal uma amostra para qualquer lado não pode melhorar a BER: a janela do
+    # correlator já está no melhor lugar (uma janela 1,5 amostra adiantada passou despercebida)
+    config = ConfigModem("fsk", pulso, 8)
+    rng = np.random.default_rng(12)
+    bits = rng.integers(0, 2, 200_000).astype(np.uint8)
+    sinal = canal.awgn(modem.modular(bits, config), 11.0, 8, rng)
+    n = len(bits) - 4
+    ber = {
+        d: np.mean(modem.demodular(np.roll(sinal, -d), config, n) != bits[:n]) for d in (-1, 0, 1)
+    }
+    assert ber[0] <= 1.15 * min(ber[-1], ber[1])
+
+
+def test_ber_da_gfsk_na_referencia_da_etapa_4() -> None:
+    # Etapa 4 (antes da troca da integral de fase): GFSK BT 0,5 com BER 2,0e-3 em 11 dB
+    config = ConfigModem("fsk", "gaussiano", 8)
+    rng = np.random.default_rng(13)
+    bits = rng.integers(0, 2, 200_000).astype(np.uint8)
+    sinal = canal.awgn(modem.modular(bits, config), 11.0, 8, rng)
+    assert np.mean(modem.demodular(sinal, config, len(bits)) != bits) == pytest.approx(
+        2.0e-3, rel=0.3
+    )

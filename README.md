@@ -16,6 +16,7 @@ Projeto Final de SCM22108 Sistemas de Comunicação, Engenharia Eletrônica, IFS
 | 3d | TX de prova: payloads do avaliador, fluxo ao Pluto, log do TX, PER e goodput | concluído em simulação ([registro](docs/etapa3_transmissor.md)) |
 | 3e e 3f | Enlace real (bancada) e relatório | a fazer |
 | 4 | Simulação do canal: BER × Eb/N0 contra a teoria, fase, offset e temporização | concluído ([registro](docs/etapa4_canal.md)) |
+| 5 (software) | BER com sequência conhecida, banda a 99% e Eb/N0 da captura, referência simulada, protocolo de bancada | concluído; medições no ar a fazer ([registro](docs/etapa5_software.md)) |
 
 O plano completo, com os requisitos numerados e a matriz de rastreabilidade, está em [docs/00_planejamento_e_auditoria.md](docs/00_planejamento_e_auditoria.md).
 

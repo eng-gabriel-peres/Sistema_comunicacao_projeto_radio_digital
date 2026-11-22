@@ -158,3 +158,13 @@ def test_resumo_da_recepcao() -> None:
     assert r["offset_residual_mediano_hz"] == -1400.0
     assert r["metrica_minima_aceitos"] == 0.7
     assert receptor.resumo([], 1.0)["offset_residual_mediano_hz"] is None
+
+
+def test_2fsk_rejeita_um_pico_de_dc_do_tamanho_do_sinal() -> None:
+    # o correlator da 2-FSK precisa do filtro de banda antes: sem ele, um pico de DC do tamanho
+    # do sinal (o do RTL, ou outro sinal forte na banda) multiplicava a BER por 25
+    config = ConfigModem("fsk", "gaussiano", 16)
+    x, pacotes, _ = _captura(config, 8, np.random.default_rng(14), ebn0_db=13.0)
+    pico = np.sqrt(np.mean(np.abs(x[len(x) // 2 :]) ** 2))  # da ordem da amplitude do sinal
+    rx = ConfigReceptor(config, FS, deslocamento_hz=DESLOCAMENTO)
+    assert receptor.pacotes_aceitos(receptor.receber(x + pico, rx)) == pacotes

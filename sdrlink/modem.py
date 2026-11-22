@@ -152,7 +152,10 @@ def _demodular_fsk(amostras: Sinal, config: ConfigModem, n_bits: int) -> Bits:
     """
     sps = config.sps
     centro = (len(config.formato()) - 1) / 2 - (sps - 1) / 2  # atraso do pulso de frequência
-    inicios = np.arange(n_bits) * sps + round(centro)
+    # +1: a fase em n integra a frequência só até n - 1 (soma exclusiva, em modular), então
+    # cada símbolo aparece na fase uma amostra depois. Sem isso a janela da GFSK ficava
+    # 1,5 amostra adiantada e a BER subia 2,6 vezes em 11 dB (medido em 21/11/2026).
+    inicios = np.arange(n_bits) * sps + round(centro + 1)
     if inicios[-1] + sps > len(amostras):
         raise ValueError("sinal curto demais para a quantidade de bits pedida")
     janelas = amostras[inicios[:, None] + np.arange(sps)]
