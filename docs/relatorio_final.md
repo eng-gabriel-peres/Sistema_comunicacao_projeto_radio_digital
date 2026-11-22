@@ -69,7 +69,8 @@ arquivo do avaliador ─► transmitir.py ─► Pluto ─► ar ─► RTL ─�
 | 19 | `bloco-19` | limiar de detecção de 0,4 na prova B com FEC: de 0,4 a 1 dB a mais de alcance | [etapa6_limiar.md](etapa6_limiar.md) |
 | 20 | `bloco-20` | análise automática da sessão de bancada: tabela, gráfico e perda do enlace; sessão simulada com os scripts da bancada (perda mediana de +0,07 dB) | [etapa5_analise_bancada.md](etapa5_analise_bancada.md) |
 | 21 | `bloco-21` | imperfeições do hardware: ruído de fase real do par sem efeito detectável (folga de 16 a 31 vezes), janela do ADC de 8 bits (−30 a −6 dBFS) com aviso no `gravar_iq.py` e no `receber.py`, medida do tom na bancada | [etapa6_imperfeicoes.md](etapa6_imperfeicoes.md) |
-| 22 | `bloco-22` | revisão dos documentos pelos blocos 19 a 21; a fase real dentro de um quadro confirma a detecção diferencial na prova B | este documento |
+| 22 | `bloco-22` | revisão dos documentos pelos blocos 19 a 21; a fase real dentro de um quadro (números corrigidos no bloco 23) | este documento |
+| 23 | `bloco-23` | viabilidade da 8-PSK coerente na prova A (+48% de goodput, 2,8 dB a mais de C/N0); defeito na trajetória de fase achado e corrigido, ensaios dos blocos 21 e 22 refeitos | [etapa6_8psk.md](etapa6_8psk.md) |
 
 ## 4. Resultados finais (ensaio geral, sem hardware)
 
@@ -141,7 +142,7 @@ E falhas de processo, registradas nos blocos: um commit intermediário feito sem
 
 | Melhoria | Ganho | Situação |
 |---|---|---|
-| Detecção coerente da DBPSK (fase pela média de z²) | 0,8 dB sem código; 0,3 dB com FEC | medida com sincronismo ideal (bloco 09); **não adotada**: a fase real, sem o offset, anda até 0,25 rad (p95) e 0,40 rad num quadro de 86 ms da prova B, uma perda de 0,2 a 0,7 dB que come o ganho de 0,3 dB (bloco 22, [etapa6_imperfeicoes.md](etapa6_imperfeicoes.md)) |
+| Detecção coerente da DBPSK (fase pela média de z²) | 0,8 dB sem código; 0,3 dB com FEC | medida com sincronismo ideal (bloco 09); não adotada: a fase real, sem o offset, anda 0,11 a 0,12 rad (p95) num quadro de 86 ms da prova B, uma perda de 0,06 dB (0,12 dB no pior quadro); o ganho líquido seria de cerca de 0,2 dB, pequeno demais pelo risco (blocos 22 e 23, [etapa6_imperfeicoes.md](etapa6_imperfeicoes.md)) |
 | Prefixo mais longo nos quadros com FEC | cerca de 0,5 dB na prova B (a detecção vira o gargalo) | estimado (bloco 09) |
 | Modelo do prefixo que leve em conta a cauda do quadro anterior | recupera os 0,1 a 0,2 dB que a emenda custa na parte íngreme da curva | estimado (bloco 12) |
 | `xo_correction` do Pluto (erro de cerca de −9,5 ppm) | offset residual menor e mais estável | pendência P3 da bancada |
@@ -182,7 +183,7 @@ Perguntas prováveis, com o ponto central da resposta e onde está o detalhe:
 | Como o RX acha os quadros? | correlação coerente do prefixo de 29 bits numa grade de offsets, métrica de Pearson com limiar de 0,5 (0,4 na prova B), supressão de não-máximos | 3c, bloco 19 |
 | Por que o limiar da prova B é 0,4? | com FEC o prefixo, que não é codificado, fica 3 dB mais fraco e a detecção vira o gargalo; 0,4 dá de 0,4 a 1 dB; nenhuma detecção em 30 s só de ruído, e o CRC rejeita as falsas | bloco 19 |
 | E se os relógios do Pluto e do RTL forem diferentes? | todos os perfis aguentam ±50 ppm sem perder quadro; depois da calibração sobram cerca de 2 ppm | bloco 16 |
-| O ruído de fase dos osciladores atrapalha? | medido no tom real: não aparece no tamanho de um símbolo (folga de 16 a 31 vezes); a detecção diferencial não precisa estimar a fase do quadro, que na prova B anda até 0,4 rad em 86 ms | blocos 21 e 22 |
+| O ruído de fase dos osciladores atrapalha? | medido no tom real: não aparece no tamanho de um símbolo (folga de 16 a 31 vezes); a fase real anda menos de 0,01 rad num quadro da prova A e 0,11 a 0,12 rad (p95) num quadro de 86 ms da prova B | blocos 21 a 23 |
 | Como você escolheu o ganho do RX? | pela janela do ADC de 8 bits: sem perda de −30 a −6 dBFS, alvo de −20 a −12; o `gravar_iq.py` mostra o nível; as gravações de 04/11 ficaram entre −17 e −19 dBFS | bloco 21 |
 | Como você compara medição e teoria? | perda do enlace: quantos dB a mais que a curva teórica cada ponto precisou para a BER medida, só sem FEC e com 10 erros ou mais; na sessão simulada, +0,07 dB | bloco 20 |
 | Por que CRC-16 e por que ele cobre o cabeçalho? | CRC-8 deixa passar 1 em 256 quadros ruins; com o cabeçalho coberto um comprimento errado não gera pacote falso | 3a |
