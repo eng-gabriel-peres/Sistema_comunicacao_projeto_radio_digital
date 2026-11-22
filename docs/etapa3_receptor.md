@@ -3,7 +3,7 @@
 Requisitos:
 - **RX-01:** detecção com limiar e todos os quadros da captura;
 - **RX-03:** arquivo de saída com sequência e payload;
-- **MET-01:** base da PER.
+- **MET-02:** base da PER.
 
 Achados tratados:
 - **A1:** a referência decodifica um quadro só por captura;

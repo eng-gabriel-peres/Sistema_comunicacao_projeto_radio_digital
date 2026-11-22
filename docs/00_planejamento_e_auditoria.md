@@ -205,13 +205,14 @@ Legenda: ✅ atendido, 🟡 parcial, ❌ não atendido, ⏳ depende de hardware 
 | MOD-04 | ❌ (opcional) | Avaliar na Etapa 6 | 6 |
 | PUL-01 | ✅ (simulação) | RRC β = 0,35 e gaussiano BT = 0,5 escolhidos pela banda a 99% simulada contra a teoria: pulso retangular limitaria a BPSK a cerca de 49 kbit/s em 1 MHz, o RRC permite cerca de 860 kbit/s; falta medir no RTL | 3 |
 | PKT-01 a PKT-03 | ✅ (código) | Quadro v2 com sequência de 16 bits e CRC-16 sobre cabeçalho e payload; CRC justificado com contagem exata de erros não detectados ([etapa3_quadro.md](etapa3_quadro.md)); A3 e A9 tratados; falta usar no enlace (3c a 3e) | 3 |
-| PKT-04 | 🟡 | Quadro aceita os 128 bytes da prova; falta o TX ler os payloads de arquivo (A4, sub-bloco 3d) | 3 |
+| PKT-04 | ✅ (simulação) | TX lê o arquivo do avaliador (.bin ou .txt), numera e transmite em fluxo; rodada simulada de ponta a ponta com 5 000 payloads ([etapa3_transmissor.md](etapa3_transmissor.md)); falta no ar (3e) | 3 |
 | RX-01, RX-03 | ✅ (simulação e captura real) | Receptor multiquadro com limiar medido, offset e instante estimados por quadro, processamento em blocos e arquivo de saída (`scripts/receber.py`); 698/698 na captura real da OOK de 04/11; perda de implementação de 0 a 0,3 dB; A1 e A2 tratados ([etapa3_receptor.md](etapa3_receptor.md)); falta o ensaio com o quadro v2 no ar (3e) | 3 |
 | RX-02 | 🟡 | Captura contínua em bytes brutos sem perda (A8 e A17 corrigidos); falta a gravação de 60 s em arquivo | 3 |
-| TX-01 | ❌ | Achado A4 | 3 |
+| TX-01 | ✅ (simulação) | Log do TX (sequência e payload por pacote, no formato da saída do RX) e registro JSON; só começam pacotes dentro da janela; A4 tratado ([etapa3_transmissor.md](etapa3_transmissor.md)) | 3 |
 | CAL-01, CAL-02 | ✅ | Recalibrado em 04/11 com o Pluto da equipe: correção adotada +84 ppm (medições de 84,04 e 84,21), resíduo com 84 de −356 a −524 Hz ([calibracao_rtl.md](calibracao_rtl.md)); em 22/10, com o Pluto do professor, era +77; achados A5 a A7, A15 e A16 tratados | 1 |
 | CAL-03 | 🟡 | Agora o Pluto é o da equipe (erro próprio de cerca de −9,5 ppm); falta decidir se ajustamos o `xo_correction` ou deixamos a correção toda no RTL | 1 |
-| MET-01 a MET-05 | ❌ | | 5 |
+| MET-01, MET-02 | 🟡 | Goodput e PER calculados pela regra da seção 7 (`sdrlink.metricas`), validados na rodada simulada; falta medir no ar (Etapa 5) | 5 |
+| MET-03 a MET-05 | ❌ | | 5 |
 | CMP-01 a CMP-04 | ❌ | | 4, 5 |
 | CMP-A, CMP-B, CMP-C | ❌ | | 6, 7 |
 | PRC-01 | 🟡 | Repositório git e portão de qualidade criados (Bloco 0); falta a configuração centralizada (A14) | 1 |

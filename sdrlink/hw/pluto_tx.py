@@ -15,6 +15,7 @@ Diferenças em relação ao tx_test.py da referência:
 from __future__ import annotations
 
 import time
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from fractions import Fraction
 from typing import Any
@@ -30,6 +31,7 @@ TAXA_MAX_SPS = 61.44e6
 GANHO_MIN_DB = -89.75  # o ganho de TX do Pluto é uma atenuação: 0 dB é o máximo
 GANHO_MAX_DB = 0.0
 AMPLITUDE_PADRAO = 2**14  # metade do fundo de escala do DAC de 16 bits
+FUNDO_ESCALA_DAC = 2**15 - 1
 N_MINIMO = 1024
 N_MAXIMO = 2**20
 DURACAO_MAX_S = 600.0
@@ -136,13 +138,13 @@ def tom_complexo(
     return tom
 
 
-def _configurar(sdr: Any, config: ConfigPluto) -> None:
+def _configurar(sdr: Any, config: ConfigPluto, ciclico: bool = True) -> None:
     """Aplica a configuração e confere o que o rádio aceitou."""
     sdr.sample_rate = int(config.taxa_sps)
     sdr.tx_rf_bandwidth = int(config.taxa_sps)
     sdr.tx_lo = int(config.lo_hz)
     sdr.tx_hardwaregain_chan0 = config.ganho_db
-    sdr.tx_cyclic_buffer = True
+    sdr.tx_cyclic_buffer = ciclico
     if abs(int(sdr.tx_lo) - int(config.lo_hz)) > TOLERANCIA_LO_HZ:
         raise RuntimeError(f"o Pluto não aceitou o LO: pedido {config.lo_hz}, lido {sdr.tx_lo}")
 
@@ -158,12 +160,7 @@ def transmitir(config: ConfigPluto, amostras: NDArray[np.complex64], duracao_s: 
         raise ValueError(f"duração deve ficar entre 0 e {DURACAO_MAX_S} s")
     if len(amostras) == 0:
         raise ValueError("buffer vazio")
-    import adi  # noqa: PLC0415 (só carrega a libiio quando há hardware)
-
-    try:
-        sdr = adi.Pluto(config.uri)
-    except Exception as erro:
-        raise RuntimeError(f"não foi possível abrir o Pluto em {config.uri}: {erro}") from erro
+    sdr = _abrir(config)
     try:
         _configurar(sdr, config)
         sdr.tx(amostras)
@@ -171,3 +168,67 @@ def transmitir(config: ConfigPluto, amostras: NDArray[np.complex64], duracao_s: 
     finally:
         sdr.tx_destroy_buffer()
         sdr.tx_hardwaregain_chan0 = GANHO_MIN_DB
+
+
+def _abrir(config: ConfigPluto) -> Any:
+    """Abre o Pluto pela libiio.
+
+    Raises:
+        RuntimeError: Pluto não encontrado.
+    """
+    import adi  # noqa: PLC0415 (só carrega a libiio quando há hardware)
+
+    try:
+        return adi.Pluto(config.uri)
+    except Exception as erro:
+        raise RuntimeError(f"não foi possível abrir o Pluto em {config.uri}: {erro}") from erro
+
+
+def transmitir_fluxo(
+    config: ConfigPluto,
+    blocos: Iterable[NDArray[np.complex64]],
+    ao_enviar: Callable[[int], None] | None = None,
+) -> int:
+    """Transmite um fluxo de blocos em modo não cíclico, na ordem, e desliga sempre no final.
+
+    Todos os blocos têm de ter o mesmo tamanho (a libiio fixa o buffer no primeiro
+    envio). Cada sdr.tx() bloqueia até o Pluto aceitar o bloco, então o ritmo é o
+    do DAC. Ao terminar, com sucesso ou erro, o buffer é destruído e o ganho vai
+    ao mínimo.
+
+    Args:
+        config: LO, taxa, ganho e endereço.
+        blocos: blocos de amostras complexas em unidades do DAC (até ±32767).
+        ao_enviar: chamada depois de cada bloco com o número de blocos já enviados.
+
+    Returns:
+        Quantidade de blocos enviados.
+
+    Raises:
+        ValueError: bloco de tamanho diferente do primeiro ou acima do fundo de escala.
+        RuntimeError: Pluto não encontrado ou configuração recusada.
+    """
+    sdr = _abrir(config)
+    enviados = 0
+    tamanho = None
+    try:
+        _configurar(sdr, config, ciclico=False)
+        for bloco in blocos:
+            tamanho = tamanho or len(bloco)
+            if len(bloco) != tamanho:
+                raise ValueError(
+                    f"bloco {enviados} com {len(bloco)} amostras, o primeiro tinha {tamanho}"
+                )
+            if (
+                np.max(np.abs(bloco.real), initial=0) > FUNDO_ESCALA_DAC
+                or np.max(np.abs(bloco.imag), initial=0) > FUNDO_ESCALA_DAC
+            ):
+                raise ValueError(f"bloco {enviados} passa do fundo de escala do DAC")
+            sdr.tx(bloco)
+            enviados += 1
+            if ao_enviar is not None:
+                ao_enviar(enviados)
+    finally:
+        sdr.tx_destroy_buffer()
+        sdr.tx_hardwaregain_chan0 = GANHO_MIN_DB
+    return enviados
