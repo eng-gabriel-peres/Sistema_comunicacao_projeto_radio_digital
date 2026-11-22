@@ -110,10 +110,14 @@ def test_perda_e_a_distancia_horizontal_ate_a_teoria(tmp_path: Path) -> None:
     teorico = 10 * np.log10(-np.log(2e-3))  # DBPSK: BER = exp(-Eb/N0)/2
     p = bancada.ler_ponto(_rx(tmp_path, "c1", ebn0=float(teorico) + 1.5))
     assert bancada.perda_db(p) == pytest.approx(1.5, abs=0.02)
-    # FEC: a teoria sem código não vale; poucos bits: BER sem confiança
+    # FEC: a teoria sem código não vale; poucos erros contados: BER sem confiança
     assert bancada.perda_db(bancada.ler_ponto(_rx(tmp_path, "c2", fec=True))) is None
-    poucos = bancada.ler_ponto(_rx(tmp_path, "c3", bits=bancada.BITS_MIN_BER - 1))
+    poucos = bancada.ler_ponto(
+        _rx(tmp_path, "c3", ber=1e-3, bits=1000 * (bancada.ERROS_MIN_BER - 1))
+    )
     assert bancada.perda_db(poucos) is None
+    no_limite = bancada.ler_ponto(_rx(tmp_path, "c4", ber=1e-3, bits=1000 * bancada.ERROS_MIN_BER))
+    assert bancada.perda_db(no_limite) is not None
 
 
 def test_tabela_com_e_sem_dados(tmp_path: Path) -> None:

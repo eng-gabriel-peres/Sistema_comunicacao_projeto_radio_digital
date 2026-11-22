@@ -28,7 +28,9 @@ from sdrlink import modem, teoria
 
 SUFIXO_RX = "_rx.json"
 SUFIXO_AVALIACAO = "_saida_avaliacao.json"
-BITS_MIN_BER = 10_000  # menos bits comparados que isso não dá uma BER confiável
+ERROS_MIN_BER = (
+    10  # com menos erros contados a BER varia demais (10 erros: cerca de 30%, 0,1 a 0,2 dB)
+)
 EBN0_GRADE_DB = np.arange(-5.0, 25.0, 0.05)  # grossa: a OOK otimiza o limiar ponto a ponto
 BER_MAX = 0.5  # BER de um bit no chute
 BER_PISO = 1e-300  # a curva teórica chega a zero em float: piso para o log
@@ -142,13 +144,13 @@ def ebn0_teorico_db(modulacao: str, ber: float) -> float | None:
 def perda_db(ponto: PontoMedido) -> float | None:
     """Quantos dB a mais o enlace precisou em relação à teoria, para a BER medida.
 
-    Só sem FEC (a teoria é a da modulação sem código) e com bits suficientes.
+    Só sem FEC (a teoria é a da modulação sem código) e com erros suficientes contados.
     """
     if (
         ponto.fec
         or ponto.ber is None
         or ponto.ebn0_db is None
-        or ponto.bits_comparados < BITS_MIN_BER
+        or round(ponto.ber * ponto.bits_comparados) < ERROS_MIN_BER
     ):
         return None
     teorico = ebn0_teorico_db(ponto.modulacao, ponto.ber)
