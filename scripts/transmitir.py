@@ -89,6 +89,12 @@ def main() -> int:
     )
     baixo, alto = _conferir_banda(config, perfil.lo_hz)
     pacotes = transmissor.numerar(transmissor.ler_payloads(args.payloads))
+    cabem = transmissor.pacotes_que_cabem(config, args.duracao_s)
+    if len(pacotes) < cabem:
+        print(
+            f"AVISO: o arquivo tem {len(pacotes)} payloads, mas cabem {cabem} em "
+            f"{args.duracao_s:g} s: o TX vai parar antes do fim da janela e o goodput cai"
+        )
     log: list[RegistroTx] = []
     inicio = datetime.now().astimezone()
     t0 = time.time()
@@ -110,6 +116,8 @@ def main() -> int:
         "perfil": dataclasses.asdict(perfil),
         "banda_99_em_relacao_ao_lo_khz": [round(baixo / 1e3, 1), round(alto / 1e3, 1)],
         "payloads_no_arquivo": len(pacotes),
+        "pacotes_que_cabem_na_janela": cabem,
+        "payloads_suficientes": len(pacotes) >= cabem,
         "pacotes_transmitidos": len(log),
         "ultimo_inicio_s": round(log[-1].amostra_inicio / perfil.taxa_sps, 4) if log else None,
     }

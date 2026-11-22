@@ -204,6 +204,24 @@ def fluxo(
         yield final, pendentes
 
 
+def pacotes_que_cabem(config: ConfigTransmissor, duracao_s: float) -> int:
+    """Quantos pacotes de 128 bytes começam dentro da janela (o que o fluxo mandaria).
+
+    Se o arquivo do avaliador tiver menos payloads que isso, o TX fica sem payloads antes
+    do fim da janela e o goodput cai: na prova de 60 s simulada com DQPSK, 60 000 payloads
+    acabaram aos 51 s (bloco 10).
+
+    Raises:
+        ValueError: duração não positiva.
+    """
+    if duracao_s <= 0:
+        raise ValueError(f"duração inválida: {duracao_s}")
+    periodo = amostras_por_quadro(
+        config.modem, fec=config.fec, emendar_caudas=config.emendar_caudas
+    )
+    return -(-int(duracao_s * config.taxa_sps) // periodo)
+
+
 def gravar_log(registros: list[RegistroTx], caminho: Path) -> Path:
     """Grava o log do TX: uma linha "sequência<TAB>payload em hex" por pacote (formato do RX).
 
