@@ -21,6 +21,17 @@ deslocamento_hz = 425e3  # sinal de +50 a +800 kHz: longe do DC e dentro da faix
 lo_hz = 919.5e6
 emendar_caudas = true  # +2,1% de goodput (docs/etapa6_emenda.md)
 
+[prova-a-24]
+descricao = "Experimental: DQPSK a 2,4 MS/s, 1,6 Mbit/s no ar, banda de 850 kHz; só se o RTL gravar 2,4 MS/s sem perda (docs/etapa6_taxa_24.md)"
+modulacao = "dqpsk"
+pulso = "rrc"
+sps = 3
+beta = 0.2  # 850 kHz de banda: 15% de folga sobre 1 MHz (com 0,25 seriam 875 kHz)
+taxa_sps = 2.4e6
+deslocamento_hz = 475e3  # sinal de +50 a +900 kHz do LO
+lo_hz = 919.5e6
+emendar_caudas = true  # +2,1% de goodput (docs/etapa6_emenda.md)
+
 [prova-a-fec]
 descricao = "Reserva 1 da prova A: DQPSK com FEC, goodput da DBPSK com 3,3 dB a mais de margem (docs/etapa6_viterbi_lote.md)"
 modulacao = "dqpsk"

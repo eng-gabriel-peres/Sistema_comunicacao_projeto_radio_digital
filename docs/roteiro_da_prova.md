@@ -36,6 +36,7 @@ Para o teste o `avaliar.py` pode rodar no RX com o log do TX copiado por pen dri
 
 | Se | Perfil | Goodput esperado |
 |---|---|---|
+| **Só se** a sessão 1 do plano de bancada validou o RTL a 2,4 MS/s (gravação de 63 s sem perda e faixa plana até +904 kHz): testar primeiro com `prova-a-24`; Eb/N0 de 15 dB ou mais e PER de até 0,5% | `prova-a-24` (DQPSK a 2,4 MS/s, 1 600 kbit/s no ar) | cerca de 1 425 kbit/s |
 | Eb/N0 medido de **15 dB ou mais** e PER de até 0,5% | `prova-a` (DQPSK, 1 365 kbit/s no ar) | cerca de 1 215 kbit/s |
 | Senão, repetir o teste com `prova-a-fec`; PER de até 0,5% | `prova-a-fec` (DQPSK com FEC) | cerca de 625 kbit/s |
 | Senão | `prova-a-dbpsk` (DBPSK, 682,7 kbit/s) | cerca de 625 kbit/s |

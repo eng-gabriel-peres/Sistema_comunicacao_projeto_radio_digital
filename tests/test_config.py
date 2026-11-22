@@ -376,3 +376,13 @@ def test_receber_junta_os_metadados_da_gravacao_e_avisa_divergencias(tmp_path: P
     assert sem.returncode == 0, sem.stderr
     registro = json.loads((tmp_path / "cap_rx.json").read_text(encoding="utf-8"))
     assert registro["gravacao"]["encontrada"] is False
+
+
+def test_perfil_experimental_a_2_4_ms_por_segundo_cabe_em_1_mhz() -> None:
+    perfil = config.perfil("prova-a-24")
+    assert perfil.taxa_bits == pytest.approx(1.6e6)
+    tx = ConfigTransmissor(perfil.modem(), perfil.taxa_sps, perfil.deslocamento_hz)
+    baixo, alto = tx.banda_99_hz()
+    assert alto - baixo < 0.86e6  # 15% de folga sobre 1 MHz
+    assert baixo > 25e3  # longe do DC
+    assert alto < 0.8 * perfil.taxa_sps / 2  # mesma fração da faixa útil do perfil a 2,048 MS/s
