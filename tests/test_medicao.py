@@ -68,7 +68,7 @@ def _captura(ebn0_db: float, n_ruido: int, rng: np.random.Generator) -> tuple[np
     tx = ConfigTransmissor(DBPSK, FS, 250e3)
     pacotes = transmissor.numerar([metricas.payload_conhecido(k) for k in range(150)])
     sinal = np.concatenate([b for b, _ in transmissor.fluxo(pacotes, tx, 1.0)]).astype(complex)
-    sinal = sinal[: 150 * transmissor.amostras_por_quadro(DBPSK)]
+    sinal = sinal[: np.flatnonzero(sinal)[-1] + 1]  # até a cauda do último quadro
     potencia = np.mean(np.abs(sinal) ** 2)
     x = np.concatenate([np.zeros(n_ruido), canal.girar(sinal, -1300.0, FS)])
     n0 = potencia * 8 / 10 ** (ebn0_db / 10)

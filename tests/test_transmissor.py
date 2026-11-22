@@ -51,7 +51,7 @@ def test_sequencia_volta_a_zero() -> None:
 
 
 def test_fluxo_em_blocos_fixos_com_fase_continua() -> None:
-    config = ConfigTransmissor(DBPSK, FS, 250e3)
+    config = ConfigTransmissor(DBPSK, FS, 250e3, emendar_caudas=True)
     pacotes = transmissor.numerar(_payloads(3))
     saida = list(transmissor.fluxo(pacotes, config, duracao_s=1.0, tamanho_bloco=5000))
     assert all(len(b) == 5000 for b, _ in saida)
@@ -59,10 +59,15 @@ def test_fluxo_em_blocos_fixos_com_fase_continua() -> None:
     assert [r.pacote for r in registros] == pacotes  # todos, em ordem, cada um uma vez
     for k, (_, rs) in enumerate(saida):  # cada registro no bloco em que o quadro começa
         assert all(k * 5000 <= r.amostra_inicio < (k + 1) * 5000 for r in rs)
-    # o mesmo sinal montado de uma vez: quadros um atrás do outro, deslocados de 250 kHz
+    # o mesmo sinal montado de uma vez: cada quadro começa um período depois do anterior e
+    # as caudas do pulso se somam (bloco 12); tudo deslocado de 250 kHz
     ondas = [modem.modular(quadro.montar_quadro(p), DBPSK) for p in pacotes]
-    direto = np.concatenate(ondas) * config.escala()
-    direto = direto * np.exp(2j * np.pi * 250e3 * np.arange(len(direto)) / FS)
+    periodo = transmissor.amostras_por_quadro(DBPSK, emendar_caudas=True)
+    assert periodo == len(ondas[0]) - (len(DBPSK.formato()) - 1)
+    direto = np.zeros(2 * periodo + len(ondas[-1]), dtype=complex)
+    for k, onda in enumerate(ondas):
+        direto[k * periodo : k * periodo + len(onda)] += onda
+    direto = direto * config.escala() * np.exp(2j * np.pi * 250e3 * np.arange(len(direto)) / FS)
     fluxo = np.concatenate([b for b, _ in saida])
     np.testing.assert_allclose(
         fluxo[: len(direto)], direto, atol=0.05
@@ -186,7 +191,11 @@ def test_registro_vai_com_o_bloco_em_que_o_quadro_comeca() -> None:
 
 def test_fluxo_com_fec_e_periodo_do_quadro_codificado() -> None:
     cm = ConfigModem("dbpsk", "rrc", 8)
-    assert transmissor.amostras_por_quadro(cm) == (1117 + 13) * 8
+    # período: os bits do quadro mais o símbolo de referência; com as caudas emendadas os
+    # 12 símbolos de cauda do RRC deixam de contar (bloco 12)
+    assert transmissor.amostras_por_quadro(cm, emendar_caudas=True) == (1117 + 1) * 8
+    assert transmissor.amostras_por_quadro(cm, fec=True, emendar_caudas=True) == (2201 + 1) * 8
+    assert transmissor.amostras_por_quadro(cm) == (1117 + 13) * 8  # padrão: sem emenda
     assert transmissor.amostras_por_quadro(cm, fec=True) == (2201 + 13) * 8
     config = ConfigTransmissor(cm, FS, 250e3, fec=True)
     pacotes = transmissor.numerar([bytes(128)] * 3)
@@ -197,7 +206,9 @@ def test_fluxo_com_fec_e_periodo_do_quadro_codificado() -> None:
 def test_dqpsk_dobra_a_taxa_e_encurta_o_quadro() -> None:
     cm = ConfigModem("dqpsk", "rrc", 3, beta=0.25)
     assert ConfigTransmissor(cm, FS, 425e3).taxa_bits == pytest.approx(2 * FS / 3)
-    # 29 símbolos do prefixo + 544 do resto (1088 bits / 2) + 13 da cauda do RRC
+    # 29 símbolos do prefixo + 544 do resto (1088 bits / 2) + 1 de referência; sem a emenda,
+    # mais 12 da cauda do RRC
+    assert transmissor.amostras_por_quadro(cm, emendar_caudas=True) == (29 + 544 + 1) * 3
     assert transmissor.amostras_por_quadro(cm) == (29 + 544 + 13) * 3
     baixo, alto = ConfigTransmissor(cm, FS, 425e3).banda_99_hz()
     assert alto - baixo == pytest.approx(749e3, abs=10e3)  # mesma banda da DBPSK do prova-a

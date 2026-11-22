@@ -49,6 +49,8 @@ class ConfigTransmissor:
         deslocamento_hz: posição do sinal em relação ao LO.
         amplitude: pico desejado do sinal, em unidades do DAC.
         fec: codifica o corpo de cada quadro (sdrlink.codigo, bloco 09).
+        emendar_caudas: nas modulações lineares, o quadro seguinte começa logo depois do
+            último símbolo do anterior, com as caudas do pulso somadas (bloco 12).
     """
 
     modem: ConfigModem
@@ -56,6 +58,7 @@ class ConfigTransmissor:
     deslocamento_hz: float = 250e3
     amplitude: float = AMPLITUDE_PADRAO
     fec: bool = False
+    emendar_caudas: bool = False  # o ensaio do bloco 12 decide se vale ligar
 
     def __post_init__(self) -> None:
         """Rejeita parâmetros incoerentes.
@@ -149,8 +152,13 @@ def fluxo(
     """Blocos de tamanho fixo do sinal transmitido e os pacotes que começaram em cada bloco.
 
     Os quadros vão um atrás do outro (a guarda de 16 bits do quadro separa um do
-    outro). Um pacote só começa se a sua primeira amostra cair antes de duracao_s;
-    o último bloco é completado com zeros.
+    outro). Nas modulações lineares o quadro seguinte começa logo depois do último
+    símbolo do anterior, e as caudas do pulso se somam (bloco 12): o sinal fica igual
+    ao de uma modulação contínua, e os 12 símbolos de cauda por quadro deixam de ser
+    tempo morto. Na 2-FSK a fase é contínua dentro do quadro, e somar as caudas não
+    teria o mesmo efeito: os quadros continuam encostados, sem sobreposição. Um pacote
+    só começa se a sua primeira amostra cair antes de duracao_s; o último bloco é
+    completado com zeros.
 
     Raises:
         ValueError: duração ou tamanho de bloco inválidos.
@@ -160,8 +168,11 @@ def fluxo(
     limite = int(duracao_s * config.taxa_sps)
     escala = config.escala()
     giro = 2j * np.pi * config.deslocamento_hz / config.taxa_sps
-    acumulado = np.zeros(0, dtype=np.complex128)  # gerado e ainda não entregue
-    posicao = 0  # amostras geradas até agora
+    sobrepoe = config.modem.linear and config.emendar_caudas
+    cauda = len(config.modem.formato()) - 1 if sobrepoe else 0
+    acumulado = np.zeros(0, dtype=np.complex128)  # amostras a partir de `entregue`
+    entregue = 0  # amostras já entregues em blocos
+    posicao = 0  # onde começa o próximo quadro
     pendentes: list[RegistroTx] = []  # pacotes ainda não entregues com um bloco
     for p in pacotes:
         if posicao >= limite:
@@ -169,15 +180,24 @@ def fluxo(
         bits = quadro.montar_quadro(p, config.fec)
         onda = modem.modular(bits, config.modem, quadro.BITS_PREFIXO) * escala
         deslocada = onda * np.exp(giro * np.arange(posicao, posicao + len(onda)))  # fase contínua
-        acumulado = np.concatenate([acumulado, deslocada])
+        fim = posicao + len(onda) - entregue
+        if fim > len(acumulado):
+            acumulado = np.concatenate([acumulado, np.zeros(fim - len(acumulado), complex)])
+        acumulado[posicao - entregue : fim] += deslocada  # a cauda do anterior se soma aqui
         pendentes.append(RegistroTx(p, posicao))
-        posicao += len(onda)
-        # um bloco só sai logo depois de um quadro entrar, e esse quadro começa antes do fim
-        # do primeiro bloco que sai: os pacotes pendentes vão todos com esse bloco
-        for _ in range(len(acumulado) // tamanho_bloco):
+        posicao += len(onda) - cauda
+        # só as amostras antes do próximo quadro estão prontas (ele ainda soma a cauda
+        # desta). Um bloco só sai logo depois de um quadro entrar, e esse quadro começa
+        # antes do fim do primeiro bloco que sai: os pacotes pendentes vão com esse bloco
+        for _ in range((posicao - entregue) // tamanho_bloco):
             yield acumulado[:tamanho_bloco].astype(np.complex64), pendentes
             pendentes = []
             acumulado = acumulado[tamanho_bloco:]
+            entregue += tamanho_bloco
+    while len(acumulado) > tamanho_bloco:  # o resto, com a cauda do último quadro
+        yield acumulado[:tamanho_bloco].astype(np.complex64), pendentes
+        pendentes = []
+        acumulado = acumulado[tamanho_bloco:]
     if len(acumulado) or pendentes:
         final = np.zeros(tamanho_bloco, dtype=np.complex64)
         final[: len(acumulado)] = acumulado
@@ -199,8 +219,16 @@ def gravar_log(registros: list[RegistroTx], caminho: Path) -> Path:
 
 
 def amostras_por_quadro(
-    config: ConfigModem, tamanho_payload: int = TAMANHO_PAYLOAD, fec: bool = False
+    config: ConfigModem,
+    tamanho_payload: int = TAMANHO_PAYLOAD,
+    fec: bool = False,
+    emendar_caudas: bool = False,
 ) -> int:
-    """Duração de um quadro no fluxo do TX, em amostras: o período entre quadros consecutivos."""
+    """Período entre quadros consecutivos no fluxo do TX, em amostras.
+
+    Nas modulações lineares a cauda do pulso se sobrepõe ao quadro seguinte (fluxo):
+    o período é o número de símbolos do quadro, mais o de referência, vezes sps.
+    """
     vazio = quadro.montar_quadro(Pacote(0, bytes(tamanho_payload)), fec)
-    return len(modem.modular(vazio, config, quadro.BITS_PREFIXO))
+    onda = modem.modular(vazio, config, quadro.BITS_PREFIXO)
+    return len(onda) - (len(config.formato()) - 1 if config.linear and emendar_caudas else 0)
