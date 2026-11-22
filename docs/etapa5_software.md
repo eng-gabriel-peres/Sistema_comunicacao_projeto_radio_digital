@@ -186,17 +186,17 @@ python scripts/gerar_payloads.py --conhecidos 20000 dados/capturas/payloads_ber.
 ```
 
 **Cada ponto de medida** (configuração, ganho de TX e distância):
-1. RX: gravar **12 s** (`scripts/gravar_iq.py --centro-hz 919.5e6 --segundos 12`), começando pelo menos 1 s antes do TX.
+1. RX: gravar **12 s** (`scripts/gravar_iq.py --perfil dbpsk-256k --segundos 12`), começando pelo menos 1 s antes do TX. Os perfis (`configs/perfis.toml`, bloco 07) garantem os mesmos parâmetros no TX e no RX; para as outras modulações, `gfsk-128k` e `ook-128k`.
 2. TX, logo depois de a gravação começar:
 
    ```
-   python scripts/transmitir.py dados/capturas/payloads_ber.bin --modulacao dbpsk --pulso rrc --taxa-bits 256e3 --duracao-s 10 --ganho-db <G>
+   python scripts/transmitir.py dados/capturas/payloads_ber.bin --perfil dbpsk-256k --duracao-s 10 --ganho-db <G>
    ```
 
 3. RX, processar:
 
    ```
-   python scripts/receber.py <captura>.npy --modulacao dbpsk --pulso rrc --taxa-bits 256e3 --ber
+   python scripts/receber.py <captura>.npy --perfil dbpsk-256k --ber
    ```
 
    O resultado traz banda a 99%, Eb/N0, BER, saturação e offset.
