@@ -219,12 +219,15 @@ def test_tx_e_rx_com_fec_pela_linha_de_comando(tmp_path: Path) -> None:
     )
 
 
-@pytest.mark.parametrize(("nome", "folga_minima"), [("prova-b", 0.15), ("prova-b-limite", 0.05)])
+@pytest.mark.parametrize(
+    ("nome", "folga_minima"),
+    [("prova-b", 0.15), ("prova-b-sem-fec", 0.15), ("prova-b-limite", 0.05)],
+)
 def test_perfis_da_prova_b_passam_dos_10_kbps_com_per_de_1_pct(
     nome: str, folga_minima: float
 ) -> None:
     perfil = config.perfil(nome)
-    periodo_s = transmissor.amostras_por_quadro(perfil.modem()) / perfil.taxa_sps
+    periodo_s = transmissor.amostras_por_quadro(perfil.modem(), fec=perfil.fec) / perfil.taxa_sps
     goodput_com_per_1pct = 1024 / periodo_s * 0.99
     assert goodput_com_per_1pct > 10e3 * (1 + folga_minima)
     assert 500 * periodo_s < 50  # os 500 pacotes cabem em menos de 50 s

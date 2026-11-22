@@ -8,7 +8,7 @@ Feito em 22/11/2026, sem hardware (bloco 08). O bloco 09 acrescenta o FEC sobre 
 
 | Item | Resultado |
 |---|---|
-| Configuração escolhida | **DBPSK, RRC β = 0,35, 160 amostras por bit a 2,048 MS/s: 12,8 kbit/s** (perfil `prova-b`) |
+| Configuração escolhida | **DBPSK, RRC β = 0,35, 160 amostras por bit a 2,048 MS/s: 12,8 kbit/s**. **Atualização (bloco 09):** com FEC a 25,6 kbit/s no ar a prova B precisa de 2,9 dB a menos, e o perfil `prova-b` passou a ser essa configuração ([etapa6_fec.md](etapa6_fec.md)); a deste bloco ficou como `prova-b-sem-fec` |
 | Goodput sem perdas | **11,68 kbit/s**: 15,7% acima do mínimo de 10 kbit/s mesmo com PER de 1% (11,57 kbit/s) |
 | Tempo para 500 pacotes | 43,8 s |
 | C/N0 necessário para PER de 1% | **51,3 dB-Hz**, contra 68,6 dB-Hz do perfil `prova-a`: **17,3 dB a menos** |
@@ -64,9 +64,9 @@ E um cuidado de recurso: a 12,8 kbit/s cada ponto tem 35 s de sinal (72 milhões
 ## 5. Perfis
 
 ```
-python scripts/transmitir.py payloads.bin --perfil prova-b
-python scripts/gravar_iq.py --perfil prova-b --segundos 62 --nome prova_b_posicao1
-python scripts/receber.py dados/capturas/prova_b_posicao1_<carimbo>.npy --perfil prova-b
+python scripts/transmitir.py payloads.bin --perfil prova-b-sem-fec
+python scripts/gravar_iq.py --perfil prova-b-sem-fec --segundos 62 --nome prova_b_posicao1
+python scripts/receber.py dados/capturas/prova_b_posicao1_<carimbo>.npy --perfil prova-b-sem-fec
 ```
 
 O JSON de cada script guarda o perfil completo, o que atende ao "registrar cada configuração" da prova B.
@@ -82,4 +82,4 @@ O JSON de cada script guarda o perfil completo, o que atende ao "registrar cada 
 |---|---|
 | Varredura | `ensaios/etapa6/prova_b_ensaio.py`, `dados/logs/prova_b_20261122_103822.json`, `dados/logs/prova_b_execucao.log` |
 | Figura | `docs/figuras/etapa6_prova_b.png` (`ensaios/etapa6/figuras_prova_b_ensaio.py`) |
-| Perfis | `configs/perfis.toml` (`prova-b`, `prova-b-limite`) |
+| Perfis | `configs/perfis.toml` (`prova-b-sem-fec`, `prova-b-limite`; o `prova-b` atual é o do bloco 09) |
