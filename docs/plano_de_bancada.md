@@ -49,7 +49,7 @@ Protocolo completo em [etapa5_software.md](etapa5_software.md), seção 6. Cada 
 
 | # | Teste | Aprovado se | Tempo |
 |---|---|---|---|
-| 3.1 | Regra de troca ([roteiro](roteiro_da_prova.md), seção 3.1): 10 s com `prova-a-24` (se 1.5b passou), depois `prova-a`, `prova-a-fec` e `prova-a-dbpsk` | escolher o perfil pelo Eb/N0 medido e pela PER | 30 min |
+| 3.1 | Regra de troca ([roteiro](roteiro_da_prova.md), seção 3.1): 10 s com `prova-a-8psk` (se o 1.3b deu "ok" para ela e o Eb/N0 medido com `prova-a` passou de 16,7 dB), `prova-a-24` (se 1.5b passou), depois `prova-a`, `prova-a-fec` e `prova-a-dbpsk` | escolher o perfil pelo Eb/N0 medido e pela PER | 30 min |
 | 3.2 | **DQPSK no ar**: ruído de fase e desequilíbrio IQ reais | PER de até 0,5% com Eb/N0 de 15 dB ou mais | (junto com 3.1) |
 | 3.3 | Ensaio completo de 60 s com o perfil escolhido, como no dia | PER ≤ 1%, banda < 1 MHz, goodput registrado | 20 min |
 | 3.4 | Tempo de processamento **no computador que vai para a prova** | menos de 10 min (esperado: 1 a 2 min) | (junto) |

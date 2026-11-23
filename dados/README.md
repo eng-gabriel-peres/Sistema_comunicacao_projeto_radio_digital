@@ -41,11 +41,12 @@ Todos em `logs/`, gerados pelos scripts de `ensaios/`; cada JSON traz a versão 
 | 22/11/2026 | `emenda_caudas_20261122_113942.json` | Emenda das caudas do RRC | bloco 12 |
 | 22/11/2026 | `ensaio_geral_20261122_115928.json e um por perfil (prova_a_60s_14dB, prova_a_fec_60s_6dB_..._115606, prova_a_dbpsk_60s_12dB, prova_b_60s_6dB)` | Ensaio geral com os quatro perfis finais | bloco 13 |
 | 22/11/2026 | `banda_snr_20261122_141637.json` | Banda medida × SNR na captura (prova B) | bloco 15 |
-| 22/11/2026 | `relogio_20261122_142809.json` | Tolerância ao erro de relógio (±50 ppm) em todos os perfis | bloco 16 |
+| 22/11/2026 | `relogio_20261122_210538.json` (refeito no bloco 24 com a 8-PSK; os outros perfis iguais) | Tolerância ao erro de relógio (±50 ppm) em todos os perfis | bloco 16 |
 | 22/11/2026 | `taxa_24_20261122_143526.json, prova_a_24_60s_14dB_20261122_143526.json` | Perfil experimental a 2,4 MS/s e a prova de 60 s | bloco 17 |
 | 22/11/2026 | `limiar_20261122_151453.json, prova_b_60s_6dB_20261122_151613.json` (ensaio a 5,5 dB; o nome arredonda) | Limiar de detecção 0,5 × 0,4 na prova B e a prova de 60 s | bloco 19 |
 | 22/11/2026 | `bancada_simulada_20261122_153017.json` e a pasta `bancada_simulada_20261122_153017/` | Sessão de bancada simulada com os scripts da bancada e a análise automática | bloco 20 |
-| 22/11/2026 | `imperfeicoes_20261122_201847.json` (refeito no bloco 23) | Ruído de fase medido nos tons de 04/11, margem de ruído de fase e janela do ADC de 8 bits nos perfis finais | bloco 21 |
+| 22/11/2026 | `imperfeicoes_20261122_211000.json` (refeito nos blocos 23 e 24) | Ruído de fase medido nos tons de 04/11, margem de ruído de fase e janela do ADC de 8 bits nos perfis finais | bloco 21 |
 | 22/11/2026 | `fase_no_quadro_20261122_201412.json` (refeito no bloco 23) | Desvio da fase real dentro de um quadro de cada perfil | bloco 22 |
-| 22/11/2026 | `psk8_viabilidade_20261122_201441.json` | Viabilidade da 8-PSK coerente na prova A | bloco 23 |
+| 22/11/2026 | `psk8_viabilidade_20261122_203837.json` (refeito no bloco 24 com o Gray certo) | Viabilidade da 8-PSK coerente na prova A | bloco 23 |
+| 22/11/2026 | `prova_a_8psk_20261122_210316.json`, `rastreio_8psk_20261122_210124.json`, `prova_a_8psk_60s_15dB_20261122_212032.json` | 8-PSK coerente: receptor completo, ganho da malha de fase e prova de 60 s | bloco 24 |
 | 04/11/2026 | `analise_crc_20261104_110847.json` | Contagens e Monte Carlo do CRC (quadro v2) | Etapa 3a |

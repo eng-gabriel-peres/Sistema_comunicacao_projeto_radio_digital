@@ -7,4 +7,4 @@
 
 O transmissor, a gravação e o receptor leem o **mesmo** perfil (`--perfil <nome>`), para nunca ficarem com parâmetros diferentes (achado A14 da auditoria). Um parâmetro dado na linha de comando substitui só aquele campo, e o JSON de cada script registra o perfil completo usado.
 
-Perfis: `prova-a` (DQPSK), `prova-a-fec` e `prova-a-dbpsk` (reservas da prova A), `prova-b` (DBPSK com FEC), `prova-b-sem-fec` e `prova-b-limite`, e os da bancada da Etapa 5 (`dbpsk-256k`, `gfsk-128k`, `ook-128k`).
+Perfis: `prova-a` (DQPSK), `prova-a-8psk` e `prova-a-24` (experimentais da prova A, dependem da bancada), `prova-a-fec` e `prova-a-dbpsk` (reservas da prova A), `prova-b` (DBPSK com FEC), `prova-b-sem-fec` e `prova-b-limite`, e os da bancada da Etapa 5 (`dbpsk-256k`, `gfsk-128k`, `ook-128k`).
