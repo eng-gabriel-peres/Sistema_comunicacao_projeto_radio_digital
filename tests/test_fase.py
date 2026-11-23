@@ -193,12 +193,15 @@ def test_script_de_bancada_mede_o_tom_e_compara_com_a_tolerancia(tmp_path: Path)
     assert registro["taxa_sps"] == FS and registro["saltos_de_emenda"] == 0
     assert {v["situacao"] for v in registro["perfis"].values()} == {"ok"}
     assert registro["perfis"]["prova-b"]["atraso_amostras"] == ATRASO
+    assert registro["perfis"]["prova-a-8psk"]["atraso_amostras"] == 800  # coerente: 0,39 ms
     # ruído de fase forte demais para a prova B: o script avisa
     ruim = tmp_path / "tom_ruim.npy"
     np.save(ruim, _tom(largura_hz=600.0, snr_db=30.0).astype(np.complex64))
     assert _rodar_medir(ruim).returncode == 0
     registro = json.loads((tmp_path / "tom_ruim_ruido_de_fase.json").read_text(encoding="utf-8"))
     assert registro["perfis"]["prova-b"]["situacao"] == "ATENÇÃO"
+    assert registro["perfis"]["prova-a-8psk"]["situacao"] == "ATENÇÃO"
+    assert registro["perfis"]["prova-a"]["situacao"] == "ok"  # a DQPSK aguenta 1 kHz
     # tom fraco: o ruído branco da gravação esconde o que se quer medir
     fraco = tmp_path / "tom_fraco.npy"
     np.save(fraco, _tom(largura_hz=1.0, snr_db=-5.0).astype(np.complex64))

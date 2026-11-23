@@ -71,6 +71,7 @@ def test_perfis_do_projeto_sao_validos_e_a_prova_a_cabe_em_1_mhz() -> None:
     assert {"prova-a", "prova-a-dbpsk", "dbpsk-256k", "gfsk-128k", "ook-128k"} <= set(perfis)
     for nome, modulacao, bits_por_simbolo in (
         ("prova-a", "dqpsk", 2),
+        ("prova-a-8psk", "8psk", 3),
         ("prova-a-dbpsk", "dbpsk", 1),
     ):
         a = perfis[nome]

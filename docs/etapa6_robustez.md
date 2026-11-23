@@ -23,6 +23,7 @@ O nosso RX estima o instante de cada quadro pelo prefixo, mas não acompanha a d
 | Perfil | Amostras por quadro | Deriva no quadro a 50 ppm | Certos com 0, 2, 20 e 50 ppm | 100 ppm | −100 ppm | 200 ppm |
 |---|---|---|---|---|---|---|
 | `prova-a` (DQPSK) | 1 722 | 0,09 amostra | 300 de 300 | 300 | 300 | 291 |
+| `prova-a-8psk` (bloco 24) | 1 179 | 0,06 amostra | 300 de 300 | 300 | 300 | 300 |
 | `prova-a-fec` | 3 348 | 0,17 amostra | 300 de 300 | 300 | 300 | 295 |
 | `prova-a-dbpsk` | 3 354 | 0,17 amostra | 299 a 300 de 300 | 296 | 300 | 151 |
 | `prova-b` | 177 120 | 8,9 amostras | 60 de 60 | 58 | 59 | 0 |
@@ -49,5 +50,5 @@ Teste: `test_pre_gerar_entrega_ao_pluto_os_mesmos_blocos_ja_prontos` confere que
 
 | Evidência | Onde |
 |---|---|
-| Ensaio de relógio | `ensaios/etapa6/relogio_ensaio.py`, `dados/logs/relogio_20261122_142809.json`, `dados/logs/relogio_execucao.log` |
+| Ensaio de relógio (refeito no bloco 24 com a 8-PSK; os outros perfis deram os mesmos números) | `ensaios/etapa6/relogio_ensaio.py`, `dados/logs/relogio_20261122_210538.json`, `dados/logs/relogio_execucao.log` |
 | Código | `sdrlink/canal.py` (`reamostrar`), `scripts/transmitir.py` (`--pre-gerar`, `fonte_de_blocos`) |

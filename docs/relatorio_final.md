@@ -10,7 +10,7 @@ Estado em 22/11/2026, depois do bloco 18: **tudo o que dá para fazer sem hardwa
 |---|---|
 | Prova A (maior goodput) | perfil `prova-a`: **DQPSK, RRC β = 0,25, 1 365 kbit/s no ar**, caudas emendadas. Na prova de 60 s simulada com os comandos da prova: **1 217,8 kbit/s de goodput**, PER de 0,003%, banda a 99% de 748,6 kHz, RX em 75 s |
 | Reservas da prova A | `prova-a-fec` (DQPSK com FEC: 626 kbit/s com 12,9 dB de margem estimada na bancada) e `prova-a-dbpsk` (625 kbit/s, 9,6 dB); regra de troca objetiva no roteiro |
-| Perfil experimental | `prova-a-24`: DQPSK com o RTL a 2,4 MS/s, **1 427 kbit/s** na prova de 60 s simulada (+17%); depende de dois testes de bancada ([etapa6_taxa_24.md](etapa6_taxa_24.md)) |
+| Perfis experimentais | `prova-a-8psk`: **8-PSK coerente, 1 778,5 kbit/s** na prova de 60 s simulada (+46%), na mesma banda; pede 2,8 dB a mais de C/N0 e tolera 100 vezes menos ruído de fase que a DQPSK, por isso depende da bancada ([etapa6_8psk.md](etapa6_8psk.md)). `prova-a-24`: DQPSK com o RTL a 2,4 MS/s, **1 427 kbit/s** (+17%); depende de dois testes de bancada ([etapa6_taxa_24.md](etapa6_taxa_24.md)) |
 | Robustez | todos os perfis aguentam **±50 ppm** de diferença de relógio entre o Pluto e o RTL (esperado depois da calibração: cerca de 2 ppm); opção `--pre-gerar` contra o risco de o Python não alimentar o Pluto a tempo ([etapa6_robustez.md](etapa6_robustez.md)); o ruído de fase real do par Pluto + RTL, medido nos tons de 04/11, não tem efeito detectável em nenhum perfil, e o ADC de 8 bits não custa nada de −30 a −6 dBFS ([etapa6_imperfeicoes.md](etapa6_imperfeicoes.md)) |
 | Prova B (maior alcance) | perfil `prova-b`: **DBPSK com código convolucional K = 7, 25,6 kbit/s no ar**: goodput de 11,8 kbit/s, 500 pacotes em 43 s, **C/N0 necessário de 48,2 dB-Hz** com o limiar de detecção de 0,4 (bloco 19), cerca de 25 dB menos que o `prova-a` com DQPSK (cerca de 20 dB menos que o `prova-a-dbpsk`): cerca de 18 vezes a distância no espaço livre |
 | Comparação com a OOK de referência | a referência entrega **7,3 kbit/s** no ar (21 bytes por quadro, 10 kbit/s, pulso retangular; captura real de 04/11). O `prova-a` chega a **1 218 kbit/s em simulação**, na mesma banda de 1 MHz. **Os dois números não vêm das mesmas condições** (um é medido, o outro simulado), e o enunciado pede a melhoria medida nas mesmas condições: essa medição é da bancada |
@@ -71,6 +71,7 @@ arquivo do avaliador ─► transmitir.py ─► Pluto ─► ar ─► RTL ─�
 | 21 | `bloco-21` | imperfeições do hardware: ruído de fase real do par sem efeito detectável (folga de 16 a 31 vezes), janela do ADC de 8 bits (−30 a −6 dBFS) com aviso no `gravar_iq.py` e no `receber.py`, medida do tom na bancada | [etapa6_imperfeicoes.md](etapa6_imperfeicoes.md) |
 | 22 | `bloco-22` | revisão dos documentos pelos blocos 19 a 21; a fase real dentro de um quadro (números corrigidos no bloco 23) | este documento |
 | 23 | `bloco-23` | viabilidade da 8-PSK coerente na prova A (+48% de goodput, 2,8 dB a mais de C/N0); defeito na trajetória de fase achado e corrigido, ensaios dos blocos 21 e 22 refeitos | [etapa6_8psk.md](etapa6_8psk.md) |
+| 24 | `bloco-24` | 8-PSK coerente no receptor (malha de fase, mapa de Gray corrigido) e perfil experimental `prova-a-8psk`: 1 778,5 kbit/s na prova de 60 s simulada | [etapa6_8psk.md](etapa6_8psk.md) |
 
 ## 4. Resultados finais (ensaio geral, sem hardware)
 
@@ -87,6 +88,7 @@ A prova de 60 s simulada com cada perfil final, pelos comandos da prova, no cana
 
 | Configuração | C/N0 necessário | Margem pela bancada de 04/11 (78,3 dB-Hz) |
 |---|---|---|
+| 8-PSK coerente 2 048 kbit/s (`prova-a-8psk`) | 76,2 dB-Hz | 2,1 dB |
 | DQPSK 1 365 kbit/s (`prova-a`) | 73,4 dB-Hz | 4,9 dB |
 | DBPSK 682,7 kbit/s (`prova-a-dbpsk`) | 68,7 dB-Hz | 9,6 dB |
 | DQPSK com FEC (`prova-a-fec`) | 65,4 dB-Hz | 12,9 dB |
@@ -185,6 +187,7 @@ Perguntas prováveis, com o ponto central da resposta e onde está o detalhe:
 | E se os relógios do Pluto e do RTL forem diferentes? | todos os perfis aguentam ±50 ppm sem perder quadro; depois da calibração sobram cerca de 2 ppm | bloco 16 |
 | O ruído de fase dos osciladores atrapalha? | medido no tom real: não aparece no tamanho de um símbolo (folga de 16 a 31 vezes); a fase real anda menos de 0,01 rad num quadro da prova A e 0,11 a 0,12 rad (p95) num quadro de 86 ms da prova B | blocos 21 a 23 |
 | Como você escolheu o ganho do RX? | pela janela do ADC de 8 bits: sem perda de −30 a −6 dBFS, alvo de −20 a −12; o `gravar_iq.py` mostra o nível; as gravações de 04/11 ficaram entre −17 e −19 dBFS | bloco 21 |
+| Por que não usar uma modulação de ordem maior na prova A? | a 8-PSK coerente leva 46% a mais na mesma banda, mas pede 2,8 dB a mais de C/N0 e tolera 100 vezes menos ruído de fase (10 a 30 Hz contra 1 kHz); ela fica como primeira opção só se a bancada mostrar as duas folgas | bloco 24 |
 | Como você compara medição e teoria? | perda do enlace: quantos dB a mais que a curva teórica cada ponto precisou para a BER medida, só sem FEC e com 10 erros ou mais; na sessão simulada, +0,07 dB | bloco 20 |
 | Por que CRC-16 e por que ele cobre o cabeçalho? | CRC-8 deixa passar 1 em 256 quadros ruins; com o cabeçalho coberto um comprimento errado não gera pacote falso | 3a |
 | Por que a sequência tem 24 bits? | a 1,2 Mbit/s a de 16 bits dava a volta dentro dos 60 s e o avaliador contaria os pacotes da 2ª volta como errados | bloco 10 |

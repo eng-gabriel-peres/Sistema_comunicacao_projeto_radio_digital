@@ -35,6 +35,7 @@ AMPLITUDE_PADRAO = 0.7 * 2**15  # pico do sinal: 70% do fundo de escala do DAC d
 
 BLOCO_PADRAO = 2**18  # amostras por bloco entregue ao Pluto (128 ms a 2,048 MS/s)
 BITS_REFERENCIA = 4000  # sequência aleatória usada para medir pico e banda do sinal
+SIMBOLOS_REFERENCIA_MIN = 2000  # e pelo menos tantos símbolos (a 8-PSK leva 3 bits por símbolo)
 SEMENTE_REFERENCIA = 20261121
 MAX_PACOTES = 10_000_000
 
@@ -81,7 +82,8 @@ class ConfigTransmissor:
     def _referencia(self) -> NDArray[np.complex128]:
         """Sinal de referência (bits aleatórios fixos) para medir pico e banda."""
         rng = np.random.default_rng(SEMENTE_REFERENCIA)
-        return modem.modular(rng.integers(0, 2, BITS_REFERENCIA).astype(np.uint8), self.modem)
+        n_bits = max(BITS_REFERENCIA, SIMBOLOS_REFERENCIA_MIN * self.modem.bits_por_simbolo)
+        return modem.modular(rng.integers(0, 2, n_bits).astype(np.uint8), self.modem)
 
     def escala(self) -> float:
         """Fator que leva o pico do sinal modulado à amplitude pedida.

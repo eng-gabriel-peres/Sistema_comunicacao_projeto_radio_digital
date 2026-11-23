@@ -1,0 +1,88 @@
+{
+  "ensaio": "prova A com 8-PSK coerente no receptor completo",
+  "taxa_sps": 2048000.0,
+  "quadros_por_ponto": 1000,
+  "deslocamento_hz": 425000.0,
+  "offset_hz": -1400.0,
+  "dc_relativo": 0.008,
+  "imagem_dbc": -45.0,
+  "cn0_bancada_dbhz": 78.3,
+  "casos": [
+    {
+      "nome": "DQPSK 1365 kbit/s (prova-a)",
+      "modulacao": "dqpsk",
+      "fase_real": false,
+      "taxa_no_ar": 1365333.3,
+      "goodput_sem_perda_kbps": 1217.9,
+      "per_por_ebn0_no_ar": {
+        "10.0": 0.272,
+        "10.5": 0.134,
+        "11.0": 0.067,
+        "11.5": 0.017,
+        "12.0": 0.012,
+        "12.5": 0.002,
+        "13.0": 0.001,
+        "13.5": 0.0,
+        "14.0": 0.0
+      },
+      "errados_aceitos": 0,
+      "ebn0_no_ar_per_1pct_db": 12.05,
+      "cn0_necessario_dbhz": 73.4,
+      "margem_na_bancada_db": 4.9,
+      "rx_s_por_s": 1.09
+    },
+    {
+      "nome": "8-PSK 2048 kbit/s (prova-a-8psk)",
+      "modulacao": "8psk",
+      "fase_real": false,
+      "taxa_no_ar": 2048000.0,
+      "goodput_sem_perda_kbps": 1778.8,
+      "per_por_ebn0_no_ar": {
+        "10.0": 0.734,
+        "10.5": 0.526,
+        "11.0": 0.326,
+        "11.5": 0.189,
+        "12.0": 0.079,
+        "12.5": 0.044,
+        "13.0": 0.013,
+        "13.5": 0.004,
+        "14.0": 0.002,
+        "14.5": 0.0,
+        "15.0": 0.001,
+        "15.5": 0.0,
+        "16.0": 0.0
+      },
+      "errados_aceitos": 0,
+      "ebn0_no_ar_per_1pct_db": 13.11,
+      "cn0_necessario_dbhz": 76.22,
+      "margem_na_bancada_db": 2.1,
+      "rx_s_por_s": 2.08
+    },
+    {
+      "nome": "8-PSK 2048 kbit/s com a fase real",
+      "modulacao": "8psk",
+      "fase_real": true,
+      "taxa_no_ar": 2048000.0,
+      "goodput_sem_perda_kbps": 1778.8,
+      "per_por_ebn0_no_ar": {
+        "10.0": 0.707,
+        "10.5": 0.531,
+        "11.0": 0.34,
+        "11.5": 0.175,
+        "12.0": 0.105,
+        "12.5": 0.043,
+        "13.0": 0.022,
+        "13.5": 0.001,
+        "14.0": 0.002,
+        "14.5": 0.0,
+        "15.0": 0.0
+      },
+      "errados_aceitos": 0,
+      "ebn0_no_ar_per_1pct_db": 13.13,
+      "cn0_necessario_dbhz": 76.24,
+      "margem_na_bancada_db": 2.0,
+      "rx_s_por_s": 2.05
+    }
+  ],
+  "versao_do_codigo": "bloco-23-4-g4c6c085"
+}

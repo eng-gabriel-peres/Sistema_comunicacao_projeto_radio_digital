@@ -28,6 +28,23 @@
       }
     },
     {
+      "perfil": "prova-a-8psk",
+      "ebn0_no_ar_db": 15.0,
+      "quadros": 300,
+      "amostras_por_quadro": 1179,
+      "deriva_no_quadro_a_50_ppm_amostras": 0.06,
+      "amostras_por_simbolo": 3,
+      "certos_por_ppm": {
+        "+0": 300,
+        "+2": 300,
+        "+20": 300,
+        "+50": 300,
+        "+100": 300,
+        "-100": 300,
+        "+200": 300
+      }
+    },
+    {
       "perfil": "prova-a-fec",
       "ebn0_no_ar_db": 6.0,
       "quadros": 300,
@@ -79,5 +96,5 @@
       }
     }
   ],
-  "versao_do_codigo": "bloco-15-1-g042b077"
+  "versao_do_codigo": "bloco-23-4-g4c6c085"
 }

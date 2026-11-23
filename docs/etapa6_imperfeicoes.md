@@ -76,6 +76,7 @@ As diferenças vão para os dois lados e cabem nos intervalos.
 |---|---|---|---|---|---|---|
 | `prova-a` | 0,3% | 0,5% | 0 | **1,0%** | 11,8% | 99,5% |
 | `prova-a-24` | 0,3% | 0,3% | 0 | **0,8%** | 6,5% | 93,8% |
+| `prova-a-8psk` (coerente, bloco 24) | 0 | 15,8% (com 10 Hz: 0,3%; 30 Hz: 1,5%) | 89% | | | |
 | `prova-a-fec` | 0 | 0 | 0 | 0 | **0,3%** | 14,3% |
 | `prova-a-dbpsk` | 0,3% | 0 | 0 | 0 | **0,3%** | 13,0% |
 | `prova-b` | 0 | 0 | **0,8%** | 29,2% | 98,3% | |
@@ -86,12 +87,15 @@ As diferenças vão para os dois lados e cabem nos intervalos.
 |---|---|---|---|---|---|---|---|---|
 | `prova-a` | 100% | 100% | 11,0% | 0,3% | 0,3% | 0,3% | 0,3% | 0,3% |
 | `prova-a-24` | 100% | 100% | 8,3% | 0,5% | 0,3% | 0,3% | 0,3% | 0,8% |
+| `prova-a-8psk` | 100% | 100% | 49,8% | 0,3% | 0,3% | 0 | 0 | 2,0% |
 | `prova-a-fec` | 88,3% | 83,0% | 0 | 0 | 0 | 0 | 0 | 0 |
 | `prova-a-dbpsk` | 99,0% | 98,7% | 1,3% | 0 | 0,3% | 0,3% | 0,3% | 0,7% |
 | `prova-b` | 26,7% | 13,3% | 0,8% | 0 | 0 | 0 | 0 | 0 |
 | Amostras saturadas | 0 | 0 | 0 | 0 | 0 | 0 a 0,02% | 4 a 9% | 30 a 35% |
 
 O ADC simulado é ideal. O do RTL tem cerca de 7 bits efetivos, por isso a janela recomendada fica com folga dos dois lados: −20 a −12 dBFS.
+
+**A 8-PSK coerente (bloco 24) é outra história**: ela decide pela fase absoluta e tolera só 10 a 30 Hz de largura de linha, 100 vezes menos que a DQPSK, mesmo com a malha de fase. O par de 04/11 passa com folga de 3 a 60 vezes; o `medir_ruido_de_fase.py` confere isso na bancada ([etapa6_8psk.md](etapa6_8psk.md)).
 
 **Desequilíbrio IQ.** Não foi varrido aqui. Em todos os perfis o deslocamento passa da metade da banda, então a imagem cai do outro lado do DC e não se sobrepõe ao sinal. O ensaio da prova B já inclui uma imagem a −45 dBc.
 
@@ -140,6 +144,6 @@ Mutantes (11, todos mortos):
 
 | Evidência | Onde |
 |---|---|
-| Ensaio (refeito no bloco 23) | `ensaios/etapa6/imperfeicoes_ensaio.py`, `dados/logs/imperfeicoes_20261122_201847.json`, `dados/logs/imperfeicoes_execucao.log` |
+| Ensaio (refeito nos blocos 23 e 24; no 24 entrou a 8-PSK e os outros perfis deram os mesmos números) | `ensaios/etapa6/imperfeicoes_ensaio.py`, `dados/logs/imperfeicoes_20261122_211000.json`, `dados/logs/imperfeicoes_execucao.log` |
 | Fase dentro de um quadro (bloco 22, refeito no 23) | `ensaios/etapa6/fase_no_quadro_ensaio.py`, `dados/logs/fase_no_quadro_20261122_201412.json`, `dados/logs/fase_no_quadro_execucao.log` |
 | Gravações reais usadas | `dados/calibracao/calibracao_20261104_100631_depois.npy` e `..._100917_depois.npy` (fora do git pelo tamanho; os JSON de calibração estão no git) |

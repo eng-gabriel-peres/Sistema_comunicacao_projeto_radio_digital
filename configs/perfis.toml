@@ -22,6 +22,17 @@ deslocamento_hz = 425e3  # sinal de +50 a +800 kHz: longe do DC e dentro da faix
 lo_hz = 919.5e6
 emendar_caudas = true  # +2,1% de goodput (docs/etapa6_emenda.md)
 
+[prova-a-8psk]
+descricao = "Experimental: 8-PSK coerente RRC a 2048 kbit/s, a mesma banda de 0,75 MHz, +48% de goodput; pede 2,8 dB a mais de C/N0 (docs/etapa6_8psk.md)"
+modulacao = "8psk"
+pulso = "rrc"
+sps = 3  # amostras por símbolo; 3 bits por símbolo no corpo do quadro
+beta = 0.25
+taxa_sps = 2.048e6
+deslocamento_hz = 425e3
+lo_hz = 919.5e6
+emendar_caudas = true
+
 [prova-a-24]
 descricao = "Experimental: DQPSK a 2,4 MS/s, 1,6 Mbit/s no ar, banda de 850 kHz; só se o RTL gravar 2,4 MS/s sem perda (docs/etapa6_taxa_24.md)"
 modulacao = "dqpsk"

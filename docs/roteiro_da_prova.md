@@ -36,12 +36,15 @@ Para o teste o `avaliar.py` pode rodar no RX com o log do TX copiado por pen dri
 
 | Se | Perfil | Goodput esperado |
 |---|---|---|
+| **Só se** o `medir_ruido_de_fase.py` deu "ok" para a `prova-a-8psk` (item 1.3b do plano) **e** o teste com `prova-a` mediu Eb/N0 de **16,7 dB ou mais** (C/N0 de 78 dB-Hz, 2 dB acima do que a 8-PSK pede): testar primeiro com `prova-a-8psk`; Eb/N0 de 15 dB ou mais e PER de até 0,5% ([etapa6_8psk.md](etapa6_8psk.md)) | `prova-a-8psk` (8-PSK coerente, 2 048 kbit/s no ar) | cerca de 1 775 kbit/s |
 | **Só se** a sessão 1 do plano de bancada validou o RTL a 2,4 MS/s (gravação de 63 s sem perda e faixa plana até +904 kHz): testar primeiro com `prova-a-24`; Eb/N0 de 15 dB ou mais e PER de até 0,5% | `prova-a-24` (DQPSK a 2,4 MS/s, 1 600 kbit/s no ar) | cerca de 1 425 kbit/s |
 | Eb/N0 medido de **15 dB ou mais** e PER de até 0,5% | `prova-a` (DQPSK, 1 365 kbit/s no ar) | cerca de 1 215 kbit/s |
 | Senão, repetir o teste com `prova-a-fec`; PER de até 0,5% | `prova-a-fec` (DQPSK com FEC) | cerca de 625 kbit/s |
 | Senão | `prova-a-dbpsk` (DBPSK, 682,7 kbit/s) | cerca de 625 kbit/s |
 
-O `receber.py` mostra o Eb/N0 medido e a banda a 99%. **A banda tem de ficar abaixo de 1 MHz** (esperado: cerca de 750 kHz nos três perfis).
+O `receber.py` mostra o Eb/N0 medido e a banda a 99%. **A banda tem de ficar abaixo de 1 MHz** (esperado: cerca de 750 kHz em todos os perfis da prova A).
+
+**O arquivo do avaliador precisa ter pacotes para os 60 s.** Cabem cerca de 36 600 pacotes na DBPSK, 71 400 na DQPSK e 104 200 na 8-PSK. Se o arquivo tiver menos, o TX para antes do fim e o goodput cai; o `transmitir.py` avisa no início.
 
 ### 3.2 O ensaio
 
@@ -83,6 +86,7 @@ Se uma posição falhar com o `prova-b`, não há perfil mais sensível pronto: 
 | Banda a 99% dos perfis medida no RTL | a medida do avaliador ser diferente da nossa | [etapa6_prova_a.md](etapa6_prova_a.md), seção 2.6 |
 | Python alimentando o Pluto a 2,048 MS/s por 60 s, sem buraco | quadros cortados | risco R1; se acontecer, `transmitir.py --pre-gerar` ([etapa6_robustez.md](etapa6_robustez.md)) |
 | DQPSK no ar: ruído de fase e desequilíbrio IQ reais | a DQPSK precisar de mais que 12 dB | regra de troca, seção 3.1 |
+| 8-PSK coerente no ar | ruído de fase do par da prova maior que o de 04/11 (ela tolera 10 a 30 Hz, a DQPSK 1 kHz); C/N0 abaixo de 78 dB-Hz | `medir_ruido_de_fase.py` (item 1.3b do plano) e o Eb/N0 do teste; senão, `prova-a` |
 | Deriva do offset na prova B (quadros de 86 ms) | pior que os 35 Hz/s medidos | [etapa6_prova_b.md](etapa6_prova_b.md) |
 | Gravação de 60 s no RTL (cerca de 1 GB em complex64) sem perder amostras | captura incompleta; só gravamos até 16 s no ar | `gravar_iq.py --segundos 63`; conferir o número de amostras no JSON |
 | Recepção com o quadro v3 nas nossas modulações | nada além da OOK de referência foi recebido no ar | protocolo da Etapa 5 |
