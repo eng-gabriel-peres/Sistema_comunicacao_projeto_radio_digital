@@ -40,7 +40,7 @@ Sinal = NDArray[np.complex128]
 MODULACOES = ("ook", "bpsk", "dbpsk", "dqpsk", "8psk", "fsk")
 # DQPSK, Gray: o par (b1, b2) gira a fase de GIROS_DQPSK[2 b1 + b2]
 GIROS_DQPSK = np.exp(1j * np.pi / 2 * np.array([0, 1, 3, 2]))  # 00: 0, 01: 90, 10: 270, 11: 180
-PULSOS_LINEARES = ("retangular", "rrc")  # OOK, BPSK, DBPSK, DQPSK: pulso de símbolo
+PULSOS_LINEARES = ("retangular", "rrc")  # OOK, BPSK, DBPSK, DQPSK, 8-PSK: pulso de símbolo
 BITS_POR_SIMBOLO = {"dqpsk": 2, "8psk": 3}  # as outras levam 1 bit por símbolo
 # índice de fase (k·45°) de cada valor de 3 bits b0b1b2: o inverso do Gray k ^ (k >> 1), para que
 # fases vizinhas difiram em 1 bit (a primeira versão usava o próprio Gray aqui e não era Gray)
@@ -62,7 +62,7 @@ class ConfigModem:
     """Escolha da modulação e do pulso.
 
     Attributes:
-        modulacao: "ook", "bpsk", "dbpsk", "dqpsk" ou "fsk".
+        modulacao: "ook", "bpsk", "dbpsk", "dqpsk", "8psk" ou "fsk".
         pulso: "retangular" ou "rrc" (lineares); "retangular" ou "gaussiano" (fsk).
         sps: amostras por símbolo.
         beta: fator de rolagem do RRC.
@@ -100,24 +100,25 @@ class ConfigModem:
 
     @property
     def linear(self) -> bool:
-        """Modulação linear (soma de pulsos): OOK, BPSK, DBPSK e DQPSK; a 2-FSK não é."""
+        """Modulação linear (soma de pulsos): OOK, BPSK, DBPSK, DQPSK e 8-PSK; a 2-FSK não é."""
         return self.modulacao != "fsk"
 
     @property
     def bits_por_simbolo(self) -> int:
-        """Bits levados por símbolo no corpo: 2 na DQPSK, 1 nas outras."""
+        """Bits levados por símbolo no corpo: 2 na DQPSK, 3 na 8-PSK, 1 nas outras."""
         return bits_por_simbolo_de(self.modulacao)
 
 
 def bits_por_simbolo_de(modulacao: str) -> int:
-    """Bits por símbolo no corpo do quadro: 2 na DQPSK, 1 nas outras."""
+    """Bits por símbolo no corpo do quadro: 2 na DQPSK, 3 na 8-PSK, 1 nas outras."""
     return BITS_POR_SIMBOLO.get(modulacao, 1)
 
 
 def simbolos(n_bits: int, config: ConfigModem, prefixo: int = 0) -> int:
     """Quantos símbolos levam n_bits, com os primeiros `prefixo` bits a um por símbolo.
 
-    Na DQPSK um corpo com número ímpar de bits ganha um bit 0 no fim.
+    O corpo é completado com bits 0 até um múltiplo dos bits por símbolo (2 na DQPSK, 3 na
+    8-PSK).
     """
     corpo = max(n_bits - prefixo, 0)
     return min(n_bits, prefixo) + -(-corpo // config.bits_por_simbolo)
@@ -180,8 +181,8 @@ def _simbolos_lineares(bits: Bits, modulacao: str, prefixo: int = 0) -> NDArray[
 def modular(bits: Bits, config: ConfigModem, prefixo: int = 0) -> Sinal:
     """Sinal complexo em banda base para a sequência de bits.
 
-    `prefixo`: só a DQPSK usa; os primeiros `prefixo` bits vão um por símbolo, como na
-    DBPSK (o preâmbulo e o sync do quadro).
+    `prefixo`: DQPSK e 8-PSK usam; os primeiros `prefixo` bits vão um por símbolo, como
+    na DBPSK (o preâmbulo e o sync do quadro).
 
     Raises:
         ValueError: bits vazios ou com valores diferentes de 0 e 1.
@@ -214,7 +215,7 @@ def _limiar_dois_niveis(valores: NDArray[np.float64]) -> float:
 
 
 def saida_casada(amostras: Sinal, config: ConfigModem, n_simbolos: int) -> Sinal:
-    """Saída do filtro casado no instante ótimo de cada símbolo (OOK, BPSK, DBPSK, DQPSK).
+    """Saída do filtro casado no instante ótimo de cada símbolo (modulações lineares).
 
     Raises:
         ValueError: sinal curto demais para n_simbolos.
@@ -287,7 +288,7 @@ def _corrigir_8psk(corpo: Sinal, fase_prefixo: float, distancia: float) -> Sinal
     corpo por essa frequência, e é rastreada símbolo a símbolo (_rastrear_8psk). A primeira
     versão tirava a fase da média da potência 8 do corpo inteiro: com ruído de fase, a fase
     média se afasta da do prefixo e a ambiguidade de 45° saía errada no quadro todo; e uma
-    reta só por quadro não acompanhava a fase (Wiener de 30 Hz: PER de 17%, bloco 24).
+    reta só por quadro não acompanhava a fase (Wiener de 10 Hz: PER de 16,5%, bloco 24).
     """
     k = np.arange(len(corpo))
     omega = _frequencia_8psk(np.abs(corpo) * np.exp(8j * np.angle(corpo)))

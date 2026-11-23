@@ -63,7 +63,7 @@ A OOK mede o Eb/N0 0,15 a 0,18 dB abaixo do verdadeiro: o estimador usa a potên
 - a tabela com e sem dados (sem "sem dado%"), o aviso de banda não confiável e a ordem dos pontos;
 - o script de ponta a ponta numa pasta e a recusa de uma pasta vazia.
 
-Mutantes (11, todos mortos): `NaN` aceito, bits por símbolo fixo, FEC ignorado, sinal da perda trocado, mínimo de erros ignorado, mínimo de erros deslocado de 1, sem piso na curva, avaliação ignorada, aviso de banda sumido e ordem invertida.
+Mutantes (10, todos mortos): `NaN` aceito, bits por símbolo fixo, FEC ignorado, sinal da perda trocado, mínimo de erros ignorado, mínimo de erros deslocado de 1, sem piso na curva, avaliação ignorada, aviso de banda sumido e ordem invertida.
 
 ## 6. Defeitos achados no caminho
 

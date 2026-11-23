@@ -94,7 +94,7 @@ Os 4,9 dB vêm de uma bancada de 04/11, com potência e distância que podem ser
 2. **Se o Eb/N0 medido for de pelo menos 15 dB** (3 dB acima dos 12,1 dB necessários) **e a PER for de até 0,5%**: fica a DQPSK.
 3. Senão: `--perfil prova-a-dbpsk` (10,3 dB necessários).
 
-**Atualização (bloco 11):** a regra ganhou um degrau intermediário, a DQPSK com FEC (`prova-a-fec`), com o mesmo goodput da DBPSK e 3,3 dB a mais de margem. A regra completa está em [etapa6_viterbi_lote.md](etapa6_viterbi_lote.md), seção 5.
+**Atualização (bloco 11):** a regra ganhou um degrau intermediário, a DQPSK com FEC (`prova-a-fec`), com o mesmo goodput da DBPSK e 3,3 dB a mais de margem. A regra atual está no [roteiro da prova](roteiro_da_prova.md), seção 3.1, que depois ganhou a 8-PSK e o perfil a 2,4 MS/s como opções condicionais (blocos 17 e 24).
 
 ## 7. Testes
 

@@ -11,9 +11,9 @@ Feito em 22/11/2026, sem hardware novo, com as gravações reais do tom do Pluto
 | Ruído de fase **medido** no par Pluto + RTL | −62 dBc/Hz a 1 kHz, −71 a 3 kHz, −77 a 10 kHz; acima de 30 kHz some no piso branco da gravação (−79 dBc/Hz) |
 | Variação de fase em **um símbolo** | **não detectável** em nenhum perfil: a medida é toda explicada pelo ruído branco da gravação (a previsão bate em 3%); o limite superior é cerca de 0,01 rad na prova B e menos na prova A |
 | Onde o ruído de fase aparece | só em escalas bem mais longas que um símbolo: 0,037 rad em 0,39 ms e 0,18 rad em 1,6 ms |
-| Fase real aplicada aos perfis | **nenhum efeito detectável** na PER: em 4 sementes, os intervalos de 95% com e sem a fase real se sobrepõem nos cinco perfis |
-| Margem (ruído de Wiener até a PER passar de 1%) | prova A aguenta **1 kHz** de largura de linha (0,096 rad por símbolo); DBPSK e DQPSK com FEC, **3 kHz**; prova B, **300 Hz** (0,27 rad por símbolo). Contra o medido (menos de 0,0054 rad por símbolo na prova A, cerca de 0,01 rad na prova B): folga de **16 a 31 vezes** |
-| ADC de 8 bits do RTL | **sem perda de −30 a −6 dBFS** de nível eficaz na entrada; em −40 dBFS a prova A já perde 11% dos pacotes; em −3 dBFS um terço das amostras satura, e ainda assim a detecção diferencial resiste |
+| Fase real aplicada aos perfis | **nenhum efeito detectável** na PER: em 4 sementes, os intervalos de 95% com e sem a fase real se sobrepõem nos seis perfis (a 8-PSK entrou no bloco 24) |
+| Margem (ruído de Wiener até a PER passar de 1%) | prova A aguenta **1 kHz** de largura de linha (0,096 rad por símbolo); DBPSK e DQPSK com FEC, **3 kHz**; prova B, **300 Hz** (0,27 rad por símbolo); a 8-PSK coerente, só 10 a 30 Hz (bloco 24). Contra o medido (menos de 0,0054 rad por símbolo na prova A, cerca de 0,01 rad na prova B): folga de **16 a 31 vezes** |
+| ADC de 8 bits do RTL | **sem perda de −30 a −6 dBFS** de nível eficaz na entrada; em −40 dBFS a prova A já perde 11% dos pacotes (a 8-PSK, 50%); em −3 dBFS um terço das amostras satura, e ainda assim a detecção diferencial resiste |
 | Na bancada | o `gravar_iq.py` registra e mostra o nível eficaz; o `receber.py` avisa fora da janela; ganho do RX para ficar entre **−20 e −12 dBFS**; `scripts/medir_ruido_de_fase.py` repete a medida do tom com o par da prova (item 1.3b do plano) |
 
 ## 2. Por que olhar isso
@@ -67,6 +67,7 @@ As duas gravações, feitas com 3 minutos de diferença, dão os mesmos números
 | `prova-a-fec` | 6,1% [4,9; 7,6] | 5,3% [4,2; 6,8] | 5,7% [4,5; 7,1] |
 | `prova-a-dbpsk` | 3,6% [2,7; 4,8] | 3,5% [2,6; 4,7] | 3,2% [2,3; 4,3] |
 | `prova-b` | 10,6% [8,2; 13,7] | 11,5% [8,9; 14,6] | 9,4% [7,1; 12,3] |
+| `prova-a-8psk` (bloco 24) | 5,8% [4,8; 7,1] | 5,1% [4,1; 6,3] | 5,7% [4,7; 6,9] |
 
 As diferenças vão para os dois lados e cabem nos intervalos.
 
@@ -121,7 +122,7 @@ Testes (`tests/test_fase.py`, `tests/test_rtl_rx.py`, `tests/test_config.py`), t
 
 Os testes estatísticos passam em 5 sementes diferentes.
 
-Mutantes (11, todos mortos):
+Mutantes (12, todos mortos; os dois últimos do bloco 23):
 
 - saltos não excluídos;
 - offset do trecho mantido (o primeiro teste deixou esse passar e foi refeito com ruído de fase perto do real);
@@ -131,7 +132,9 @@ Mutantes (11, todos mortos):
 - ADC sem saturação;
 - Wiener com metade da variância;
 - limite da janela de nível;
-- script sem "inconclusivo" e sem "ATENÇÃO".
+- script sem "inconclusivo" e sem "ATENÇÃO";
+- saltos procurados só na fase estreita (o código anterior achava 0 de 10 saltos de 0,5 rad);
+- repetição da trajetória sem espelho.
 
 ## 6. Defeitos achados no caminho
 

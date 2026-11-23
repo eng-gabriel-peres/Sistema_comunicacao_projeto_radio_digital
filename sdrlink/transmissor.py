@@ -76,7 +76,7 @@ class ConfigTransmissor:
 
     @property
     def taxa_bits(self) -> float:
-        """Taxa de bits do corpo (o dobro da de símbolos na DQPSK)."""
+        """Taxa de bits do corpo (o dobro da de símbolos na DQPSK, o triplo na 8-PSK)."""
         return self.taxa_sps / self.modem.sps * self.modem.bits_por_simbolo
 
     def _referencia(self) -> NDArray[np.complex128]:

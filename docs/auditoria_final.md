@@ -1,6 +1,6 @@
 # Auditoria final de conformidade com o enunciado
 
-Confronto de cada exigência do enunciado ([Projeto_Final_SDR.docx.pdf](especificacao/Projeto_Final_SDR.docx.pdf), versão revisada) com o que existe no projeto e com a evidência. Feita em 22/11/2026, depois do bloco 14, sem hardware.
+Confronto de cada exigência do enunciado ([Projeto_Final_SDR.docx.pdf](especificacao/Projeto_Final_SDR.docx.pdf), versão revisada) com o que existe no projeto e com a evidência. Feita em 22/11/2026, depois do bloco 14, sem hardware; os itens com bloco posterior foram atualizados até o bloco 25.
 
 Legenda: ✅ atendido com evidência; 🟡 atendido em simulação ou em parte, falta a bancada; ❌ não atendido; ⏳ depende de terceiros ou de decisão da equipe.
 
@@ -25,7 +25,7 @@ Legenda: ✅ atendido com evidência; 🟡 atendido em simulação ou em parte, 
 | 2.1 | OOK de referência funcionando | ✅ | 698/698 quadros no ar (04/11) e o nosso RX na mesma captura |
 | 2.2 | 2-FSK implementada | 🟡 | CPFSK e GFSK em simulação e no receptor completo; **falta no ar** |
 | 2.3 | BPSK implementada (DBPSK aceita com comparação em simulação e justificativa) | 🟡 | DBPSK, comparada com a BPSK coerente na Etapa 4 (a coerente aguenta 7,7 Hz de offset a 100 kbit/s; o medido chega a 1,6 kHz); **falta no ar** |
-| 2.4 | QPSK (opcional) | 🟡 | DQPSK, bate com a teoria a 0,5%; perfil da prova A; **falta no ar** |
+| 2.4 | QPSK (opcional) | 🟡 | DQPSK, bate com a teoria a 0,5%; perfil da prova A; 8-PSK coerente experimental (`prova-a-8psk`, bloco 24); **falta no ar** |
 | 2.5 | Formatação de pulso justificada pela banda **medida** | 🟡 | RRC e gaussiano escolhidos pela banda simulada e pela teoria; a medição da banda no RTL está pronta (`receber.py`); **falta medir no ar** |
 | 2.6 | Pacotes com sequência, payload e CRC-8 ou superior | ✅ | quadro v3: sequência de 24 bits, CRC-16 |
 | 2.7 | Discutir a escolha do CRC | ✅ | etapa3_quadro.md, seção 3 |
@@ -57,7 +57,7 @@ Legenda: ✅ atendido com evidência; 🟡 atendido em simulação ou em parte, 
 | 4.6 | Etapa 3, entrega: formas de onda, espectros com banda de 99% e constelação BPSK | ✅ | etapa3_modulacoes.md, figuras |
 | 4.7 | Etapa 4: AWGN, fase, offset e temporização nas três modulações; BER × Eb/N0 contra a teoria; offset típico | ✅ | etapa4_canal.md |
 | 4.8 | Etapa 5: goodput, PER, BER, banda e sensibilidade medidos; comparação simulação × medição | 🟡 | ferramentas, referência simulada e protocolo prontos; **medições na bancada** |
-| 4.9 | Etapa 6: melhorar velocidade, robustez ou alcance; comparar com a versão anterior nas mesmas condições | 🟡 | em simulação, em todos os blocos 06 a 13; **falta confirmar no ar** |
+| 4.9 | Etapa 6: melhorar velocidade, robustez ou alcance; comparar com a versão anterior nas mesmas condições | 🟡 | em simulação, em todos os blocos 06 a 24; **falta confirmar no ar** |
 | 4.10 | Etapa 7: provas, apresentação e defesa | ❌ | dia da prova; roteiro e perguntas prováveis prontos |
 | 4.11 | Prazos | ❌ | Etapas 1, 2 e 3 entregues depois do prazo |
 

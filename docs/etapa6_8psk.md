@@ -14,7 +14,7 @@ Feito em 22/11/2026, sem hardware: viabilidade no bloco 23, implementação e en
 | Eb/N0 para PER 1%, receptor completo | 12,05 dB | 13,11 dB (13,13 com a fase real) |
 | C/N0 necessário | 73,4 dB-Hz | **76,2 dB-Hz (+2,8 dB)** |
 | Margem pelo C/N0 da bancada de 04/11 (78,3 dB-Hz) | 4,9 dB | **2,1 dB** |
-| Diferença de relógio aceita | ±200 ppm | ±200 ppm |
+| Diferença de relógio (ensaio de −100 a +200 ppm) | sem perda de −100 a +100 ppm; 291 de 300 a +200 | sem perda de −100 a +200 ppm |
 | Ruído de fase tolerado (Wiener) | 1 kHz | **10 a 30 Hz**; o par medido equivale a 0,5 a 3,4 Hz |
 | Janela do ADC sem perda | −30 a −6 dBFS | −30 a −6 dBFS (em −40 dBFS perde 50%, a DQPSK 11%) |
 | Pacotes errados aceitos | nenhum | nenhum |
@@ -68,7 +68,7 @@ O ganho 0,1 custa cerca de 0,2 dB no ruído branco (13,11 contra 12,92 dB no rec
 - **Wiener**, 1 dB acima do ponto de 1%: 0,25% com 10 Hz, 1,5% com 30 Hz, 15,8% com 100 Hz.
 - **ADC:** sem perda de −30 a −6 dBFS; 50% em −40 dBFS; 2% em −3 dBFS, com 36% das amostras saturadas.
 
-**Relógio** (`relogio_ensaio.py`): 300 de 300 quadros de 0 a ±200 ppm.
+**Relógio** (`relogio_ensaio.py`): 300 de 300 quadros de −100 a +200 ppm (o ensaio não vai a −200).
 
 **Prova de 60 s** (`prova_a_60s_ensaio.py 15 prova-a-8psk`), com os scripts da prova:
 
@@ -88,9 +88,13 @@ O ganho 0,1 custa cerca de 0,2 dB no ruído branco (13,11 contra 12,92 dB no rec
 7. **A referência de pico e banda do TX era curta demais para 3 bits por símbolo** (4 000 bits, 1 334 símbolos, menos que o segmento de Welch). Agora tem pelo menos 2 000 símbolos. A DQPSK e as de 1 bit por símbolo ficaram exatamente como estavam.
 8. **A passada guiada por uma reta nas decisões** foi medida e não deu ganho (4,3% contra 4,45% de PER a 12 dB): ficou de fora.
 9. **O ensaio de 60 s ficava sem payloads aos 57 s** (100 000 no arquivo, cabem 104 224). Agora gera 130 000. **Na prova, o arquivo do avaliador precisa ter pacotes para os 60 s**: o `transmitir.py` avisa quando não tem.
-10. **O `medir_ruido_de_fase.py` olhava só um símbolo**, o que basta para os diferenciais, mas não para a 8-PSK, e diria "ok" num par que a derrubaria. Para a 8-PSK ele mede em 0,39 ms, onde o ruído de fase real aparece, contra o Wiener de 10 Hz que ela tolera. O par de 04/11 dá 0,034 rad contra a tolerância de 0,157.
+10. **O `medir_ruido_de_fase.py` olhava só um símbolo**, o que basta para os diferenciais, mas não para a 8-PSK, e diria "ok" num par que a derrubaria. Para a 8-PSK ele mede em 0,39 ms, onde o ruído de fase real aparece, contra o Wiener de 10 Hz que ela tolera. O par de 04/11 dá 0,034 a 0,037 rad contra a tolerância de 0,157.
 
-## 7. Testes
+## 7. Alternativa considerada e descartada
+
+**8-PSK com o RTL a 2,4 MS/s:** cerca de 2 085 kbit/s, mas pediria 76,9 dB-Hz. Com os 2 dB de folga da regra, seriam 78,9 dB-Hz, acima dos 78,3 dB-Hz da bancada de 04/11. Ela ainda dependeria de três validações ao mesmo tempo (2,4 MS/s, ruído de fase e C/N0). Com a evidência que temos não passa, e o perfil não foi criado.
+
+## 8. Testes
 
 - **`tests/test_modem.py`:**
   - ida e volta com qualquer fase e offset de ±500 Hz, para corpos de 1 a 1 088 bits;
@@ -120,7 +124,7 @@ Mutantes mortos:
 
 O único que sobrevive é a fase inicial pela média da potência 8 (item 5 da seção 6, com a medida estatística).
 
-## 8. Evidências
+## 9. Evidências
 
 | Evidência | Onde |
 |---|---|
