@@ -6,7 +6,8 @@ Na bancada (sessão 1 do plano de bancada), com o RTL aquecido 10 minutos:
     RX:  python scripts/medir_ruido_de_fase.py dados/capturas/tom_<carimbo>.npy
 
 Para cada perfil final mostra a variação de fase em um símbolo (a que os receptores
-diferenciais veem), com a parte do ruído branco da gravação descontada, e a compara
+diferenciais veem; na 8-PSK coerente, em 0,39 ms, a escala que a malha de fase sente),
+com a parte do ruído branco da gravação descontada, e a compara
 com a tolerância medida em simulação (docs/etapa6_imperfeicoes.md). Grava
 <captura>_ruido_de_fase.json ao lado da captura.
 """
@@ -23,14 +24,20 @@ import numpy as np
 from sdrlink import config, fase
 from sdrlink.registro import salvar_json, versao_do_codigo
 
-PERFIS_FINAIS = ("prova-a", "prova-a-24", "prova-a-fec", "prova-a-dbpsk", "prova-b")
+PERFIS_FINAIS = ("prova-a", "prova-a-8psk", "prova-a-24", "prova-a-fec", "prova-a-dbpsk", "prova-b")
 AFASTAMENTOS_HZ = (300.0, 1e3, 3e3, 10e3, 30e3, 100e3, 300e3)
 AFASTAMENTO_PISO_HZ = 300e3  # longe do tom o espectro é só o ruído branco da gravação
 TAXA_PADRAO_SPS = 2.048e6
 FRACAO_DA_TOLERANCIA = 0.5  # acima de metade da tolerância: avisar
-# variação de fase em um símbolo (rad) com que a PER passa de 1% a 1 dB acima do ponto
-# de PER 1%, pela varredura de Wiener do bloco 21 (docs/etapa6_imperfeicoes.md)
+# Variação de fase (rad) com que a PER passa de 1% a 1 dB acima do ponto de PER 1%, pela
+# varredura de Wiener (docs/etapa6_imperfeicoes.md). Os diferenciais só olham um símbolo; a
+# 8-PSK coerente rastreia a fase e sente o quanto ela anda em muitos símbolos: a medida usa
+# ATRASO_COERENTE_AMOSTRAS (0,39 ms), onde o ruído de fase real aparece acima do piso branco.
+# O ruído real cresce mais depressa que o de Wiener com o atraso: medir longe é conservador.
+ATRASO_COERENTE_AMOSTRAS = 800
+COERENTES = ("prova-a-8psk",)
 TOLERANCIA_RAD: dict[str, float] = {
+    "prova-a-8psk": 0.157,  # Wiener de 10 Hz em 800 amostras a 2,048 MS/s (bloco 24)
     "prova-a": 0.0959,  # Wiener de 1 kHz em 3 amostras a 2,048 MS/s
     "prova-a-24": 0.0886,  # 1 kHz em 3 amostras a 2,4 MS/s
     "prova-a-fec": 0.166,  # 3 kHz
@@ -56,7 +63,8 @@ def _por_perfil(tom: fase.FaseDoTom, piso: float, taxa: float) -> dict[str, dict
     linhas: dict[str, dict[str, object]] = {}
     for nome in PERFIS_FINAIS:
         p = config.perfil(nome)
-        atraso = max(1, round(taxa * p.sps / p.taxa_sps))
+        um_simbolo = max(1, round(taxa * p.sps / p.taxa_sps))
+        atraso = ATRASO_COERENTE_AMOSTRAS if nome in COERENTES else um_simbolo
         medida = fase.variacao_de_fase_rad(tom, atraso)
         branco = fase.variacao_do_ruido_branco_rad(piso, atraso, taxa)
         de_fase = fase.descontar(medida, branco)
@@ -112,8 +120,8 @@ def main() -> int:
         )
     for nome, linha in perfis.items():
         print(
-            f"{nome}: {linha['ruido_de_fase_rad']} rad em um símbolo ({linha['atraso_amostras']} "
-            f"amostras; medida {linha['medida_rad']}, ruído branco {linha['ruido_branco_rad']}); "
+            f"{nome}: {linha['ruido_de_fase_rad']} rad em {linha['atraso_amostras']} amostras "
+            f"(medida {linha['medida_rad']}, ruído branco {linha['ruido_branco_rad']}); "
             f"tolerância {linha['tolerancia_rad']}: {linha['situacao']}"
         )
     print(f"Registro: {caminho}")
