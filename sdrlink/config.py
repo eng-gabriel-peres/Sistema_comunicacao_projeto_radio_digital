@@ -107,7 +107,7 @@ class Perfil:
 
     @property
     def taxa_bits(self) -> float:
-        """Taxa de bits do corpo (na DQPSK, dois bits por símbolo)."""
+        """Taxa de bits do corpo (dois bits por símbolo na DQPSK, três na 8-PSK)."""
         return self.taxa_sps / self.sps * self.modem().bits_por_simbolo
 
     def modem(self) -> ConfigModem:

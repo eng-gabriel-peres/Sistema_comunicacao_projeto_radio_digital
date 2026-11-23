@@ -13,8 +13,8 @@ Feito em 22/11/2026, sem hardware (bloco 09).
 | Código | **convolucional K = 7, taxa 1/2, geradores 171 e 133 (octal)**, o padrão do CCSDS e da NASA desde as Voyager; decodificação de **Viterbi com decisão suave** |
 | Onde entra | só no corpo do quadro (comprimento, sequência, payload, CRC e 6 bits de cauda); preâmbulo, Barker-13 e guarda não mudam, então a detecção é a mesma |
 | Nova configuração da prova B | **DBPSK com FEC a 25,6 kbit/s no ar** (perfil `prova-b`): goodput sem perdas de 11,93 kbit/s, folga de 18,1% sobre os 10 kbit/s com PER de 1%, 500 pacotes em 42,9 s |
-| C/N0 necessário | **48,4 dB-Hz**, contra 51,3 dB-Hz sem código (bloco 08): **2,9 dB a menos**, cerca de **1,4 vez a distância** no espaço livre, com mais folga de goodput |
-| Sobre a prova A | 20,2 dB a menos de C/N0 que o perfil `prova-a`: cerca de 10 vezes a distância |
+| C/N0 necessário | **48,4 dB-Hz** (48,2 com o limiar de detecção de 0,4, bloco 19), contra 51,3 dB-Hz sem código (bloco 08): **2,9 dB a menos**, cerca de **1,4 vez a distância** no espaço livre, com mais folga de goodput |
+| Sobre a prova A | cerca de 25 dB a menos de C/N0 que o perfil `prova-a` com DQPSK: cerca de 18 vezes a distância (o valor original, 20,2 dB, era contra o `prova-a` da época, a DBPSK) |
 | Pacotes errados aceitos | 0 |
 
 ## 2. Por que FEC

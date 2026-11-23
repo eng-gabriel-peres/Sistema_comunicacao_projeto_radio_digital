@@ -51,7 +51,7 @@ O `receber.py` mostra o Eb/N0 medido e a banda a 99%. **A banda tem de ficar aba
 1. O avaliador entrega o arquivo de payloads ao TX. Ao rodar o `transmitir.py`, conferir que **não** aparece "AVISO: o arquivo tem N payloads, mas cabem M": a DQPSK manda cerca de 71 000 pacotes em 60 s. Se aparecer, avisar o avaliador antes de começar (o goodput cairia sem culpa do enlace).
 2. RX, **antes** do comando de início: `python scripts/gravar_iq.py --perfil <perfil> --segundos 63 --nome prova_a`
 3. TX, no comando de início: `python scripts/transmitir.py <payloads do avaliador> --perfil <perfil> --duracao-s 60`
-4. RX, depois da gravação: `python scripts/receber.py dados/capturas/prova_a_<carimbo>.npy --perfil <perfil>`. Tempo esperado: de 1,5 a 2 min (limite: 10 min).
+4. RX, depois da gravação: `python scripts/receber.py dados/capturas/prova_a_<carimbo>.npy --perfil <perfil>`. Tempo esperado: de 1,5 a 3 min (a 8-PSK leva cerca de 2,7 min; limite: 10 min).
 5. Entregar ao avaliador: `<captura>.npy` (a captura IQ) e `<captura>_saida.txt` (sequência e payload de cada pacote aceito, sem repetições). O `<captura>_rx.json` traz o que a seção 7 pede registrar.
 
 ## 4. Prova B: maior alcance

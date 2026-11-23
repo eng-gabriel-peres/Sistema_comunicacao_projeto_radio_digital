@@ -183,7 +183,7 @@ O último mutante sobreviveu na primeira versão dos testes. Com β = 0,35 a ban
 
 ## 6. O que falta na bancada
 
-> **Atualização (blocos 10 a 13):** o `prova-a` hoje é a DQPSK, e a regra de troca na bancada é a do [roteiro da prova](roteiro_da_prova.md), seção 3.1 (DQPSK, depois DQPSK com FEC, depois a DBPSK desta página, que virou o `prova-a-dbpsk`). Os itens abaixo continuam valendo para a DBPSK.
+> **Atualização (blocos 10 a 13):** o `prova-a` hoje é a DQPSK, e a regra de troca na bancada é a do [roteiro da prova](roteiro_da_prova.md), seção 3.1 (hoje: 8-PSK e 2,4 MS/s se a bancada permitir, depois DQPSK, DQPSK com FEC e a DBPSK desta página, que virou o `prova-a-dbpsk`). Os itens abaixo continuam valendo para a DBPSK.
 
 1. Medir a banda a 99% do perfil `prova-a` no RTL (`receber.py` já calcula) e conferir os 749 kHz.
 2. Transmitir 60 s com o perfil `prova-a` na distância da prova e avaliar PER e goodput. Se a PER passar de 1%, descer para 512 kbit/s (`--taxa-bits 512e3`) ou para o perfil `dbpsk-256k`.

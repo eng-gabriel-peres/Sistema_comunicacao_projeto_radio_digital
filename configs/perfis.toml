@@ -9,7 +9,7 @@
 # h (2-FSK), taxa_sps, deslocamento_hz (sinal em relação ao LO), lo_hz, fec,
 # emendar_caudas (TX com as caudas do RRC somadas entre quadros), limiar (detecção
 # do RX, padrão 0,5), descricao.
-# Taxa de bits = taxa_sps / sps (o dobro na DQPSK).
+# Taxa de bits = taxa_sps / sps (o dobro na DQPSK, o triplo na 8-PSK).
 
 [prova-a]
 descricao = "Prova A: DQPSK RRC a 1365 kbit/s, banda a 99% de 0,75 MHz, margem de 5 dB na bancada (docs/etapa6_dqpsk.md)"
@@ -23,7 +23,7 @@ lo_hz = 919.5e6
 emendar_caudas = true  # +2,1% de goodput (docs/etapa6_emenda.md)
 
 [prova-a-8psk]
-descricao = "Experimental: 8-PSK coerente RRC a 2048 kbit/s, a mesma banda de 0,75 MHz, +48% de goodput; pede 2,8 dB a mais de C/N0 (docs/etapa6_8psk.md)"
+descricao = "Experimental: 8-PSK coerente RRC a 2048 kbit/s, a mesma banda de 0,75 MHz, +46% de goodput; pede 2,8 dB a mais de C/N0 e tolera 100 vezes menos ruído de fase (docs/etapa6_8psk.md)"
 modulacao = "8psk"
 pulso = "rrc"
 sps = 3  # amostras por símbolo; 3 bits por símbolo no corpo do quadro
@@ -68,7 +68,7 @@ lo_hz = 919.5e6
 emendar_caudas = true  # +1,1% de goodput (docs/etapa6_emenda.md)
 
 [prova-b]
-descricao = "Prova B: DBPSK RRC com FEC a 25,6 kbit/s no ar, C/N0 de 48,4 dB-Hz (docs/etapa6_fec.md)"
+descricao = "Prova B: DBPSK RRC com FEC a 25,6 kbit/s no ar, C/N0 de 48,2 dB-Hz com o limiar 0,4 (docs/etapa6_fec.md, docs/etapa6_limiar.md)"
 modulacao = "dbpsk"
 pulso = "rrc"
 sps = 80  # goodput sem perdas de 11,84 kbit/s: 17,2% de folga sobre os 10 kbit/s com PER de 1%
@@ -76,7 +76,7 @@ beta = 0.35
 deslocamento_hz = 250e3
 lo_hz = 919.5e6
 fec = true
-limiar = 0.4  # com FEC a detecção é o gargalo: 0,4 dB a mais de alcance (docs/etapa6_limiar.md)
+limiar = 0.4  # com FEC a detecção é o gargalo: de 0,4 a 1 dB a mais de alcance (docs/etapa6_limiar.md)
 
 [prova-b-sem-fec]
 descricao = "Prova B do bloco 08: DBPSK RRC a 12,8 kbit/s sem código, C/N0 de 51,3 dB-Hz"

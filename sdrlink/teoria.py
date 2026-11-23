@@ -7,6 +7,8 @@ Todas as fórmulas usam Eb médio por bit, a mesma definição de sdrlink.canal:
     DBPSK diferencial    1/2 exp(-Eb/N0)
     DQPSK diferencial    Gray: Q1(a, b) - 1/2 I0(a b) exp(-(a² + b²)/2), com
                          a² = 2 Eb/N0 (1 - 1/sqrt 2) e b² = 2 Eb/N0 (1 + 1/sqrt 2)
+    8-PSK coerente       Gray, exata pela integração da densidade da fase em cada setor
+                         de 45°; coincide com (2/3) Q(sqrt(6 Eb/N0) sen(π/8))
     2-FSK não coerente   1/2 exp(-Eb/(2 N0))          (tons ortogonais, h = 1)
     2-FSK coerente       Q(sqrt(Eb/N0))               (só referência: não implementada)
     OOK não coerente     exata, detector de envoltória com limiar T:

@@ -59,7 +59,7 @@ def _taxa(captura: Path, taxa_sps: float | None) -> float:
 
 
 def _por_perfil(tom: fase.FaseDoTom, piso: float, taxa: float) -> dict[str, dict[str, object]]:
-    """Variação de fase em um símbolo de cada perfil final, contra a tolerância."""
+    """Variação de fase de cada perfil (um símbolo; 800 amostras na 8-PSK) contra a tolerância."""
     linhas: dict[str, dict[str, object]] = {}
     for nome in PERFIS_FINAIS:
         p = config.perfil(nome)

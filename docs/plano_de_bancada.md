@@ -25,7 +25,7 @@ Antes de cada sessão: RTL ligado no USB **10 minutos** antes de medir, e os doi
 | 1.1 | Ambiente nos **dois** PCs | `pip install -r requirements-dev.txt`, `pip install -e .`, libiio no TX, WinUSB no RX; `python scripts/verificar_ambiente.py` e `python ferramentas/verificar.py` | o portão passa nos dois | 40 min |
 | 1.2 | Captura de controle, Pluto desligado | `python scripts/gravar_iq.py --perfil prova-a --segundos 2 --nome controle` | nada forte entre 919,5 e 920,4 MHz | 5 min |
 | 1.3 | Calibração do RTL | TX: `scripts/transmitir_tom.py --freq-tom-hz <tom> --duracao-s 120`; RX: `scripts/calibrar_rtl.py --freq-tom-hz <tom> --minutos-ligado 10` | correção perto de +84 ppm (mesmo par); anotar em `configs/rtl.toml` | 20 min |
-| 1.3b | **Ruído de fase do par** ([etapa6_imperfeicoes.md](etapa6_imperfeicoes.md)) | TX: `transmitir_tom.py --freq-tom-hz 919.75e6 --duracao-s 30`; RX: `gravar_iq.py --centro-hz 919.5e6 --segundos 4 --nome tom` e `scripts/medir_ruido_de_fase.py <captura>` | "ok" nos cinco perfis finais; "inconclusivo" pede mais ganho | 10 min |
+| 1.3b | **Ruído de fase do par** ([etapa6_imperfeicoes.md](etapa6_imperfeicoes.md)) | TX: `transmitir_tom.py --freq-tom-hz 919.75e6 --duracao-s 30`; RX: `gravar_iq.py --centro-hz 919.5e6 --segundos 4 --nome tom` e `scripts/medir_ruido_de_fase.py <captura>` | "ok" nos seis perfis finais (a `prova-a-8psk` é a mais exigente); "inconclusivo" pede mais ganho | 10 min |
 | 1.4 | Decisão do `xo_correction` do Pluto (P3) | medir o erro do Pluto contra as rádios FM e decidir | decisão registrada; se mudar, recalibrar (1.3) | 20 min |
 | 1.5 | **Gravação de 63 s no RTL** sem perder amostras | `gravar_iq.py --perfil prova-a --segundos 63` | número de amostras do JSON = 63 × 2,048 M; saturação 0; nível eficaz entre −30 e −6 dBFS (o `gravar_iq.py` mostra e avisa) | 10 min |
 | 1.5b | **RTL a 2,4 MS/s** (perfil experimental, [etapa6_taxa_24.md](etapa6_taxa_24.md)) | `gravar_iq.py --perfil prova-a-24 --segundos 63`; com o Pluto desligado, 2 s e `scripts/resposta_rtl.py <captura> --taxa-sps 2.4e6` | 63 × 2,4 M amostras; faixa plana até pelo menos +904 kHz | 15 min |
@@ -52,7 +52,7 @@ Protocolo completo em [etapa5_software.md](etapa5_software.md), seção 6. Cada 
 | 3.1 | Regra de troca ([roteiro](roteiro_da_prova.md), seção 3.1): 10 s com `prova-a-8psk` (se o 1.3b deu "ok" para ela e o Eb/N0 medido com `prova-a` passou de 16,7 dB), `prova-a-24` (se 1.5b passou), depois `prova-a`, `prova-a-fec` e `prova-a-dbpsk` | escolher o perfil pelo Eb/N0 medido e pela PER | 30 min |
 | 3.2 | **DQPSK no ar**: ruído de fase e desequilíbrio IQ reais | PER de até 0,5% com Eb/N0 de 15 dB ou mais | (junto com 3.1) |
 | 3.3 | Ensaio completo de 60 s com o perfil escolhido, como no dia | PER ≤ 1%, banda < 1 MHz, goodput registrado | 20 min |
-| 3.4 | Tempo de processamento **no computador que vai para a prova** | menos de 10 min (esperado: 1 a 2 min) | (junto) |
+| 3.4 | Tempo de processamento **no computador que vai para a prova** | menos de 10 min (esperado: 1 a 3 min; a 8-PSK é a mais lenta) | (junto) |
 | 3.5 | Comparação com a OOK de referência **nas mesmas condições** (critério de otimização) | goodput das duas medido na mesma posição e potência | 30 min |
 
 ## 5. Sessão 4: prova B na sala (2 a 3 h)

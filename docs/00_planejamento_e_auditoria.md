@@ -4,7 +4,7 @@ SCM22108 Sistemas de Comunicação, IFSC. Documento vivo: atualizar a cada etapa
 
 | Item | Valor |
 |---|---|
-| Versão | 0.1 em 22/10 (planejamento inicial); a matriz (seção 6) e as decisões (seção 11) foram atualizadas em 22/11, no bloco 15 |
+| Versão | 0.1 em 22/10 (planejamento inicial); a matriz (seção 6) e as decisões (seção 11) foram atualizadas em 22/11, nos blocos 15 a 25 |
 | Data | 22/10/2026 |
 | Fonte dos requisitos | `Projeto_Final_SDR.docx.pdf` (versão revisada) |
 | Código de partida | `referencia/` (fornecido pelo professor, mantido intocado) |
@@ -192,7 +192,7 @@ Conclusão: BPSK coerente **sem** tratar o offset não funciona (a fase dá vár
 - Resolução de frequência da FFT = fs / N. Com 2,048 MS/s e N = 4096, são 500 Hz. Para medir o residual com resolução de cerca de 10 Hz, usar N ≥ 2²⁰ (cerca de 2 Hz) ou interpolar o pico.
 - ppm = (f_medida − f_esperada) / f_portadora × 10⁶, aplicada **sobre** a correção já ativa (achado A5).
 
-## 6. Matriz de rastreabilidade (estado em 22/11/2026, depois do bloco 15)
+## 6. Matriz de rastreabilidade (estado em 22/11/2026, depois do bloco 25)
 
 Legenda: ✅ atendido com evidência; 🟡 atendido em simulação ou em parte, falta a bancada; ❌ não atendido; ⏳ depende de terceiros ou de decisão. A auditoria item a item do enunciado está em [auditoria_final.md](auditoria_final.md).
 
@@ -223,7 +223,7 @@ Legenda: ✅ atendido com evidência; 🟡 atendido em simulação ou em parte, 
 | CMP-04 | 🟡 | Simulação × teoria pronto; a análise da sessão já calcula a perda do enlace em relação à teoria ponto a ponto (+0,07 dB na sessão simulada, bloco 20); **falta a medição** e a explicação das diferenças | 5, bancada |
 | CMP-A | 🟡 | DQPSK a 1 365 kbit/s (`prova-a`): **1 217,8 kbit/s** de goodput e PER de 0,003% na prova de 60 s simulada; reservas `prova-a-fec` e `prova-a-dbpsk` com regra de troca ([roteiro_da_prova.md](roteiro_da_prova.md)); experimental `prova-a-8psk` (8-PSK coerente): **1 778,5 kbit/s** (+46%) se a bancada mostrar C/N0 de 78 dB-Hz e o ruído de fase do par dentro da tolerância ([etapa6_8psk.md](etapa6_8psk.md)) | 6, 7 |
 | CMP-B | 🟡 | DBPSK com FEC a 25,6 kbit/s no ar (`prova-b`): 11,8 kbit/s, 500 pacotes em 43 s, C/N0 necessário de 48,2 dB-Hz com o limiar de detecção de 0,4 (bloco 19), **cerca de 25 dB** abaixo do `prova-a` (cerca de 20 dB abaixo do `prova-a-dbpsk`) | 6, 7 |
-| CMP-C | ⏳ | Tags por bloco (`bloco-00` a `bloco-15`); falta a tag da prova | 7 |
+| CMP-C | ⏳ | Tags por bloco (`bloco-00` a `bloco-25`); falta a tag da prova | 7 |
 | PRC-01 | ✅ | git, portão de qualidade em todo commit, perfis de configuração (A14) | todas |
 | PRC-02 | ❌ | **Registro de uso de IA vazio em todas as etapas**; tem de ser texto da equipe (P1) | todas |
 | PRC-03 | 🟡 | Logs de simulação e de calibração versionados com a versão do código; capturas das provas no dia | todas |

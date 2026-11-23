@@ -11,7 +11,7 @@ Feito em 22/11/2026, sem hardware (bloco 17). **Experimental**: depende de dois 
 | Configuração | DQPSK, RRC β = 0,25, 3 amostras por símbolo, caudas emendadas | DQPSK, **RRC β = 0,20**, 3 amostras por símbolo, caudas emendadas |
 | Taxa no ar | 1 365 kbit/s | **1 600 kbit/s** |
 | Banda a 99% | 747 kHz (de +52 a +799 kHz do LO) | 850 kHz (de +54 a +904 kHz do LO) |
-| Eb/N0 para PER de 1% | 12,2 dB | 12,3 dB |
+| Eb/N0 para PER de 1% (rodada do bloco 17) | 12,2 dB | 12,3 dB |
 | Margem pela bancada de 04/11 | 4,7 dB | 4,0 dB |
 | Prova de 60 s simulada (14 dB) | 1 217,8 kbit/s (ensaio geral) | **1 427,1 kbit/s**: 83 622 de 83 624 pacotes, banda medida de 853,6 kHz, RX em 87 s |
 | Ganho | | **+17% de goodput**, por 0,7 dB de margem |

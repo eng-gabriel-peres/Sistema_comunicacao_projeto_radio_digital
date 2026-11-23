@@ -2,7 +2,7 @@
 
 SCM22108, Sistemas de Comunicação (IFSC). Gabriel de Oliveira Peres, matrícula 201920800001.
 
-Estado em 22/11/2026, depois do bloco 18: **tudo o que dá para fazer sem hardware está feito e validado em simulação**, e o projeto passou por uma auditoria completa contra o enunciado ([auditoria_final.md](auditoria_final.md)). Falta a bancada: o enlace com o quadro novo no ar, as medições da Etapa 5 e as provas. Este documento junta todos os blocos: o que cada um fez, o que funcionou, o que falhou e como foi corrigido, e o que dá para melhorar. Os detalhes de cada bloco estão nos documentos que vêm depois deste, no mesmo relatório.
+Estado em 22/11/2026, depois do bloco 25: **tudo o que dá para fazer sem hardware está feito e validado em simulação**, e o projeto passou por uma auditoria completa contra o enunciado ([auditoria_final.md](auditoria_final.md)). Falta a bancada: o enlace com o quadro novo no ar, as medições da Etapa 5 e as provas. Este documento junta todos os blocos: o que cada um fez, o que funcionou, o que falhou e como foi corrigido, e o que dá para melhorar. Os detalhes de cada bloco estão nos documentos que vêm depois deste, no mesmo relatório.
 
 ## 1. Resumo
 
@@ -15,7 +15,7 @@ Estado em 22/11/2026, depois do bloco 18: **tudo o que dá para fazer sem hardwa
 | Prova B (maior alcance) | perfil `prova-b`: **DBPSK com código convolucional K = 7, 25,6 kbit/s no ar**: goodput de 11,8 kbit/s, 500 pacotes em 43 s, **C/N0 necessário de 48,2 dB-Hz** com o limiar de detecção de 0,4 (bloco 19), cerca de 25 dB menos que o `prova-a` com DQPSK (cerca de 20 dB menos que o `prova-a-dbpsk`): cerca de 18 vezes a distância no espaço livre |
 | Comparação com a OOK de referência | a referência entrega **7,3 kbit/s** no ar (21 bytes por quadro, 10 kbit/s, pulso retangular; captura real de 04/11). O `prova-a` chega a **1 218 kbit/s em simulação**, na mesma banda de 1 MHz. **Os dois números não vêm das mesmas condições** (um é medido, o outro simulado), e o enunciado pede a melhoria medida nas mesmas condições: essa medição é da bancada |
 | Simulação × teoria | BER de BPSK, DBPSK, DQPSK e 2-FSK a menos de 0,08 dB das fórmulas; a DQPSK bate com a fórmula exata (Marcum) a 0,5% |
-| Qualidade | 246 testes automáticos; portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; 25 tags, uma ou mais por bloco (de `bloco-00` a `bloco-18`); toda evidência com a versão do código que a gerou |
+| Qualidade | 297 testes automáticos (3 deles só com o hardware ligado); portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; uma tag ou mais por bloco (de `bloco-00` a `bloco-25`); toda evidência com a versão do código que a gerou |
 | Falta | bancada: o enlace no ar com o quadro v3, as medições da Etapa 5 e as provas; **10 a 13 h em 4 sessões** ([plano_de_bancada.md](plano_de_bancada.md)); e o registro de uso de IA |
 
 ## 2. O sistema
@@ -24,7 +24,7 @@ Estado em 22/11/2026, depois do bloco 18: **tudo o que dá para fazer sem hardwa
 arquivo do avaliador ─► transmitir.py ─► Pluto ─► ar ─► RTL ─► gravar_iq.py ─► captura IQ
      (128 bytes)          │  quadro v3                        2,048 MS/s          │
                           │  FEC (opcional)                   +84 ppm             ▼
-                          │  DQPSK / DBPSK / OOK / 2-FSK                   receber.py ─► saída
+                          │  8-PSK / DQPSK / DBPSK / OOK / 2-FSK           receber.py ─► saída
                           │  RRC ou gaussiano                                  │       (sequência,
                           ▼                                                    │        payload)
                     log do TX ──────────────────► avaliar.py ◄─────────────────┘
@@ -35,7 +35,7 @@ arquivo do avaliador ─► transmitir.py ─► Pluto ─► ar ─► RTL ─�
 |---|---|---|
 | Quadro v3 | preâmbulo de 16 bits, Barker-13, comprimento (8), **sequência (24)**, payload, CRC-16/CCITT sobre comprimento, sequência e payload, guarda de 16 bits: 1 117 bits para 128 bytes | `sdrlink/quadro.py` |
 | Código | convolucional K = 7, taxa 1/2 (171, 133), Viterbi com decisão suave, em lote | `sdrlink/codigo.py` |
-| Modulação | OOK, BPSK, DBPSK, **DQPSK** (corpo com 2 bits por símbolo) e 2-FSK de fase contínua; pulsos RRC e gaussiano | `sdrlink/modem.py`, `sdrlink/pulsos.py` |
+| Modulação | OOK, BPSK, DBPSK, **DQPSK** (corpo com 2 bits por símbolo), **8-PSK coerente** (3 bits por símbolo, malha de fase) e 2-FSK de fase contínua; pulsos RRC e gaussiano | `sdrlink/modem.py`, `sdrlink/pulsos.py` |
 | TX | payloads do avaliador, numeração, fluxo em blocos para o Pluto, caudas emendadas, log do TX, conferência da faixa de 915 a 928 MHz | `sdrlink/transmissor.py`, `sdrlink/hw/pluto_tx.py` |
 | RX | gravação sem perda de amostras; detecção pela correlação coerente do prefixo numa grade de offsets; offset e instante por quadro; demodulação; FEC em lote; arquivo de saída | `sdrlink/hw/rtl_rx.py`, `sdrlink/receptor.py` |
 | Medição | PER e goodput (seção 7), BER com sequência conhecida, banda a 99% (com marcação de confiança) e Eb/N0 da captura, faixa plana do RTL | `sdrlink/metricas.py`, `sdrlink/medicao.py` |
@@ -137,6 +137,14 @@ A prova de 60 s simulada com cada perfil final, pelos comandos da prova, no cana
 | B11 | 15 | "20,2 dB a menos que o `prova-a`" ficou de quando o `prova-a` era a DBPSK (com a DQPSK, 25,0 dB); matriz de rastreabilidade parada em 04/11 | auditoria dos documentos | números e matriz atualizados |
 | B12 | 15 | o registro do RX não tinha o ganho do receptor, que a seção 7 do enunciado pede | auditoria contra o enunciado | o `receber.py` junta os metadados da gravação e avisa divergências |
 | B13 | 17 | a primeira versão da faixa plana confundia a elevação de +1 dB da resposta do RTL com a queda do filtro | captura real de 04/11 | critério só da queda |
+| B14 | 20 | a perda do enlace era calculada com 2 ou 3 erros contados: 0,4 a 0,5 dB que eram só estatística; a pasta da sessão não entrava no git | sessão de bancada simulada | mínimo de 10 erros; `.gitignore` das sessões |
+| B15 | 21 | a busca de saltos de emenda na fase do tom só pegava os perto de π: medida da prova B inflada | a medida não batia com a previsão do ruído branco | variação em 64 amostras, limiar adaptativo |
+| B16 | 23 | **a trajetória de fase filtrada em 2 kHz tinha restos das emendas e quinas nas junções**: a conclusão do bloco 22 sobre a detecção coerente na prova B estava errada | piso de erro da 8-PSK que não melhorava com o sinal | saltos procurados em banda larga, cópias em espelho; ensaios dos blocos 21 e 22 refeitos |
+| B17 | 24 | **o mapa da 8-PSK não era Gray** (o vetor usado no sentido contrário), e a BER teórica "exata" foi integrada com o mesmo mapa | teste do mapa de Gray | mapa inverso; teoria e viabilidade refeitas |
+| B18 | 24 | a 8-PSK estimava uma reta de fase só por quadro: com Wiener de 10 Hz, PER de 16,5% | ensaio de imperfeições | malha de fase guiada pelas decisões, a partir da fase do prefixo |
+| B19 | 24 | o ensaio de 60 s da 8-PSK ficava sem payloads aos 57 s | aviso do próprio TX | 130 000 payloads; conferência do arquivo do avaliador no roteiro |
+| B20 | 24 | a referência de pico e banda do TX era curta demais para 3 bits por símbolo | erro no cálculo da banda do perfil | pelo menos 2 000 símbolos, sem mudar as outras modulações |
+| B21 | 25 | afirmações desatualizadas depois dos blocos 16 a 24: "±200 ppm" na 8-PSK (o ensaio vai de −100 a +200), contagens de testes e tags, listas de modulações sem a 8-PSK, 48,4 dB-Hz no `perfis.toml` | auditoria independente dos documentos e do código (24 achados) | corrigidas |
 
 E falhas de processo, registradas nos blocos: um commit intermediário feito sem o portão (bloco 10, corrigido no commit seguinte); dois ensaios disparados sem aviso de término e vigiados depois; o computador desligou no meio de uma varredura (bloco 08), refeita com pico de memória de 1,1 GB. No bloco 14 uma cadeia de comandos seguiu depois de o lint barrar o commit, e a tag `bloco-14` foi criada e publicada no commit do bloco 13; como tag publicada não se move, a do bloco 14 é a `bloco-14-rev2` (a mesma convenção de `bloco-01-rev2` e `bloco-02-rev3`). Depois, a pedido, a `bloco-14` errada foi apagada, junto com a `bloco-06-rx-rapido` (uma tag leve do bloco 06, que o `git describe` ignorava; a anotada é a `bloco-06`).
 
@@ -166,11 +174,11 @@ E falhas de processo, registradas nos blocos: um commit intermediário feito sem
 
 | Critério (peso) | O que existe | Falta |
 |---|---|---|
-| Implementação e comparação das modulações (20%) | OOK, 2-FSK, DBPSK e DQPSK implementadas; simulação × teoria a menos de 0,08 dB; BPSK coerente comparada e justificada | a **medição** de cada uma no ar e a comparação simulação × teoria × medição |
-| Confiabilidade da recepção e desafios do enlace (15%) | offset, fase e instante estimados por quadro; calibração registrada; 31 defeitos diagnosticados com evidência (seção 6) | confirmar no ar |
+| Implementação e comparação das modulações (20%) | OOK, 2-FSK, DBPSK, DQPSK e 8-PSK coerente implementadas; simulação × teoria a menos de 0,08 dB; BPSK coerente comparada e justificada | a **medição** de cada uma no ar e a comparação simulação × teoria × medição |
+| Confiabilidade da recepção e desafios do enlace (15%) | offset, fase e instante estimados por quadro; calibração registrada; mais de 40 defeitos diagnosticados com evidência (A1 a A23 e B1 a B21, seção 6) | confirmar no ar |
 | Caracterização experimental e métricas (20%) | ferramentas de PER, goodput, BER, banda e Eb/N0 validadas contra o valor verdadeiro; protocolo pronto | as medições |
 | Otimização e desempenho (15%) | 1 218 kbit/s contra 7,3 kbit/s da referência em simulação; prova B com 25 dB a menos de C/N0 que a prova A; limites de banda e de tempo atendidos | a melhoria **medida** nas mesmas condições da referência |
-| Processo e entregas (10%) | entregas por etapa com relatório; 246 testes, portão e mutantes; tags por bloco; auditoria completa | **registro de IA vazio**; Etapas 1, 2 e 3 entregues fora do prazo |
+| Processo e entregas (10%) | entregas por etapa com relatório; 297 testes, portão e mutantes; tags por bloco; auditoria completa | **registro de IA vazio**; Etapas 1, 2 e 3 entregues fora do prazo |
 | Relatório técnico e análise de falhas (10%) | este documento e os de cada bloco, com as falhas e as correções | a parte medida |
 | Defesa oral individual (10%) | cada documento explica o porquê de cada escolha | estudar os blocos (seção 10) |
 

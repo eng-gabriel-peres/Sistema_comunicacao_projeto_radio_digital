@@ -1,6 +1,6 @@
 # Sistema de comunicação: projeto de rádio digital (SDR)
 
-Enlace digital simplex **ADALM-Pluto (TX) → RTL-SDR (RX)** com pacotes numerados e CRC-16, modulações OOK, 2-FSK, DBPSK e DQPSK implementadas em Python, código convolucional com Viterbi, e medição de goodput, PER, BER e banda a 99%.
+Enlace digital simplex **ADALM-Pluto (TX) → RTL-SDR (RX)** com pacotes numerados e CRC-16, modulações OOK, 2-FSK, DBPSK, DQPSK e 8-PSK coerente implementadas em Python, código convolucional com Viterbi, e medição de goodput, PER, BER e banda a 99%.
 Projeto Final de SCM22108 Sistemas de Comunicação, Engenharia Eletrônica, IFSC.
 
 ## Estado dos blocos
@@ -24,6 +24,12 @@ Projeto Final de SCM22108 Sistemas de Comunicação, Engenharia Eletrônica, IFS
 | 11 e 12 | Viterbi em lote; emenda das caudas do RRC | concluído ([Viterbi](docs/etapa6_viterbi_lote.md), [emenda](docs/etapa6_emenda.md)) |
 | 13 | Roteiro da prova e ensaio geral com os perfis finais | concluído ([roteiro](docs/roteiro_da_prova.md)) |
 | 14 e 15 | Relatório final; auditoria de conformidade e correções | concluído ([relatório](docs/relatorio_final.md), [auditoria](docs/auditoria_final.md)) |
+| 16 e 17 | Diferença de relógio (±50 ppm), TX pré-gerado; perfil experimental a 2,4 MS/s | concluído em simulação ([robustez](docs/etapa6_robustez.md), [2,4 MS/s](docs/etapa6_taxa_24.md)) |
+| 19 | Limiar de detecção 0,4 na prova B | concluído em simulação ([registro](docs/etapa6_limiar.md)) |
+| 20 | Análise automática da sessão de bancada | concluído ([registro](docs/etapa5_analise_bancada.md)) |
+| 21 a 23 | Ruído de fase real do par Pluto + RTL e ADC de 8 bits; revisão dos documentos | concluído ([registro](docs/etapa6_imperfeicoes.md)) |
+| 24 | 8-PSK coerente (perfil experimental `prova-a-8psk`, +46% de goodput) | concluído em simulação ([registro](docs/etapa6_8psk.md)) |
+| 25 | Auditoria dos documentos e do código depois dos blocos 16 a 24 | concluído (relatório final, seção 6.2) |
 | bancada | Enlace no ar com o quadro v3, medições da Etapa 5, provas | a fazer ([plano](docs/plano_de_bancada.md)) |
 
 O plano completo, com os requisitos numerados e a matriz de rastreabilidade, está em [docs/00_planejamento_e_auditoria.md](docs/00_planejamento_e_auditoria.md).

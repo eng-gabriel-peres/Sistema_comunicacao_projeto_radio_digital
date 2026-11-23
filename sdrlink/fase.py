@@ -5,7 +5,8 @@ bloco 21, com as gravações reais do tom do Pluto da equipe de 04/11/2026.
 
 Os receptores diferenciais (DBPSK e DQPSK) decidem pela variação de fase de um símbolo
 para o seguinte. O que importa do ruído de fase dos osciladores é, portanto, quanto a
-fase anda em um símbolo além do que o offset de frequência explica. Este módulo mede
+fase anda em um símbolo além do que o offset de frequência explica (na 8-PSK coerente,
+quanto ela anda nas dezenas de símbolos que a malha de fase acompanha). Este módulo mede
 isso num tom: mistura o tom para zero, filtra (o ruído branco de fora da banda sai),
 desdobra a fase e calcula o valor eficaz da variação de fase em τ amostras, com o offset
 de cada trecho curto retirado (o RX estima o offset em cada quadro). Mede também o

@@ -62,8 +62,9 @@ MEIA_BANDA_DETECCAO_RB = {"rrc": 0.75, "gaussiano": 1.0, "retangular": 1.0}
 MEIA_BANDA_FSK_RETANGULAR_RB = 1.25
 COEFICIENTES_POR_SIMBOLO = 8  # duração do filtro de detecção: 8 símbolos
 # dois sincronismos não ficam mais perto que isso. O menor quadro possível (payload vazio) tem
-# 93 símbolos a um bit por símbolo e 61 na DQPSK; com as caudas emendadas, o período dele é de
-# 62 símbolos, ainda acima deste limite
+# 93 símbolos a um bit por símbolo, 61 na DQPSK e 51 na 8-PSK. Na 8-PSK, quadros com payload de
+# até 3 bytes ficam abaixo deste limite e o segundo de dois seguidos se perderia; a prova usa
+# sempre 128 bytes (392 símbolos), e o TX recusa outro tamanho
 DISTANCIA_MIN_SIMBOLOS = 60
 MAX_DETECCOES_POR_BLOCO = 100_000
 PISO_RELATIVO = 1e-9  # energia centrada mínima da janela, em relação à média do bloco
@@ -158,7 +159,7 @@ class ConfigReceptor:
 
     @property
     def taxa_bits(self) -> float:
-        """Taxa de bits do corpo (o dobro da de símbolos na DQPSK)."""
+        """Taxa de bits do corpo (o dobro da de símbolos na DQPSK, o triplo na 8-PSK)."""
         return self.taxa_simbolos * self.modem.bits_por_simbolo
 
     def filtro_deteccao(self) -> NDArray[np.float64]:
