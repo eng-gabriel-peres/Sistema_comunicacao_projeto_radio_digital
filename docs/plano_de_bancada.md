@@ -2,6 +2,8 @@
 
 Tudo o que dá para fazer sem hardware está pronto e validado em simulação ([relatorio_final.md](relatorio_final.md), [auditoria_final.md](auditoria_final.md)). Este plano lista o que **só** a bancada resolve, em que ordem, com o comando, o critério de aprovação e o tempo estimado de cada teste, para dimensionar quanto tempo pedir o Pluto e o RTL ao professor.
 
+**Situação em 25/11/2026:** a sessão 1, o ensaio da prova A e o ensaio da prova B por nível de TX foram feitos num dia, no laboratório e em casa ([bancada_20261125.md](bancada_20261125.md)); a varredura da Etapa 5 foi feita em casa com o RTL2. Fica para o dia da competição só a distância real da prova B e o teste com dois computadores.
+
 ## 1. Resumo
 
 | Sessão | Objetivo | Tempo estimado | Fecha |

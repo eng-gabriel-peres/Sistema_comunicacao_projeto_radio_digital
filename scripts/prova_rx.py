@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime
@@ -64,7 +65,13 @@ def _argumentos() -> argparse.Namespace:
 
 def _rodar(script: str, *argumentos: str) -> subprocess.CompletedProcess[str]:
     comando = [sys.executable, str(RAIZ / "scripts" / script), *argumentos]
-    r = subprocess.run(comando, capture_output=True, text=True, encoding="utf-8", check=False)  # noqa: S603
+    # o filho escreve em UTF-8 mesmo num PowerShell comum (sem isso, em cp1252, a leitura
+    # caía no "Saída" do receber.py; bancada de 25/11)
+    ambiente = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    r = subprocess.run(  # noqa: S603 (só os scripts do projeto)
+        comando, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        check=False, env=ambiente,
+    )  # fmt: skip
     print(r.stdout.strip())
     if r.returncode != 0:
         raise SystemExit(f"{script} falhou:\n{r.stderr.strip()[-2000:]}")
@@ -160,6 +167,8 @@ def _relatorio(resumo: dict[str, Any], faltando: int, figura: Path) -> str:
         f"| Banda a 99% | {resumo['banda_99_khz']} kHz (limite 1 000 kHz) |",
         f"| Offset residual | {resumo['offset_hz']} Hz |",
         f"| Arquivo remontado | faltam {faltando} pacotes entre a primeira e a última sequência |",
+        f"| Critério da prova A | {prova.criterio_prova_a(per, resumo['banda_99_khz'])} |"
+        if resumo["prova"] == "a" else "",
         "",
         f"![espectro e pacotes por segundo]({figura.name})",
         "",
@@ -198,6 +207,8 @@ def main() -> int:
         f"\nRESULTADO: {resumo['pacotes_unicos']} pacotes, goodput {goodput:.1f} kbit/s, "
         f"PER {'?' if per is None else f'{100 * float(per):.3f}%'} ({resumo['per_e_goodput']})"
     )
+    if args.prova == "a":
+        print(f"Prova A: {prova.criterio_prova_a(per, resumo['banda_99_khz'])}")
     print(f"Relatório: {relatorio}")
     return 0
 

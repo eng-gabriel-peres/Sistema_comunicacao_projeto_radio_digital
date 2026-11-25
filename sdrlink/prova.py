@@ -29,6 +29,7 @@ from sdrlink.transmissor import TAMANHO_PAYLOAD, ler_payloads
 GOODPUT_MIN_BPS = 10e3  # prova B, seção 8 do enunciado
 PER_MAX = 0.01
 PACOTES_MIN_B = 500
+BANDA_MAX_KHZ = 1000.0  # prova A: banda a 99% de até 1 MHz (CMP-A)
 SEGUNDO = 1.0
 PERCENTIL_SURTO = 99.0  # o surto é o que aparece em 1% do tempo acima do típico
 MAX_POSICOES = 1000
@@ -181,6 +182,26 @@ class Posicao:
             and self.per <= PER_MAX
             and self.pacotes >= PACOTES_MIN_B
         )
+
+
+def criterio_prova_a(per: float | None, banda_khz: float | None) -> str:
+    """Diz se o ensaio da prova A vale: PER de até 1% e banda a 99% abaixo de 1 MHz (CMP-A).
+
+    Na bancada de 25/11 a 8-PSK deu 1 690 kbit/s com PER de 5%: mais goodput que a
+    DQPSK, mas fora da regra. Sem a banda medida (sinal fraco) o critério da banda fica
+    em aberto.
+    """
+    if per is None:
+        situacao = "NÃO PASSA: sem PER"
+    elif per > PER_MAX:
+        situacao = f"NÃO PASSA: PER de {100 * per:.2f}% acima de {100 * PER_MAX:g}%"
+    elif banda_khz is None:
+        situacao = "PASSA na PER; banda não medida"
+    elif banda_khz >= BANDA_MAX_KHZ:
+        situacao = f"NÃO PASSA: banda de {banda_khz:g} kHz"
+    else:
+        situacao = "PASSA (PER de até 1% e banda abaixo de 1 MHz)"
+    return situacao
 
 
 def alcance(posicoes: list[Posicao]) -> tuple[list[Posicao], float | None]:

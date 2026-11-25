@@ -20,6 +20,22 @@ As capturas IQ (`.npy`) ficam nesta pasta **fora do git**, por causa do tamanho.
 | 04/11/2026 10:42 | `logs/deriva_offset_20261104_104204.json`, `logs/etapa2_tx_20261104_104105_deriva.log` | Deriva do offset durante 60 s de TX | RTL 8,7 dB, 84 ppm, 0,5 s por ponto | 5e5d103 + script novo | offset de −1 184 a −1 623 Hz; Pluto a 34 a 35 °C (A18) |
 | 04/11/2026 11:05 | `logs/varredura_faixa_20261104_110544.json`, `docs/figuras/varredura_faixa_04nov.png` | Varredura de 915 a 928 MHz sem transmissão | RTL 40,2 dB, 84 ppm, 8 passos de 1,6 MHz, 0,5 s cada | 513fb93 + script novo | linha mais forte perto de 921,6 MHz (harmônica 32 × 28,8 MHz do RTL); entrada para a decisão D5 |
 
+## Bancada de 25/11/2026 (bloco 26)
+
+Detalhes e conclusões em [docs/bancada_20261125.md](../docs/bancada_20261125.md). Pluto da equipe (`ip:192.168.2.22`); RTL1 até 10:50 (oscilador modulado em 1,7 kHz, não usar), depois RTL2.
+
+| Horário | Arquivo(s) | Ensaio | Configuração | Observações |
+|---|---|---|---|---|
+| 09:53 a 09:57 | `capturas/sessao_20261125/controle_*`, `calibracao/calibracao_20261125_095447.*`, `calibracao/fm_20261125_095526.json` | Controle sem TX e calibração, RTL1 | RX 20 dB | +56 ppm (RTL1) |
+| 09:56 a 10:01 | `capturas/sessao_20261125/tom_*_ruido_de_fase.json` | Ruído de fase, RTL1 | tom do Pluto | raias de −8 dBc a ±1,7 kHz; 8-PSK em ATENÇÃO |
+| 10:06 a 10:35 | `capturas/sessao_20261125/prova_a_60s_*`, `prova_a_pre_*`, `prova_a_final_*` | Prova A, 60 s | `prova-a`, TX −30 dB | sem `--pre-gerar` 36,6% de PER; com ele e a espera da fila, 0,017% e 1 217,7 kbit/s |
+| 10:40 | `capturas/sessao_20261125/prova_a_8psk_*` | 8-PSK, RTL1 | `prova-a-8psk` | 28,3% de PER (ruído de fase do RTL1) |
+| 10:46 a 11:11 | `capturas/sessao_20261125/prova_b_*` | Prova B a 919,75 MHz, vários níveis, RTL1 e RTL2 | `prova-b`, TX −30 a −68 dB | 694/694 a −30 dB; perdas em rajadas com sinal fraco |
+| 11:06 | `calibracao/calibracao_20261125_110659.*` | Calibração e ruído de fase, RTL2 | | +87 ppm; 8-PSK ok (0,030 rad) |
+| 15:11 a 15:23 | `capturas/sessao_20261125_casa/*`, `calibracao/calibracao_20261125_151216.*`, `logs/casa_*` | Casa: controle, calibração (+88 ppm, aquecido), prova B a 919,75 e 919,875 MHz, partida do TX | TX −49 a −60 dB | grade de 500 kHz de aparelhos ISM; a 375 kHz, 232/232 a −52 dB |
+| 15:37 a 16:03 | `prova/ensaio_20261125/*`, `logs/ensaio_prova_tx_*` | Ensaio da competição com `prova_tx.py` e `prova_rx.py`, arquivo cifrado de teste | prova A −30 e −20 dB; prova B −40 a −57 dB | prova A 1 217,5 kbit/s (PER 0,034%); prova B 694/694 até −53 dB; `alcance.md` |
+| 16:10 em diante | `capturas/sessao_20261125_casa/etapa5/*`, `logs/etapa5_casa_*` | Varredura da Etapa 5, RTL2 | dbpsk-256k, gfsk-128k, ook-128k, TX −28 a −48 dB | ver docs/bancada_20261125.md, seção 5 |
+
 ## Ensaios em simulação (21 e 22/11/2026)
 
 Todos em `logs/`, gerados pelos scripts de `ensaios/`; cada JSON traz a versão do código que o gerou. Os logs de console têm o mesmo prefixo, com `_execucao.log`.

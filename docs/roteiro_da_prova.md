@@ -1,6 +1,49 @@
 # Roteiro da prova
 
-Passo a passo para a bancada e para as provas A e B (seção 8 do enunciado), com os comandos do projeto. Feito em 22/11/2026 (bloco 13). Os tempos e os resultados esperados vêm do ensaio geral sem hardware ([seção 7](#7-ensaio-geral-sem-hardware)).
+Passo a passo para a bancada e para as provas A e B (seção 8 do enunciado), com os comandos do projeto. Feito em 22/11/2026 (bloco 13) e refeito depois da bancada de 25/11 (bloco 26). Os tempos e os resultados esperados vêm do ensaio geral sem hardware ([seção 7](#7-ensaio-geral-sem-hardware)).
+
+## 0. No dia da competição (10/12): os comandos
+
+Depois da bancada de 25/11 juntei tudo em quatro scripts. O professor entrega um arquivo cifrado (qualquer tipo e tamanho); o TX fatia em payloads de 128 bytes (o último é completado com zeros) e o RX remonta o arquivo na ordem da sequência. Os dois lados usam o mesmo perfil e o mesmo deslocamento.
+
+| Momento | PC do TX (Pluto) | PC do RX (RTL, ligado há 10 min) |
+|---|---|---|
+| Prova B, antes de cada posição (Pluto parado) | | `python scripts/escolher_canal.py --perfil prova-b` (se o deslocamento do perfil não for o mais limpo, usar o escolhido com `--deslocamento-hz` nos dois lados) |
+| 1. Gerar o sinal | `python scripts/prova_tx.py <arquivo> --prova a --perfil prova-a-8psk --ganho-db -20` (ou o perfil que a regra da seção 3.1 escolher; o mesmo `--perfil` no RX) (prova B: `--prova b --ganho-db <G>`); se o arquivo não enche os 60 s, `--repetir` | esperar |
+| 2. Começar | o TX mostra **Sinal pronto; no ar em 10 s** (gerar leva cerca de 1 min) | no aviso: `python scripts/prova_rx.py --prova a` (prova B: `--prova b --distancia-m <d> --posicao P<n>`) |
+| 3. Resultado | o log `tx_<carimbo>.txt` fica em `dados/prova/<data>/` | o RX grava 70 s, decodifica e mostra **RESULTADO: pacotes, goodput, PER**; na prova A diz também se **PASSA** (PER de até 1% e banda abaixo de 1 MHz) |
+| Prova B, no fim | | `python scripts/relatorio_alcance.py dados/prova/<data>`: tabela e gráfico de goodput e PER por distância e a maior distância validada |
+
+O que o `prova_rx.py` deixa na pasta da prova, para cada ensaio:
+
+| Arquivo | O que é |
+|---|---|
+| `<captura>.npy` | a captura IQ (entregar ao avaliador) |
+| `<captura>_saida.txt` | sequência e payload de cada pacote aceito (entregar ao avaliador) |
+| `<captura>_arquivo.bin` | o arquivo do professor remontado (com zeros no lugar dos pacotes perdidos e o enchimento do último) |
+| `<captura>_relatorio.md` e `.png` | goodput, PER, Eb/N0, banda a 99% com o limite de 1 MHz, offset e pacotes por segundo |
+| `<captura>_resumo.json` | o mesmo em JSON; o `relatorio_alcance.py` junta estes por distância |
+
+Sem o log do TX o RX estima a PER e o goodput pelos buracos de sequência (o RX não precisa do arquivo). Com o log copiado do TX (`--log-tx <arquivo ou pasta>`), os números são os exatos do `avaliar.py`. Para reprocessar uma gravação: `--captura <arquivo .npy>`.
+
+Ensaio com estes comandos em casa, em 25/11, com um arquivo cifrado de teste (`dados/prova/ensaio_20261125/`):
+
+| Ensaio | TX | Pacotes certos / transmitidos | PER | Goodput | Banda a 99% |
+|---|---|---|---|---|---|
+| Prova A, arquivo de 9,5 MB | −20 dB | 71 335 / 71 359 | 0,034% | **1 217,5 kbit/s** | 747,4 kHz |
+| Prova A, mesmo arquivo | −30 dB | 32 335 / 71 359 | 54,7% | 551,9 kbit/s | 737,9 kHz |
+| Prova B, P1 | −40 dB | 694 / 694 | 0 | 11,8 kbit/s | |
+| Prova B, P2 | −50 dB | 694 / 694 | 0 | 11,8 kbit/s | |
+| Prova B, P3 | −53 dB | 694 / 694 | 0 | 11,8 kbit/s | |
+| Prova B, P4 | −57 dB | 519 / 694 | 25,2% | 8,9 kbit/s | |
+
+As distâncias do ensaio (10 a 70 m) foram só rótulos para testar o relatório: em casa variei a atenuação do Pluto, não a distância. A −30 dB a PER da prova A foi alta porque o enlace em casa é cerca de 6,5 dB mais fraco que o do laboratório (Eb/N0 de 12 dB, no limite da DQPSK); por isso **na prova A começar com −20 dB** e conferir o Eb/N0 no relatório (15 dB ou mais).
+
+Cuidados que vieram da bancada:
+1. **Um TX por vez.** Dois processos abrindo o Pluto dão "Open unlocked: -16" e estragam o sinal.
+2. **Gravar só no aviso "Sinal pronto".** Antes dele o TX ainda está gerando o sinal; o `prova_tx.py` sempre gera tudo antes (sem isso o TX não acompanha o tempo real: 60 s de sinal levaram 99 s).
+3. **Nível no RTL entre −20 e −12 dBFS** (o relatório da captura mostra). Fora de −30 a −6 dBFS, mudar o `--ganho-db` do RX.
+4. **Prova B no deslocamento de 375 kHz** (919,875 MHz): na bancada havia aparelhos ISM em surtos numa grade de 500 kHz (919,25 e 919,75 MHz) que derrubavam pacotes com sinal fraco.
 
 ## 1. Antes do dia (nos dois computadores)
 
@@ -15,7 +58,7 @@ Passo a passo para a bancada e para as provas A e B (seção 8 do enunciado), co
 |---|---|---|
 | 1. Aquecer o RTL | ligado no USB por **10 minutos** antes de calibrar ou medir (PLT-06) | |
 | 2. Captura de controle, Pluto desligado | `python scripts/gravar_iq.py --perfil prova-a --segundos 2 --nome controle` | nada forte entre 919,5 e 920,4 MHz (o sinal da prova A fica de +50 a +800 kHz do LO de 919,5 MHz) |
-| 3. Calibração do RTL (se o Pluto ou o RTL forem outros) | TX: `python scripts/transmitir_tom.py --freq-tom-hz <tom> --duracao-s 120`; RX, ao mesmo tempo: `python scripts/calibrar_rtl.py --freq-tom-hz <tom> --minutos-ligado 10` | anotar o ppm em `configs/rtl.toml` (hoje: +84 ppm para o par Pluto da equipe + RTL) |
+| 3. Calibração do RTL (se o Pluto ou o RTL forem outros) | TX: `python scripts/transmitir_tom.py --freq-tom-hz <tom> --duracao-s 120`; RX, ao mesmo tempo: `python scripts/calibrar_rtl.py --freq-tom-hz <tom> --minutos-ligado 10` | anotar o ppm em `configs/rtl.toml` (hoje: +88 ppm para o RTL da equipe aquecido, bancada de 25/11) |
 | 4. Ganho do RX | `gravar_iq.py --ganho-db <G>`, AGC desligado | o JSON da captura registra o ganho (MET-05) e a fração de amostras saturadas: tem de ser 0 |
 
 ## 3. Prova A: maior goodput em 60 s
@@ -36,7 +79,7 @@ Para o teste o `avaliar.py` pode rodar no RX com o log do TX copiado por pen dri
 
 | Se | Perfil | Goodput esperado |
 |---|---|---|
-| **Só se** o `medir_ruido_de_fase.py` deu "ok" para a `prova-a-8psk` (item 1.3b do plano) **e** o teste com `prova-a` mediu Eb/N0 de **16,7 dB ou mais** (C/N0 de 78 dB-Hz, 2 dB acima do que a 8-PSK pede): testar primeiro com `prova-a-8psk`; Eb/N0 de 15 dB ou mais e PER de até 0,5% ([etapa6_8psk.md](etapa6_8psk.md)) | `prova-a-8psk` (8-PSK coerente, 2 048 kbit/s no ar) | cerca de 1 775 kbit/s |
+| **Primeiro, testar a 8-PSK** (no ar em 25/11 com o RTL2: 1 777,6 kbit/s e PER de 0,064% com Eb/N0 estimado de 22 dB; com 17 dB a PER foi de 5%). Usar se o teste der **PER de até 0,5%** e o `prova_rx.py` disser "Prova A: PASSA"; o Eb/N0 estimado tem de ficar em **20 dB ou mais**. O `medir_ruido_de_fase.py` tem de dar "ok" para a `prova-a-8psk` se o RTL não for o RTL2 | `prova-a-8psk` (8-PSK coerente, 2 048 kbit/s no ar) | cerca de 1 778 kbit/s |
 | **Só se** a sessão 1 do plano de bancada validou o RTL a 2,4 MS/s (gravação de 63 s sem perda e faixa plana até +904 kHz): testar primeiro com `prova-a-24`; Eb/N0 de 15 dB ou mais e PER de até 0,5% | `prova-a-24` (DQPSK a 2,4 MS/s, 1 600 kbit/s no ar) | cerca de 1 425 kbit/s |
 | Eb/N0 medido de **15 dB ou mais** e PER de até 0,5% | `prova-a` (DQPSK, 1 365 kbit/s no ar) | cerca de 1 215 kbit/s |
 | Senão, repetir o teste com `prova-a-fec`; PER de até 0,5% | `prova-a-fec` (DQPSK com FEC) | cerca de 625 kbit/s |
@@ -48,11 +91,11 @@ O `receber.py` mostra o Eb/N0 medido e a banda a 99%. **A banda tem de ficar aba
 
 ### 3.2 O ensaio
 
-1. O avaliador entrega o arquivo de payloads ao TX. Ao rodar o `transmitir.py`, conferir que **não** aparece "AVISO: o arquivo tem N payloads, mas cabem M": a DQPSK manda cerca de 71 000 pacotes em 60 s. Se aparecer, avisar o avaliador antes de começar (o goodput cairia sem culpa do enlace).
-2. RX, **antes** do comando de início: `python scripts/gravar_iq.py --perfil <perfil> --segundos 63 --nome prova_a`
-3. TX, no comando de início: `python scripts/transmitir.py <payloads do avaliador> --perfil <perfil> --duracao-s 60`
-4. RX, depois da gravação: `python scripts/receber.py dados/capturas/prova_a_<carimbo>.npy --perfil <perfil>`. Tempo esperado: de 1,5 a 3 min (a 8-PSK leva cerca de 2,7 min; limite: 10 min).
-5. Entregar ao avaliador: `<captura>.npy` (a captura IQ) e `<captura>_saida.txt` (sequência e payload de cada pacote aceito, sem repetições). O `<captura>_rx.json` traz o que a seção 7 pede registrar.
+Pelos comandos da [seção 0](#0-no-dia-da-competição-1012-os-comandos): `prova_tx.py <arquivo> --prova a` no TX e `prova_rx.py --prova a` no RX, no aviso "Sinal pronto". Para outro perfil da regra de troca, `--perfil <nome>` nos dois lados.
+
+1. Conferir no TX que **não** aparece "AVISO: o arquivo tem N payloads, mas cabem M". Se aparecer e a regra permitir repetir, usar `--repetir`; senão, avisar o avaliador (o goodput cairia sem culpa do enlace).
+2. O RX processa em 1,5 a 3 min (limite: 10 min).
+3. Entregar ao avaliador `<captura>.npy` e `<captura>_saida.txt`. O `<captura>_rx.json` traz o que a seção 7 do enunciado pede registrar.
 
 ## 4. Prova B: maior alcance
 
@@ -64,12 +107,12 @@ Em cada posição: goodput de pelo menos 10 kbit/s, PER de até 1% e **pelo meno
 | Tempo para 500 pacotes | **43 s**: o ensaio tem de durar pelo menos isso; com 60 s, cerca de 690 pacotes |
 | C/N0 necessário | 48,2 dB-Hz com o limiar de detecção de 0,4 do perfil (bloco 19; cerca de 25 dB a menos que o `prova-a` e 20 dB a menos que o `prova-a-dbpsk`: cerca de 18 vezes a distância do `prova-a` no espaço livre) |
 
-Em cada posição:
-1. RX: `python scripts/gravar_iq.py --perfil prova-b --segundos <duração + 3> --nome prova_b_pos<N>`
-2. TX: `python scripts/transmitir.py <payloads> --perfil prova-b --duracao-s <duração>`
-3. RX: `python scripts/receber.py dados/capturas/prova_b_pos<N>_<carimbo>.npy --perfil prova-b`
-4. Anotar em `dados/README.md`: posição, perfil, ganhos de TX e RX, Eb/N0 medido, pacotes aceitos. O JSON de cada script já guarda o perfil completo.
-5. **Banda:** se o `receber.py` avisar "banda não confiável", usar a banda medida na posição mais próxima. Com sinal fraco a medida por subtração do ruído não vale (seção 7).
+Em cada posição, pelos comandos da [seção 0](#0-no-dia-da-competição-1012-os-comandos):
+1. Pluto parado: `escolher_canal.py --perfil prova-b` no RX. Se aparecer surto no deslocamento do perfil, usar o mais limpo com `--deslocamento-hz` nos dois lados.
+2. TX: `prova_tx.py <arquivo> --prova b --ganho-db <G>`; RX, no aviso: `prova_rx.py --prova b --distancia-m <d> --posicao P<n>`.
+3. O `RESULTADO` diz se passou (500 pacotes, 10 kbit/s, PER de até 1%). A configuração fica no `<captura>_resumo.json` e no JSON do TX.
+4. **Banda:** se o `receber.py` avisar "banda não confiável", usar a banda medida na posição mais próxima. Com sinal fraco a medida por subtração do ruído não vale (seção 7).
+5. No fim: `relatorio_alcance.py dados/prova/<data>`.
 
 Se uma posição falhar com o `prova-b`, não há perfil mais sensível pronto: o `prova-b-sem-fec` precisa de 2,9 dB **a mais**. A última posição validada é o resultado.
 
@@ -79,17 +122,19 @@ Se uma posição falhar com o `prova-b`, não há perfil mais sensível pronto: 
 2. Rodar `python scripts/avaliar.py` com o log do TX e a saída do RX de cada ensaio, para conferir a conta do avaliador.
 3. Commit dos registros com o nome da prova.
 
-## 6. O que ainda não foi testado com hardware
+## 6. O que a bancada de 25/11 testou
 
-| Item | Risco | Onde está o plano |
+| Item | Resultado | Registro |
 |---|---|---|
-| Banda a 99% dos perfis medida no RTL | a medida do avaliador ser diferente da nossa | [etapa6_prova_a.md](etapa6_prova_a.md), seção 2.6 |
-| Python alimentando o Pluto a 2,048 MS/s por 60 s, sem buraco | quadros cortados | risco R1; se acontecer, `transmitir.py --pre-gerar` ([etapa6_robustez.md](etapa6_robustez.md)) |
-| DQPSK no ar: ruído de fase e desequilíbrio IQ reais | a DQPSK precisar de mais que 12 dB | regra de troca, seção 3.1 |
-| 8-PSK coerente no ar | ruído de fase do par da prova maior que o de 04/11 (ela tolera 10 a 30 Hz, a DQPSK 1 kHz); C/N0 abaixo de 78 dB-Hz | `medir_ruido_de_fase.py` (item 1.3b do plano) e o Eb/N0 do teste; senão, `prova-a` |
-| Deriva do offset na prova B (quadros de 86 ms) | pior que os 35 Hz/s medidos | [etapa6_prova_b.md](etapa6_prova_b.md) |
-| Gravação de 60 s no RTL (cerca de 1 GB em complex64) sem perder amostras | captura incompleta; só gravamos até 16 s no ar | `gravar_iq.py --segundos 63`; conferir o número de amostras no JSON |
-| Recepção com o quadro v3 nas nossas modulações | nada além da OOK de referência foi recebido no ar | protocolo da Etapa 5 |
+| Banda a 99% da prova A medida no RTL | 747 a 748 kHz, abaixo de 1 MHz | `dados/prova/ensaio_20261125/` |
+| Python alimentando o Pluto por 60 s (risco R1) | sem `--pre-gerar` 60 s levaram 99 s; com ele, 61,5 s no ar. O `prova_tx.py` sempre gera antes | `dados/logs/` |
+| DQPSK no ar | prova A com 71 335 de 71 359 pacotes (PER de 0,034%) e 1 217,5 kbit/s | seção 0 |
+| Gravação de 70 s no RTL sem perder amostras | ok em todos os ensaios | JSON de cada captura |
+| Prova B no ar com o quadro v3 | 694 de 694 pacotes até −53 dB de TX | seção 0 |
+| 8-PSK coerente no ar | com o RTL2: 104 157 de 104 224 pacotes, PER de 0,064%, **1 777,6 kbit/s** a −20 dB; a −25 dB, PER de 5% (não passa) | `dados/prova/ensaio_20261125/prova_a_8psk_*` |
+| RTL a 2,4 MS/s | não testado: usar só os perfis a 2,048 MS/s | |
+
+Defeitos que a bancada achou e que já estão corrigidos estão em [bancada_20261125.md](bancada_20261125.md).
 
 ## 7. Ensaio geral sem hardware
 

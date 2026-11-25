@@ -65,6 +65,15 @@ def _argumentos() -> argparse.Namespace:
     return args
 
 
+def caminho_base(pasta: Path, nome: str, carimbo: str) -> Path:
+    """Caminho sem extensão da gravação; o ponto do nome vira "_".
+
+    Um nome com ponto (var_919.12) perdia o resto para o with_suffix, e duas gravações
+    caíam no mesmo arquivo (bancada de 25/11).
+    """
+    return pasta / f"{nome}_{carimbo}".replace(".", "_")
+
+
 def main() -> int:
     """Captura, grava o .npy e o JSON de metadados."""
     args = _argumentos()
@@ -75,9 +84,7 @@ def main() -> int:
     except RuntimeError as erro:
         raise SystemExit(f"Erro: {erro}") from erro
     args.pasta.mkdir(parents=True, exist_ok=True)
-    base = args.pasta / f"{args.nome}_{carimbo_de_tempo()}"
-    # nome com ponto (var_919.12) perdia o resto para o with_suffix e sobrescrevia (25/11)
-    base = base.with_name(base.name.replace(".", "_"))
+    base = caminho_base(args.pasta, args.nome, carimbo_de_tempo())
     np.save(base.with_suffix(".npy"), captura.amostras)
     metadados: dict[str, object] = {
         "versao_codigo": versao_do_codigo(),

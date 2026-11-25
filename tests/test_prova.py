@@ -1,5 +1,6 @@
 """Testes do dia da prova: arquivo qualquer em pacotes, remontagem, resumo do RX e alcance."""
 
+import importlib.util
 import json
 import os
 import subprocess
@@ -132,7 +133,26 @@ def test_arquivo_cifrado_de_ponta_a_ponta_sem_radio(tmp_path: Path) -> None:
     resumo = json.loads((tmp_path / "prova_a_sim_resumo.json").read_text(encoding="utf-8"))
     assert resumo["per"] == 0.0 and resumo["per_e_goodput"] == "exatos, pelo log do TX"
     assert (tmp_path / "prova_a_sim_relatorio.png").stat().st_size > 0
-    assert "RESULTADO" in rx.stdout
+    assert "RESULTADO" in rx.stdout and "Prova A: PASSA" in rx.stdout
+
+
+def test_prova_rx_num_terminal_sem_utf8(tmp_path: Path) -> None:
+    """Num PowerShell comum o filho escreve em cp1252; o prova_rx tem de ler mesmo assim."""
+    arquivo = tmp_path / "p.enc"
+    arquivo.write_bytes(bytes(range(256)) * 20)
+    sinal = tmp_path / "sim.npy"
+    tx = _rodar("transmitir.py", str(arquivo), "--perfil", "prova-a", "--duracao-s", "0.02",
+                "--simular", str(sinal), "--pasta", str(tmp_path))  # fmt: skip
+    assert tx.returncode == 0, tx.stderr
+    ambiente = {k: v for k, v in os.environ.items() if k not in ("PYTHONIOENCODING", "PYTHONUTF8")}
+    rx = subprocess.run(  # noqa: S603
+        [sys.executable, str(config.RAIZ / "scripts" / "prova_rx.py"), "--prova", "a",
+         "--captura", str(sinal), "--janela-s", "0.02", "--pasta", str(tmp_path)],
+        capture_output=True, check=False, cwd=config.RAIZ,
+        env={**ambiente, "PYTHONPATH": str(config.RAIZ), "PYTHONIOENCODING": "cp1252"},
+    )  # fmt: skip
+    assert rx.returncode == 0, rx.stderr.decode("cp1252", "replace")
+    assert b"RESULTADO" in rx.stdout
 
 
 def test_relatorio_de_alcance_junta_as_posicoes(tmp_path: Path) -> None:
@@ -164,3 +184,24 @@ def test_escolher_canal_evita_o_surto(tmp_path: Path) -> None:
     assert "(+375 kHz)" in r.stdout and "--deslocamento-hz 375000 " not in r.stdout
     atual = float(r.stdout.split("kHz): ")[1].split(" dB")[0])
     assert atual > 20  # o surto aparece no deslocamento atual
+
+
+def test_gravar_iq_troca_o_ponto_do_nome(tmp_path: Path) -> None:
+    caminho = config.RAIZ / "scripts" / "gravar_iq.py"
+    spec = importlib.util.spec_from_file_location("script_gravar_iq", caminho)
+    assert spec is not None and spec.loader is not None
+    gravar = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gravar)
+    pasta = tmp_path / "sessao.1"  # o ponto da pasta fica
+    base = gravar.caminho_base(pasta, "var_919.12", "20261125_101010")
+    assert base == pasta / "var_919_12_20261125_101010"
+    assert base.with_suffix(".npy").name == "var_919_12_20261125_101010.npy"
+
+
+def test_criterio_da_prova_a() -> None:
+    assert prova.criterio_prova_a(0.00064, 747.4).startswith("PASSA (")
+    assert prova.criterio_prova_a(0.01, 999.0).startswith("PASSA (")  # 1% ainda vale
+    assert "PER de 4.99%" in prova.criterio_prova_a(0.0499, 744.1)  # 8-PSK a -25 dB, 25/11
+    assert prova.criterio_prova_a(0.0, 1000.0) == "NÃO PASSA: banda de 1000 kHz"
+    assert prova.criterio_prova_a(0.0, None) == "PASSA na PER; banda não medida"
+    assert prova.criterio_prova_a(None, 700.0) == "NÃO PASSA: sem PER"
