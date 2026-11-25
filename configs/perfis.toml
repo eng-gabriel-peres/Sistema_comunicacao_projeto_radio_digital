@@ -73,7 +73,7 @@ modulacao = "dbpsk"
 pulso = "rrc"
 sps = 80  # goodput sem perdas de 11,84 kbit/s: 17,2% de folga sobre os 10 kbit/s com PER de 1%
 beta = 0.35
-deslocamento_hz = 250e3
+deslocamento_hz = 375e3  # fora da grade de 500 kHz de aparelhos ISM (919,25 e 919,75 MHz): bancada de 25/11
 lo_hz = 919.5e6
 fec = true
 limiar = 0.4  # com FEC a detecção é o gargalo: de 0,4 a 1 dB a mais de alcance (docs/etapa6_limiar.md)
@@ -84,7 +84,7 @@ modulacao = "dbpsk"
 pulso = "rrc"
 sps = 160
 beta = 0.35
-deslocamento_hz = 250e3
+deslocamento_hz = 375e3
 lo_hz = 919.5e6
 
 [prova-b-limite]
@@ -93,7 +93,7 @@ modulacao = "dbpsk"
 pulso = "rrc"
 sps = 176
 beta = 0.35
-deslocamento_hz = 250e3
+deslocamento_hz = 375e3
 lo_hz = 919.5e6
 
 [dbpsk-256k]

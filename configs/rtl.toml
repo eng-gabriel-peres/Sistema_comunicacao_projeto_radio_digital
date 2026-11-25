@@ -2,7 +2,7 @@
 # Lida pelo receptor a partir do Bloco 2. Registro completo: docs/calibracao_rtl.md
 
 [calibracao]
-correcao_ppm = 87  # par "Pluto da equipe + RTL 2 de 25/11" (o limpo), medido em 25/11/2026, RTL frio
+correcao_ppm = 88  # par "Pluto da equipe + RTL 2 de 25/11" (o limpo), aquecido 10 min, medido em 25/11/2026 às 15:16
 data = "2026-11-25"
 pluto = "Pluto da equipe (Rev.C AD9364, fw v0.32, serial ...bc7b7b4d52)"
 medicoes_do_par_ppm = [84.04, 84.21]  # 10:06 e 10:09, RTL aquecido

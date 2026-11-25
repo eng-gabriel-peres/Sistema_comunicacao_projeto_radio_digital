@@ -18,12 +18,12 @@ from sdrlink.transmissor import ConfigTransmissor
 
 def test_correcao_adotada_e_84_ppm() -> None:
     # par Pluto da equipe + RTL 2 da bancada de 25/11 (84 em 04/11; 56 com o RTL 1 defeituoso)
-    assert config.ler_correcao_ppm(config.ARQUIVO_RTL) == 87
-    assert config.correcao_rtl_ppm_padrao() == 87
+    assert config.ler_correcao_ppm(config.ARQUIVO_RTL) == 88
+    assert config.correcao_rtl_ppm_padrao() == 88
 
 
 def test_captura_sem_correcao_explicita_usa_a_configuracao() -> None:
-    assert ConfigRtl(915e6, 2.048e6, 20.0).correcao_ppm == 87
+    assert ConfigRtl(915e6, 2.048e6, 20.0).correcao_ppm == 88
     assert ConfigRtl(915e6, 2.048e6, 20.0, 0).correcao_ppm == 0
 
 

@@ -144,11 +144,16 @@ def tom_complexo(
 
 
 def _configurar(sdr: Any, config: ConfigPluto, ciclico: bool = True) -> None:
-    """Aplica a configuração e confere o que o rádio aceitou."""
+    """Aplica a configuração e confere o que o rádio aceitou.
+
+    O ganho vem primeiro: o Pluto abre com −10 dB, e trocar taxa e LO leva quase 1 s, em
+    que ele já emite o vazamento de LO. Com o ganho por último, cada partida saturava o RX
+    por cerca de 0,7 s (bancada de 25/11).
+    """
+    sdr.tx_hardwaregain_chan0 = config.ganho_db
     sdr.sample_rate = int(config.taxa_sps)
     sdr.tx_rf_bandwidth = int(config.taxa_sps)
     sdr.tx_lo = int(config.lo_hz)
-    sdr.tx_hardwaregain_chan0 = config.ganho_db
     sdr.tx_cyclic_buffer = ciclico
     if abs(int(sdr.tx_lo) - int(config.lo_hz)) > TOLERANCIA_LO_HZ:
         raise RuntimeError(f"o Pluto não aceitou o LO: pedido {config.lo_hz}, lido {sdr.tx_lo}")

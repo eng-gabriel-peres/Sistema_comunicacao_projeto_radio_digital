@@ -142,10 +142,16 @@ class _PlutoFalso:
         self.tx_lo = 0
         self.tx_cyclic_buffer: bool | None = None
         self.tx_hardwaregain_chan0 = 0.0
+        self.ordem: list[str] = []  # só o que o código configura depois de abrir
         _PlutoFalso.instancias.append(self)
 
     def tx(self, bloco: np.ndarray) -> None:
         self.enviados.append(bloco.copy())
+
+    def __setattr__(self, nome: str, valor: object) -> None:
+        if nome in ("tx_hardwaregain_chan0", "sample_rate", "tx_lo"):
+            self.__dict__.setdefault("ordem", []).append(nome)  # antes do __init__ terminar
+        object.__setattr__(self, nome, valor)
 
     def tx_destroy_buffer(self) -> None:
         self.destruido = True
@@ -174,6 +180,8 @@ def test_transmitir_fluxo_envia_em_ordem_e_desliga(
     assert [b[0] for b in sdr.enviados] == [0, 1, 2]
     assert sdr.tx_cyclic_buffer is False
     assert sdr.destruido and sdr.tx_hardwaregain_chan0 == pluto_tx.GANHO_MIN_DB
+    # o ganho antes da taxa e do LO: senão a partida sai com os −10 dB do Pluto (25/11)
+    assert sdr.ordem[:3] == ["tx_hardwaregain_chan0", "sample_rate", "tx_lo"]
 
 
 def test_transmitir_fluxo_desliga_mesmo_com_erro(
