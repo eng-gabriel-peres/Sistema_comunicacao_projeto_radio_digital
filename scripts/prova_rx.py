@@ -52,7 +52,9 @@ def _argumentos() -> argparse.Namespace:
     p.add_argument(
         "--captura", type=Path, default=None, help="processa esta gravação em vez de gravar"
     )
-    p.add_argument("--log-tx", type=Path, default=None, help="log do TX, para a PER exata")
+    p.add_argument(
+        "--log-tx", type=Path, default=None, help="log do TX (ou a pasta dele), para a PER exata"
+    )
     p.add_argument("--distancia-m", type=float, default=None, help="prova B: distância da posição")
     p.add_argument("--posicao", default=None, help="nome da posição (P1, P2...)")
     p.add_argument("--deslocamento-hz", type=float, default=None, help="do escolher_canal.py")
@@ -125,7 +127,10 @@ def _resumo(args: argparse.Namespace, captura: Path, registro: dict[str, Any]) -
         "versao_do_codigo": versao_do_codigo(),
     }  # fmt: skip
     if args.log_tx is not None:
-        _rodar("avaliar.py", str(args.log_tx), str(captura.with_name(captura.stem + "_saida.txt")),
+        log = args.log_tx
+        if log.is_dir():  # TX e RX no mesmo PC: o log mais recente da pasta
+            log = max(log.glob("tx_*.txt"), key=lambda c: c.stat().st_mtime)
+        _rodar("avaliar.py", str(log), str(captura.with_name(captura.stem + "_saida.txt")),
                "--duracao-s", str(args.janela_s))  # fmt: skip
         av = json.loads(
             captura.with_name(captura.stem + "_saida_avaliacao.json").read_text(encoding="utf-8")

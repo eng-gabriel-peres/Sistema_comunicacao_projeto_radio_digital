@@ -60,7 +60,7 @@ def main() -> int:
     if args.repetir:
         comando.append("--repetir")
     print(f"Prova {args.prova.upper()}: {perfil}, TX {args.ganho_db:g} dB, {args.duracao_s:g} s")
-    print("Gerando o sinal; quando aparecer 'Sinal pronto', comece a gravação no RX.", flush=True)
+    print("Gerando o sinal (cerca de 1 min). Grave no RX só no aviso de pronto.", flush=True)
     return subprocess.run(comando, check=False).returncode  # noqa: S603 (só o script do projeto)
 
 
