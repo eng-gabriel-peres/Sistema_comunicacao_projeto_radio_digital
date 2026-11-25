@@ -125,9 +125,12 @@ def main() -> int:
     medidas: dict[str, object] = {"medido": False, "motivo": "nenhum quadro detectado"}
     if deteccoes:
         fim = deteccoes[-1].inicio + periodo
-        medidas = medicao.medir_captura(
-            amostras, deteccoes[0].inicio, fim, perfil.taxa_sps, perfil.taxa_bits
-        )
+        try:
+            medidas = medicao.medir_captura(
+                amostras, deteccoes[0].inicio, fim, perfil.taxa_sps, perfil.taxa_bits
+            )
+        except ValueError as erro:  # a medida falhar não pode derrubar a recepção (25/11)
+            medidas = {"medido": False, "motivo": str(erro)}
         ebn0 = medidas.get("ebn0_estimado_db")
         if perfil.fec and isinstance(ebn0, float):
             # o Eb/N0 medido é por bit no ar; por bit útil, soma a razão do código

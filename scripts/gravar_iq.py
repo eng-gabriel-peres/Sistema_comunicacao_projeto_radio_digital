@@ -76,6 +76,8 @@ def main() -> int:
         raise SystemExit(f"Erro: {erro}") from erro
     args.pasta.mkdir(parents=True, exist_ok=True)
     base = args.pasta / f"{args.nome}_{carimbo_de_tempo()}"
+    # nome com ponto (var_919.12) perdia o resto para o with_suffix e sobrescrevia (25/11)
+    base = base.with_name(base.name.replace(".", "_"))
     np.save(base.with_suffix(".npy"), captura.amostras)
     metadados: dict[str, object] = {
         "versao_codigo": versao_do_codigo(),

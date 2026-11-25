@@ -52,8 +52,16 @@ def _argumentos() -> tuple[argparse.Namespace, Perfil]:
     p.add_argument(
         "--simular", type=Path, default=None, help="grava o sinal em .npy em vez de transmitir"
     )
+    p.add_argument(
+        "--atraso-s",
+        type=float,
+        default=0.0,
+        help="espera depois do sinal pronto e antes de entrar no ar (para começar a gravação)",
+    )
     p.add_argument("--pasta", type=Path, default=RAIZ / "dados" / "logs")
     args = p.parse_args()
+    if args.atraso_s < 0:
+        p.error("--atraso-s não pode ser negativo")
     return args, perfil_dos_argumentos(p, args)
 
 
@@ -120,6 +128,7 @@ def main() -> int:
         )
     log: list[RegistroTx] = []
     inicio = datetime.now().astimezone()
+    tempo_no_ar: float | None = None
     t0 = time.time()
     if args.simular is not None:
         sinal = np.concatenate(list(_blocos(pacotes, config, args.duracao_s, log)))
@@ -128,13 +137,20 @@ def main() -> int:
     else:
         pluto = pluto_tx.ConfigPluto(perfil.lo_hz, perfil.taxa_sps, args.ganho_db, args.uri)
         blocos = fonte_de_blocos(pacotes, config, args.duracao_s, log, args.pre_gerar)
+        print(f"Sinal pronto; no ar em {args.atraso_s:g} s", flush=True)
+        time.sleep(args.atraso_s)
+        no_ar = time.time()
+        print(f"No ar desde {datetime.now().strftime('%H:%M:%S')}", flush=True)
         pluto_tx.transmitir_fluxo(pluto, blocos)
+        tempo_no_ar = round(time.time() - no_ar, 2)
     nome = f"tx_{carimbo_de_tempo()}"
     caminho_log = transmissor.gravar_log(log, args.pasta / f"{nome}.txt")
     registro = {
         "versao_do_codigo": versao_do_codigo(),
         "inicio": inicio.isoformat(timespec="seconds"),
         "tempo_real_s": round(time.time() - t0, 2),
+        # bancada de 25/11: sem --pre-gerar, 60 s de conteúdo levaram 99 s para sair (risco R1)
+        "tempo_no_ar_s": tempo_no_ar,
         "modo": "simulado" if args.simular else "pluto",
         "parametros": {k: str(v) for k, v in vars(args).items()},
         "perfil": dataclasses.asdict(perfil),
