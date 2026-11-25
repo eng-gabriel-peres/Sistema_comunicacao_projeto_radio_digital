@@ -1,0 +1,29 @@
+Lembrete: aguarde 10 min com o RTL ligado (PLT-06).
+1/2 Captura com +56 ppm: esperado 919.620000 MHz
+  raia em 919.591117 MHz:  66.3 dB
+  raia em 919.603480 MHz:  26.0 dB  <- grade de espúrios do RTL, descartada
+  raia em 919.719740 MHz:  21.8 dB
+  raia em 919.719365 MHz:  14.9 dB
+  raia em 919.720117 MHz:  13.1 dB
+  raia em 919.719162 MHz:  12.0 dB
+2/2 Captura com a correção total de +87 ppm
+  raia em 919.619678 MHz:  67.5 dB
+  raia em 919.632117 MHz:  26.6 dB  <- grade de espúrios do RTL, descartada
+  raia em 919.748260 MHz:  21.1 dB
+  raia em 919.748641 MHz:  12.4 dB
+  raia em 919.747883 MHz:  12.3 dB
+  raia em 919.747682 MHz:  11.3 dB
+
+=== Calibração ===
+Esperada         : 919.620000 MHz
+Medida           : 919.591142 MHz com +56 ppm (desvio 27 Hz, SNR mín. 64.8 dB)
+Erro total       : -87.38 ppm
+Correção total   : +87 ppm
+Resíduo previsto : -350 Hz
+Resíduo medido   : -311 Hz
+
+Registro: C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\dados\calibracao\calibracao_20261125_110659.json
+Found Rafael Micro R820T/2 tuner
+Allocating 15 (non-zero-copy) user-space buffers
+Found Rafael Micro R820T/2 tuner
+Allocating 15 (non-zero-copy) user-space buffers

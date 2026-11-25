@@ -1,0 +1,5 @@
+AVISO: o arquivo tem 80000 payloads, mas cabem 104224 em 60 s: o TX vai parar antes do fim da janela e o goodput cai
+Sinal pronto; no ar em 5 s
+No ar desde 10:39:05
+80000 pacotes (pluto), banda a 99%: 50 a 798 kHz do LO
+Log do TX: dados\capturas\sessao_20261125\tx_20261125_103953.txt

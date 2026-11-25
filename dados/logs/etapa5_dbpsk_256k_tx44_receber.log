@@ -1,0 +1,6 @@
+AVISO: 1.231% das amostras saturadas: baixar o ganho do RX
+2217 pacotes aceitos em 23.5 s
+Banda a 99%: 277.5 kHz; Eb/N0: 17.06 dB
+BER: 2259/2313216 = 9.77e-04
+Saída: dados\capturas\sessao_20261125\etapa5\dbpsk_256k_tx44_20261125_110258_saida.txt
+Registro: dados\capturas\sessao_20261125\etapa5\dbpsk_256k_tx44_20261125_110258_rx.json

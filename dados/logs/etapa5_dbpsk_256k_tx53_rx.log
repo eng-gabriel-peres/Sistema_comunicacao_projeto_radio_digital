@@ -1,0 +1,1 @@
+Erro: não foi possível abrir o RTL-SDR: ele está desconectado ou outro programa (teste_FM.py, SDR#, SDR++) está usando o rádio. Detalhe: <LIBUSB_ERROR_IO (-1): Input/output error> "Could not open SDR (device index = 0)"
