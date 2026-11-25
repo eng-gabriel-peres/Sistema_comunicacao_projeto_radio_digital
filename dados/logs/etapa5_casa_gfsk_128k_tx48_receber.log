@@ -1,0 +1,6 @@
+AVISO: 0.151% das amostras saturadas: baixar o ganho do RX
+0 pacotes aceitos em 11.4 s
+Banda a 99%: 128.0 kHz; Eb/N0: 8.55 dB
+BER: 11844/1160192 = 1.02e-02
+Saída: dados\capturas\sessao_20261125_casa\etapa5\gfsk_128k_tx48_20261125_161203_saida.txt
+Registro: dados\capturas\sessao_20261125_casa\etapa5\gfsk_128k_tx48_20261125_161203_rx.json

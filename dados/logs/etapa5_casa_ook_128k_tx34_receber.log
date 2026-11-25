@@ -1,0 +1,10 @@
+usage: receber.py [-h] [--perfil PERFIL]
+                  [--modulacao {ook,bpsk,dbpsk,dqpsk,8psk,fsk}]
+                  [--pulso {retangular,rrc,gaussiano}] [--taxa-bits TAXA_BITS]
+                  [--beta BETA] [--taxa-sps TAXA_SPS]
+                  [--deslocamento-hz DESLOCAMENTO_HZ] [--lo-hz LO_HZ]
+                  [--fec | --no-fec] [--emendar-caudas | --no-emendar-caudas]
+                  [--limiar LIMIAR] [--offset-max-hz OFFSET_MAX_HZ]
+                  [--pasta PASTA] [--ber] [--janela-s JANELA_S]
+                  captura
+receber.py: error: the following arguments are required: captura

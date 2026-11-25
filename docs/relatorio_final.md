@@ -2,7 +2,7 @@
 
 SCM22108, Sistemas de Comunicação (IFSC). Gabriel de Oliveira Peres, matrícula 201920800001.
 
-Estado em 22/11/2026, depois do bloco 25: **tudo o que dá para fazer sem hardware está feito e validado em simulação**, e o projeto passou por uma auditoria completa contra o enunciado ([auditoria_final.md](auditoria_final.md)). Falta a bancada: o enlace com o quadro novo no ar, as medições da Etapa 5 e as provas. Este documento junta todos os blocos: o que cada um fez, o que funcionou, o que falhou e como foi corrigido, e o que dá para melhorar. Os detalhes de cada bloco estão nos documentos que vêm depois deste, no mesmo relatório.
+Estado em 25/11/2026, depois do bloco 26: o projeto foi **validado no ar** com o Pluto e o RTL da equipe ([bancada_20261125.md](bancada_20261125.md)). A prova A deu **1 217,7 kbit/s com a DQPSK e 1 777,6 kbit/s com a 8-PSK**, os mesmos números da simulação; a prova B passou com 694 de 694 pacotes; a Etapa 5 foi medida nas três modulações. A bancada achou 9 defeitos, todos corrigidos ou contornados, e o dia da competição ficou em quatro comandos ([roteiro_da_prova.md](roteiro_da_prova.md), seção 0). Falta a prova B na distância real, o teste com dois computadores e o registro de uso de IA. Este documento junta todos os blocos: o que cada um fez, o que funcionou, o que falhou e como foi corrigido, e o que dá para melhorar. Os detalhes de cada bloco estão nos documentos que vêm depois deste, no mesmo relatório.
 
 ## 1. Resumo
 
@@ -10,13 +10,14 @@ Estado em 22/11/2026, depois do bloco 25: **tudo o que dá para fazer sem hardwa
 |---|---|
 | Prova A (maior goodput) | perfil `prova-a`: **DQPSK, RRC β = 0,25, 1 365 kbit/s no ar**, caudas emendadas. Na prova de 60 s simulada com os comandos da prova: **1 217,8 kbit/s de goodput**, PER de 0,003%, banda a 99% de 748,6 kHz, RX em 75 s |
 | Reservas da prova A | `prova-a-fec` (DQPSK com FEC: 626 kbit/s com 12,9 dB de margem estimada na bancada) e `prova-a-dbpsk` (625 kbit/s, 9,6 dB); regra de troca objetiva no roteiro |
-| Perfis experimentais | `prova-a-8psk`: **8-PSK coerente, 1 778,5 kbit/s** na prova de 60 s simulada (+46%), na mesma banda; pede 2,8 dB a mais de C/N0 e tolera 100 vezes menos ruído de fase que a DQPSK, por isso depende da bancada ([etapa6_8psk.md](etapa6_8psk.md)). `prova-a-24`: DQPSK com o RTL a 2,4 MS/s, **1 427 kbit/s** (+17%); depende de dois testes de bancada ([etapa6_taxa_24.md](etapa6_taxa_24.md)) |
+| No ar (25/11) | `prova-a` (DQPSK): **1 217,7 kbit/s**, PER de 0,017%, banda de 748 kHz. `prova-a-8psk` (8-PSK coerente): **1 777,6 kbit/s**, PER de 0,064%, banda de 747 kHz, com o sinal forte (a −25 dB de TX a PER foi a 5%). `prova-b`: 694 de 694 pacotes. Arquivo cifrado de teste remontado inteiro ([bancada_20261125.md](bancada_20261125.md)) |
+| Perfis experimentais | `prova-a-8psk`: **8-PSK coerente, 1 778,5 kbit/s** na prova de 60 s simulada (+46%), na mesma banda; pede 2,8 dB a mais de C/N0 e tolera 100 vezes menos ruído de fase que a DQPSK ([etapa6_8psk.md](etapa6_8psk.md)); **confirmada no ar em 25/11**. `prova-a-24`: DQPSK com o RTL a 2,4 MS/s, **1 427 kbit/s** (+17%); depende de dois testes de bancada ([etapa6_taxa_24.md](etapa6_taxa_24.md)) |
 | Robustez | todos os perfis aguentam **±50 ppm** de diferença de relógio entre o Pluto e o RTL (esperado depois da calibração: cerca de 2 ppm); opção `--pre-gerar` contra o risco de o Python não alimentar o Pluto a tempo ([etapa6_robustez.md](etapa6_robustez.md)); o ruído de fase real do par Pluto + RTL, medido nos tons de 04/11, não tem efeito detectável em nenhum perfil, e o ADC de 8 bits não custa nada de −30 a −6 dBFS ([etapa6_imperfeicoes.md](etapa6_imperfeicoes.md)) |
 | Prova B (maior alcance) | perfil `prova-b`: **DBPSK com código convolucional K = 7, 25,6 kbit/s no ar**: goodput de 11,8 kbit/s, 500 pacotes em 43 s, **C/N0 necessário de 48,2 dB-Hz** com o limiar de detecção de 0,4 (bloco 19), cerca de 25 dB menos que o `prova-a` com DQPSK (cerca de 20 dB menos que o `prova-a-dbpsk`): cerca de 18 vezes a distância no espaço livre |
-| Comparação com a OOK de referência | a referência entrega **7,3 kbit/s** no ar (21 bytes por quadro, 10 kbit/s, pulso retangular; captura real de 04/11). O `prova-a` chega a **1 218 kbit/s em simulação**, na mesma banda de 1 MHz. **Os dois números não vêm das mesmas condições** (um é medido, o outro simulado), e o enunciado pede a melhoria medida nas mesmas condições: essa medição é da bancada |
+| Comparação com a OOK de referência | a referência entrega **7,3 kbit/s** no ar (21 bytes por quadro, 10 kbit/s, pulso retangular; captura real de 04/11). O `prova-a` chegou a **1 217,7 kbit/s medidos no ar** em 25/11 (167 vezes mais), e a 8-PSK a 1 777,6 kbit/s, na mesma banda de 1 MHz. As duas medidas são do mesmo par de rádios na mesma mesa, mas em dias diferentes |
 | Simulação × teoria | BER de BPSK, DBPSK, DQPSK e 2-FSK a menos de 0,08 dB das fórmulas; a DQPSK bate com a fórmula exata (Marcum) a 0,5% |
-| Qualidade | 297 testes automáticos (3 deles só com o hardware ligado); portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; uma tag ou mais por bloco (de `bloco-00` a `bloco-25`); toda evidência com a versão do código que a gerou |
-| Falta | bancada: o enlace no ar com o quadro v3, as medições da Etapa 5 e as provas; **10 a 13 h em 4 sessões** ([plano_de_bancada.md](plano_de_bancada.md)); e o registro de uso de IA |
+| Qualidade | 311 testes automáticos (3 deles só com o hardware ligado); portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; uma tag ou mais por bloco (de `bloco-00` a `bloco-26`); toda evidência com a versão do código que a gerou |
+| Falta | a prova B na distância real (no ensaio variei a atenuação do Pluto), o teste com dois computadores e o registro de uso de IA |
 
 ## 2. O sistema
 
@@ -72,6 +73,8 @@ arquivo do avaliador ─► transmitir.py ─► Pluto ─► ar ─► RTL ─�
 | 22 | `bloco-22` | revisão dos documentos pelos blocos 19 a 21; a fase real dentro de um quadro (números corrigidos no bloco 23) | este documento |
 | 23 | `bloco-23` | viabilidade da 8-PSK coerente na prova A (+48% de goodput, 2,8 dB a mais de C/N0); defeito na trajetória de fase achado e corrigido, ensaios dos blocos 21 e 22 refeitos | [etapa6_8psk.md](etapa6_8psk.md) |
 | 24 | `bloco-24` | 8-PSK coerente no receptor (malha de fase, mapa de Gray corrigido) e perfil experimental `prova-a-8psk`: 1 778,5 kbit/s na prova de 60 s simulada | [etapa6_8psk.md](etapa6_8psk.md) |
+| 25 | `bloco-25` | auditoria dos documentos e do código depois dos blocos 16 a 24 (24 achados corrigidos) | [auditoria_final.md](auditoria_final.md) |
+| 26 | `bloco-26` | bancada de 25/11: prova A (DQPSK e 8-PSK) e prova B no ar, Etapa 5 medida, 9 defeitos achados e corrigidos; ferramentas do dia da competição (`prova_tx`, `prova_rx`, `relatorio_alcance`, `escolher_canal`) | [bancada_20261125.md](bancada_20261125.md) |
 
 ## 4. Resultados finais (ensaio geral, sem hardware)
 
@@ -145,6 +148,7 @@ A prova de 60 s simulada com cada perfil final, pelos comandos da prova, no cana
 | B19 | 24 | o ensaio de 60 s da 8-PSK ficava sem payloads aos 57 s | aviso do próprio TX | 130 000 payloads; conferência do arquivo do avaliador no roteiro |
 | B20 | 24 | a referência de pico e banda do TX era curta demais para 3 bits por símbolo | erro no cálculo da banda do perfil | pelo menos 2 000 símbolos, sem mudar as outras modulações |
 | B21 | 25 | afirmações desatualizadas depois dos blocos 16 a 24: "±200 ppm" na 8-PSK (o ensaio vai de −100 a +200), contagens de testes e tags, listas de modulações sem a 8-PSK, 48,4 dB-Hz no `perfis.toml` | auditoria independente dos documentos e do código (24 achados) | corrigidas |
+| B22 a B30 | 26 | na bancada: TX mais lento que o tempo real sem `--pre-gerar`; fim da transmissão cortado pela fila da libiio; `receber.py` caindo na medida da banda com o surto de partida; RTL1 com o oscilador modulado; interferência ISM em 919,75 MHz; nome com ponto no `gravar_iq.py`; gravação perdida na falha da librtlsdr ao fechar; `prova_rx.py` caindo sem UTF-8 no terminal; surto na partida do Pluto | ensaios no ar | 8 corrigidos com teste; o surto de partida não derruba pacotes ([bancada_20261125.md](bancada_20261125.md), seção 3) |
 
 E falhas de processo, registradas nos blocos: um commit intermediário feito sem o portão (bloco 10, corrigido no commit seguinte); dois ensaios disparados sem aviso de término e vigiados depois; o computador desligou no meio de uma varredura (bloco 08), refeita com pico de memória de 1,1 GB. No bloco 14 uma cadeia de comandos seguiu depois de o lint barrar o commit, e a tag `bloco-14` foi criada e publicada no commit do bloco 13; como tag publicada não se move, a do bloco 14 é a `bloco-14-rev2` (a mesma convenção de `bloco-01-rev2` e `bloco-02-rev3`). Depois, a pedido, a `bloco-14` errada foi apagada, junto com a `bloco-06-rx-rapido` (uma tag leve do bloco 06, que o `git describe` ignorava; a anotada é a `bloco-06`).
 
@@ -160,13 +164,13 @@ E falhas de processo, registradas nos blocos: um commit intermediário feito sem
 
 ## 8. Pendências com hardware
 
+A bancada de 25/11 fechou o enlace no ar com o quadro v3, a Etapa 5 nas três modulações, a banda medida no RTL, a DQPSK e a 8-PSK no ar e o Pluto alimentado por 60 s ([bancada_20261125.md](bancada_20261125.md)). Fica:
+
 | Pendência | Para quê | Plano |
 |---|---|---|
-| Enlace no ar com o quadro v3, nas três modulações (3e) | MOD-02, MOD-03, CMP-01 | protocolo da Etapa 5, com os perfis `dbpsk-256k`, `gfsk-128k` e `ook-128k` |
-| Medições da Etapa 5: PER, goodput, BER, banda e Eb/N0, varrendo ganho, taxa e distância | MET-01 a MET-05, CMP-04 | [etapa5_software.md](etapa5_software.md), seção 6 |
-| TX e RX em computadores distintos (P2) | PLT-02 | roteiro, seção 1 |
-| Banda dos perfis medida no RTL; DQPSK no ar; Pluto alimentado por 60 s sem buraco | CMP-A | roteiro, seção 6 |
-| Ensaio da prova B na sala, posição a posição | CMP-B | roteiro, seção 4 |
+| TX e RX em computadores distintos (P2) | PLT-02 | antes da competição, com a pasta de instalação e o `git pull` |
+| Prova B na distância real | CMP-B | no dia, com `prova_rx.py --distancia-m` e `relatorio_alcance.py` |
+| Separar a causa dos 3 a 4 dB entre o Eb/N0 estimado e a teoria no ar | MET-04 | hipótese: N0 medido antes de o TX ligar ([bancada_20261125.md](bancada_20261125.md), seção 5.1) |
 | **Registro de uso de IA** das Etapas 1 a 7 (P1) | PRC-02 (critério de processo) | **vazio**: o texto tem de ser da equipe |
 | Tag da prova (CMP-C) | regra da competição | criar antes da prova |
 
@@ -174,12 +178,12 @@ E falhas de processo, registradas nos blocos: um commit intermediário feito sem
 
 | Critério (peso) | O que existe | Falta |
 |---|---|---|
-| Implementação e comparação das modulações (20%) | OOK, 2-FSK, DBPSK, DQPSK e 8-PSK coerente implementadas; simulação × teoria a menos de 0,08 dB; BPSK coerente comparada e justificada | a **medição** de cada uma no ar e a comparação simulação × teoria × medição |
-| Confiabilidade da recepção e desafios do enlace (15%) | offset, fase e instante estimados por quadro; calibração registrada; mais de 40 defeitos diagnosticados com evidência (A1 a A23 e B1 a B21, seção 6) | confirmar no ar |
-| Caracterização experimental e métricas (20%) | ferramentas de PER, goodput, BER, banda e Eb/N0 validadas contra o valor verdadeiro; protocolo pronto | as medições |
-| Otimização e desempenho (15%) | 1 218 kbit/s contra 7,3 kbit/s da referência em simulação; prova B com 25 dB a menos de C/N0 que a prova A; limites de banda e de tempo atendidos | a melhoria **medida** nas mesmas condições da referência |
+| Implementação e comparação das modulações (20%) | OOK, 2-FSK, DBPSK, DQPSK e 8-PSK coerente implementadas; simulação × teoria a menos de 0,08 dB; BPSK coerente comparada e justificada | OOK, 2-FSK e DBPSK medidas no ar em 25/11 (BER, PER, goodput, banda); DQPSK e 8-PSK medidas na prova A | a causa da diferença de 3 a 4 dB entre o Eb/N0 estimado e a teoria |
+| Confiabilidade da recepção e desafios do enlace (15%) | offset, fase e instante estimados por quadro; calibração registrada; mais de 40 defeitos diagnosticados com evidência (A1 a A23 e B1 a B30, seção 6); confirmados no ar em 25/11 | |
+| Caracterização experimental e métricas (20%) | ferramentas de PER, goodput, BER, banda e Eb/N0 validadas contra o valor verdadeiro; varredura da Etapa 5 medida com análise automática | |
+| Otimização e desempenho (15%) | 1 217,7 kbit/s (DQPSK) e 1 777,6 kbit/s (8-PSK) medidos no ar contra 7,3 kbit/s da referência; prova B com 25 dB a menos de C/N0 que a prova A; limites de banda e de tempo atendidos | |
 | Processo e entregas (10%) | entregas por etapa com relatório; 297 testes, portão e mutantes; tags por bloco; auditoria completa | **registro de IA vazio**; Etapas 1, 2 e 3 entregues fora do prazo |
-| Relatório técnico e análise de falhas (10%) | este documento e os de cada bloco, com as falhas e as correções | a parte medida |
+| Relatório técnico e análise de falhas (10%) | este documento e os de cada bloco, com as falhas e as correções, e o da bancada | |
 | Defesa oral individual (10%) | cada documento explica o porquê de cada escolha | estudar os blocos (seção 10) |
 
 ## 10. Para a defesa
