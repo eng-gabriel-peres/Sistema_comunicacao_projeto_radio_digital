@@ -26,7 +26,7 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
-from sdrlink import transmissor
+from sdrlink import prova, transmissor
 from sdrlink.config import Perfil, argumentos_de_enlace, perfil_dos_argumentos
 from sdrlink.hw import pluto_tx
 from sdrlink.quadro import Pacote
@@ -39,7 +39,11 @@ BANDA_MAX_HZ = 1e6  # limite da prova (seção 8)
 def _argumentos() -> tuple[argparse.Namespace, Perfil]:
     """Lê os parâmetros da linha de comando."""
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    p.add_argument("payloads", type=Path, help="arquivo do avaliador (.bin ou .txt em hex)")
+    p.add_argument(
+        "payloads",
+        type=Path,
+        help="arquivo do avaliador: .txt (hex por linha) ou qualquer outro, fatiado em 128 bytes",
+    )
     argumentos_de_enlace(p)
     p.add_argument("--ganho-db", type=float, default=-30.0, help="atenuação de TX (0 = máximo)")
     p.add_argument("--duracao-s", type=float, default=60.0, help="janela da prova")
@@ -57,6 +61,11 @@ def _argumentos() -> tuple[argparse.Namespace, Perfil]:
         type=float,
         default=0.0,
         help="espera depois do sinal pronto e antes de entrar no ar (para começar a gravação)",
+    )
+    p.add_argument(
+        "--repetir",
+        action="store_true",
+        help="repete o arquivo em ciclo até encher a janela (arquivo menor que a janela)",
     )
     p.add_argument("--pasta", type=Path, default=RAIZ / "dados" / "logs")
     args = p.parse_args()
@@ -108,6 +117,18 @@ def fonte_de_blocos(
     return list(blocos) if pre_gerar else blocos
 
 
+def _pacotes(args: argparse.Namespace, config: ConfigTransmissor) -> tuple[list[Pacote], int]:
+    """Os pacotes do arquivo (repetidos se --repetir) e quantos cabem na janela."""
+    payloads, aviso = prova.ler_arquivo(args.payloads)
+    if aviso:
+        print(f"AVISO: {aviso}")
+    cabem = transmissor.pacotes_que_cabem(config, args.duracao_s)
+    if args.repetir and len(payloads) < cabem:
+        print(f"Repetindo o arquivo ({len(payloads)} payloads) até {cabem} pacotes")
+        payloads = prova.repetir_ate(payloads, cabem)
+    return transmissor.numerar(payloads), cabem
+
+
 def main() -> int:
     """Confere a banda, transmite (ou simula) e grava o log do TX."""
     args, perfil = _argumentos()
@@ -119,8 +140,7 @@ def main() -> int:
         emendar_caudas=perfil.emendar_caudas,
     )
     baixo, alto = _conferir_banda(config, perfil.lo_hz)
-    pacotes = transmissor.numerar(transmissor.ler_payloads(args.payloads))
-    cabem = transmissor.pacotes_que_cabem(config, args.duracao_s)
+    pacotes, cabem = _pacotes(args, config)
     if len(pacotes) < cabem:
         print(
             f"AVISO: o arquivo tem {len(pacotes)} payloads, mas cabem {cabem} em "
