@@ -1,0 +1,24 @@
+dbpsk-256k TX -28 dB (RX 18): Eb/N0: 17.85 dB | 2266/2266 certos | PER 0.00% | goodput 232.0 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+dbpsk-256k TX -34 dB (RX 25): Eb/N0: 17.14 dB | 2265/2266 certos | PER 0.04% | goodput 231.9 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+dbpsk-256k TX -38 dB (RX 25): Eb/N0: 12.81 dB | 2057/2266 certos | PER 9.22% | goodput 210.6 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+dbpsk-256k TX -42 dB (RX 25): Eb/N0: 7.86 dB | 20/2266 certos | PER 99.12% | goodput 2.0 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+dbpsk-256k TX -45 dB (RX 25): Eb/N0: 2.54 dB | 0/2266 certos | PER 100.00% | goodput 0.0 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+dbpsk-256k TX -48 dB (RX 25): Eb/N0: 0.57 dB | 0/2266 certos | PER 100.00% | goodput 0.0 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+gfsk-128k TX -28 dB (RX 18): Eb/N0: 25.13 dB | 1134/1134 certos | PER 0.00% | goodput 116.1 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+gfsk-128k TX -34 dB (RX 25): Eb/N0: 24.42 dB | 1134/1134 certos | PER 0.00% | goodput 116.1 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+gfsk-128k TX -38 dB (RX 25): Eb/N0: 20.49 dB | 1134/1134 certos | PER 0.00% | goodput 116.1 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+gfsk-128k TX -42 dB (RX 25): Eb/N0: 15.97 dB | 1088/1134 certos | PER 4.06% | goodput 111.4 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+ls: cannot access 'dados/capturas/sessao_20261125_casa/etapa5/gfsk_128k_tx45_*.npy': No such file or directory
+gfsk-128k TX -45 dB (RX 25):  | Traceback (most recent call last):
+gfsk-128k TX -48 dB (RX 25): Eb/N0: 8.55 dB | 0/1134 certos | PER 100.00% | goodput 0.0 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+ls: cannot access 'dados/capturas/sessao_20261125_casa/etapa5/ook_128k_tx28_*.npy': No such file or directory
+ook-128k TX -28 dB (RX 18):  | Traceback (most recent call last):
+ls: cannot access 'dados/capturas/sessao_20261125_casa/etapa5/ook_128k_tx34_*.npy': No such file or directory
+ook-128k TX -34 dB (RX 25):  | Traceback (most recent call last):
+ook-128k TX -38 dB (RX 25): Eb/N0: 14.65 dB | 504/1134 certos | PER 55.56% | goodput 51.6 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+ook-128k TX -42 dB (RX 25): Eb/N0: 9.64 dB | 0/1134 certos | PER 100.00% | goodput 0.0 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+ls: cannot access 'dados/capturas/sessao_20261125_casa/etapa5/ook_128k_tx45_*.npy': No such file or directory
+ook-128k TX -45 dB (RX 25):  | Traceback (most recent call last):
+ook-128k TX -48 dB (RX 25): Eb/N0: 2.37 dB | 0/1134 certos | PER 100.00% | goodput 0.0 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+14 pontos; perda do enlace em relação à teoria: mediana de +1.40 dB (9 pontos sem FEC e com pelo menos 10 erros contados)
+Análise: dados\capturas\sessao_20261125_casa\etapa5\analise_bancada.md

@@ -17,12 +17,13 @@ from sdrlink.transmissor import ConfigTransmissor
 
 
 def test_correcao_adotada_e_84_ppm() -> None:
-    assert config.ler_correcao_ppm(config.ARQUIVO_RTL) == 84
-    assert config.correcao_rtl_ppm_padrao() == 84
+    # par Pluto da equipe + RTL 2 da bancada de 25/11 (84 em 04/11; 56 com o RTL 1 defeituoso)
+    assert config.ler_correcao_ppm(config.ARQUIVO_RTL) == 88
+    assert config.correcao_rtl_ppm_padrao() == 88
 
 
 def test_captura_sem_correcao_explicita_usa_a_configuracao() -> None:
-    assert ConfigRtl(915e6, 2.048e6, 20.0).correcao_ppm == 84
+    assert ConfigRtl(915e6, 2.048e6, 20.0).correcao_ppm == 88
     assert ConfigRtl(915e6, 2.048e6, 20.0, 0).correcao_ppm == 0
 
 
@@ -187,6 +188,10 @@ def test_scripts_recusam_perfil_inexistente_ou_parametros_faltando(tmp_path: Pat
     assert sem.returncode == 2 and "disponíveis" in sem.stderr
     falta = _rodar("transmitir.py", str(tmp_path / "x.bin"), "--modulacao", "dbpsk")
     assert falta.returncode == 2 and "informe" in falta.stderr
+    atraso = _rodar(
+        "transmitir.py", str(tmp_path / "x.bin"), "--perfil", "prova-a", "--atraso-s", "-1"
+    )
+    assert atraso.returncode == 2 and "atraso" in atraso.stderr
 
 
 def test_perfil_com_fec(tmp_path: Path) -> None:

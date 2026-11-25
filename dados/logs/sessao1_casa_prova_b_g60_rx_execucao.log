@@ -1,0 +1,9 @@
+Gravado: dados\capturas\sessao_20261125_casa\casa_prova_b_g60_20261125_151515.npy (57409536 amostras)
+Nível eficaz: -21.2 dBFS
+Metadados: dados\capturas\sessao_20261125_casa\casa_prova_b_g60_20261125_151515.json
+Found Rafael Micro R820T/2 tuner
+Allocating 15 (non-zero-copy) user-space buffers
+r82xx_write_arr: i2c wr failed=-6 reg=06 len=1
+rtlsdr_demod_write_reg failed with -6
+rtlsdr_demod_read_reg failed with -6
+rtlsdr_write_reg failed with -6

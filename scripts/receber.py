@@ -28,7 +28,7 @@ from pathlib import Path
 
 import numpy as np
 
-from sdrlink import medicao, metricas, quadro, receptor, transmissor
+from sdrlink import medicao, metricas, prova, quadro, receptor, transmissor
 from sdrlink.config import Perfil, argumentos_de_enlace, perfil_dos_argumentos
 from sdrlink.hw.rtl_rx import aviso_de_nivel
 from sdrlink.receptor import ConfigReceptor
@@ -47,6 +47,9 @@ def _argumentos() -> tuple[argparse.Namespace, Perfil]:
     p.add_argument("--pasta", type=Path, default=None, help="padrão: a pasta da captura")
     p.add_argument(
         "--ber", action="store_true", help="mede a BER (payloads com sequência conhecida)"
+    )
+    p.add_argument(
+        "--janela-s", type=float, default=60.0, help="janela da prova, para o goodput estimado"
     )
     args = p.parse_args()
     return args, perfil_dos_argumentos(p, args)
@@ -89,6 +92,30 @@ def _gravacao(captura: Path, perfil: Perfil) -> dict[str, object]:
     return {"encontrada": True, "arquivo": arquivo.name, "metadados": metadados, "avisos": avisos}
 
 
+def _resumo_sem_log(
+    deteccoes: list[receptor.Deteccao], taxa_sps: float, janela_s: float
+) -> dict[str, object] | None:
+    """O que o RX sabe sem o log do TX: únicos, buracos de sequência e goodput estimado."""
+    primeiros: dict[int, tuple[quadro.Pacote, float]] = {}
+    for d in deteccoes:
+        if d.pacote is not None:
+            primeiros.setdefault(d.pacote.sequencia, (d.pacote, d.inicio / taxa_sps))
+    if not primeiros:
+        return None
+    r = prova.resumo_da_recepcao(
+        [p for p, _ in primeiros.values()], [t for _, t in primeiros.values()], janela_s
+    )
+    return {
+        "pacotes_unicos": r.unicos,
+        "sequencias": [r.primeira, r.ultima],
+        "buracos_de_sequencia": r.buracos,
+        "per_estimada": round(r.per_estimada, 5),
+        "goodput_estimado_bps": round(r.goodput_bps, 1),
+        "janela_s": janela_s,
+        "pacotes_por_segundo": r.por_segundo,
+    }
+
+
 def _mostrar_medidas(medidas: dict[str, object]) -> None:
     """Banda e Eb/N0 medidos na captura, com aviso se a banda não for confiável."""
     if not medidas.get("medido"):
@@ -125,9 +152,12 @@ def main() -> int:
     medidas: dict[str, object] = {"medido": False, "motivo": "nenhum quadro detectado"}
     if deteccoes:
         fim = deteccoes[-1].inicio + periodo
-        medidas = medicao.medir_captura(
-            amostras, deteccoes[0].inicio, fim, perfil.taxa_sps, perfil.taxa_bits
-        )
+        try:
+            medidas = medicao.medir_captura(
+                amostras, deteccoes[0].inicio, fim, perfil.taxa_sps, perfil.taxa_bits
+            )
+        except ValueError as erro:  # a medida falhar não pode derrubar a recepção (25/11)
+            medidas = {"medido": False, "motivo": str(erro)}
         ebn0 = medidas.get("ebn0_estimado_db")
         if perfil.fec and isinstance(ebn0, float):
             # o Eb/N0 medido é por bit no ar; por bit útil, soma a razão do código
@@ -149,6 +179,7 @@ def main() -> int:
         "medidas_da_captura": medidas,
         "ber": ber,
         "gravacao": _gravacao(args.captura, perfil),
+        "sem_o_log_do_tx": _resumo_sem_log(deteccoes, perfil.taxa_sps, args.janela_s),
     }
     caminho = salvar_json(pasta / f"{nome}_rx.json", registro)
     print(f"{registro['pacotes_aceitos']} pacotes aceitos em {tempo:.1f} s")

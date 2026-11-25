@@ -1,0 +1,7 @@
+Prova A: prova-a, TX -30 dB, 60 s
+Gerando o sinal (cerca de 1 min). Comece a gravação no RX só no aviso de pronto.
+AVISO: arquivo_cifrado_teste_A.enc: 9500013 bytes não é múltiplo de 128; o último dos 74219 payloads leva 19 bytes zero no fim
+Sinal pronto; no ar em 6 s
+No ar desde 15:40:23
+71359 pacotes (pluto), banda a 99%: 52 a 799 kHz do LO
+Log do TX: dados\prova\ensaio_20261125\tx_20261125_154125.txt

@@ -32,6 +32,11 @@ GANHO_MIN_DB = -89.75  # o ganho de TX do Pluto é uma atenuação: 0 dB é o m�
 GANHO_MAX_DB = 0.0
 AMPLITUDE_PADRAO = 2**14  # metade do fundo de escala do DAC de 16 bits
 FUNDO_ESCALA_DAC = 2**15 - 1
+# A libiio guarda até 4 buffers na fila do kernel: destruir o buffer logo depois do último
+# envio descartava o que ainda estava na fila (os últimos 416 quadros da prova A na bancada
+# de 25/11, cerca de 0,35 s). Ao terminar bem, espera a fila esvaziar.
+BUFFERS_NA_FILA = 4
+MARGEM_DRENO_S = 0.1
 N_MINIMO = 1024
 N_MAXIMO = 2**20
 DURACAO_MAX_S = 600.0
@@ -139,11 +144,16 @@ def tom_complexo(
 
 
 def _configurar(sdr: Any, config: ConfigPluto, ciclico: bool = True) -> None:
-    """Aplica a configuração e confere o que o rádio aceitou."""
+    """Aplica a configuração e confere o que o rádio aceitou.
+
+    O ganho vem primeiro: o Pluto abre com −10 dB, e trocar taxa e LO leva quase 1 s, em
+    que ele já emite o vazamento de LO. Com o ganho por último, cada partida saturava o RX
+    por cerca de 0,7 s (bancada de 25/11).
+    """
+    sdr.tx_hardwaregain_chan0 = config.ganho_db
     sdr.sample_rate = int(config.taxa_sps)
     sdr.tx_rf_bandwidth = int(config.taxa_sps)
     sdr.tx_lo = int(config.lo_hz)
-    sdr.tx_hardwaregain_chan0 = config.ganho_db
     sdr.tx_cyclic_buffer = ciclico
     if abs(int(sdr.tx_lo) - int(config.lo_hz)) > TOLERANCIA_LO_HZ:
         raise RuntimeError(f"o Pluto não aceitou o LO: pedido {config.lo_hz}, lido {sdr.tx_lo}")
@@ -193,8 +203,8 @@ def transmitir_fluxo(
 
     Todos os blocos têm de ter o mesmo tamanho (a libiio fixa o buffer no primeiro
     envio). Cada sdr.tx() bloqueia até o Pluto aceitar o bloco, então o ritmo é o
-    do DAC. Ao terminar, com sucesso ou erro, o buffer é destruído e o ganho vai
-    ao mínimo.
+    do DAC. Ao terminar bem, espera a fila de buffers da libiio sair; com sucesso ou
+    erro, o buffer é destruído e o ganho vai ao mínimo.
 
     Args:
         config: LO, taxa, ganho e endereço.
@@ -228,6 +238,8 @@ def transmitir_fluxo(
             enviados += 1
             if ao_enviar is not None:
                 ao_enviar(enviados)
+        if tamanho:  # terminou bem: deixa a fila de buffers sair antes de desligar
+            time.sleep(BUFFERS_NA_FILA * tamanho / config.taxa_sps + MARGEM_DRENO_S)
     finally:
         sdr.tx_destroy_buffer()
         sdr.tx_hardwaregain_chan0 = GANHO_MIN_DB

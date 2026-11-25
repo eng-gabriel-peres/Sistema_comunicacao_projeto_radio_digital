@@ -89,6 +89,7 @@ ENTREGAS = {
         (
             ("Caracterização: ferramentas e protocolo", "etapa5_software.md", None, None),
             ("Análise automática da sessão de bancada", "etapa5_analise_bancada.md", None, None),
+            ("Medições no ar: bancada de 25/11", "bancada_20261125.md", None, None),
             ("Anexo A: registro de uso de IA", "registro_ia.md", "## Etapa 5", "## Etapas 6 e 7"),
         ),
     ),
@@ -149,6 +150,7 @@ ENTREGAS = {
             ("Etapa 6i: limiar de detecção na prova B", "etapa6_limiar.md", None, None),
             ("Etapa 6j: imperfeições do hardware", "etapa6_imperfeicoes.md", None, None),
             ("Etapa 6k: 8-PSK coerente na prova A", "etapa6_8psk.md", None, None),
+            ("Bancada de 25/11: medições no ar e defeitos", "bancada_20261125.md", None, None),
             ("Roteiro da prova e ensaio geral", "roteiro_da_prova.md", None, None),
             ("Auditoria final de conformidade", "auditoria_final.md", None, None),
             ("Plano de bancada", "plano_de_bancada.md", None, None),

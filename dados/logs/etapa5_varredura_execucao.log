@@ -1,0 +1,7 @@
+dbpsk-256k TX -30 dB (RX 20): Eb/N0: 26.21 dB | 2264/2266 certos | PER 0.09% | goodput 231.8 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+dbpsk-256k TX -44 dB (RX 30): Eb/N0: 17.06 dB | 2217/2266 certos | PER 2.16% | goodput 227.0 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+dbpsk-256k TX -47 dB (RX 30): Eb/N0: 12.88 dB | 1110/2266 certos | PER 51.02% | goodput 113.7 kbit/s | conteúdo diferente 0 | espúrios 0 | duplicados 0
+ls: cannot access 'dados/capturas/sessao_20261125/etapa5/dbpsk_256k_tx50_*.npy': No such file or directory
+dbpsk-256k TX -50 dB (RX 30):  | Traceback (most recent call last):
+ls: cannot access 'dados/capturas/sessao_20261125/etapa5/dbpsk_256k_tx53_*.npy': No such file or directory
+dbpsk-256k TX -53 dB (RX 30):  | Traceback (most recent call last):

@@ -1,5 +1,8 @@
 """Testes da interface do RTL-SDR (sdrlink.hw.rtl_rx)."""
 
+import sys
+import types
+
 import numpy as np
 import pytest
 
@@ -134,3 +137,36 @@ def test_ler_acusa_leitura_incompleta() -> None:
     radio = _RadioAssincronoFalso(n_blocos=1)  # só o descarte chega
     with pytest.raises(RuntimeError, match="incompleta"):
         rtl_rx._ler(radio, rtl_rx.AMOSTRAS_POR_LEITURA, 2.048e6)
+
+
+class _RadioQueFalhaAoFechar(_RadioAssincronoFalso):
+    """Lê tudo e depois dá o "access violation" do rtlsdr_close (bancada de 25/11)."""
+
+    def __init__(self) -> None:
+        super().__init__(n_blocos=2)
+        self.device_opened = True
+        self.sample_rate = 0.0
+        self.center_freq = 0.0
+        self.gain = 0.0
+
+    def set_agc_mode(self, ligado: bool) -> None:
+        assert not ligado
+
+    def get_freq_correction(self) -> int:
+        return 88
+
+    def close(self) -> None:
+        raise OSError("exception: access violation reading 0x0000000000000020")
+
+
+def test_falha_ao_fechar_nao_perde_a_captura(monkeypatch: pytest.MonkeyPatch) -> None:
+    radio = _RadioQueFalhaAoFechar()
+    falso = types.ModuleType("rtlsdr")
+    falso.RtlSdr = lambda: radio  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "rtlsdr", falso)
+    with pytest.warns(RuntimeWarning, match="captura foi mantida"):
+        captura = rtl_rx.capturar(
+            ConfigRtl(919.5e6, 2.048e6, 25.0, 88), rtl_rx.AMOSTRAS_POR_LEITURA
+        )
+    assert len(captura.amostras) == rtl_rx.AMOSTRAS_POR_LEITURA
+    assert captura.correcao_ppm == 88 and not radio.device_opened

@@ -1,0 +1,7 @@
+AVISO: 0.154% das amostras saturadas: baixar o ganho do RX
+0 pacotes aceitos em 15.4 s
+Banda a 99%: 146.7 kHz; Eb/N0: 0.57 dB
+AVISO: banda não confiável (SNR na captura de -8.5 dB): medir a banda numa posição com mais sinal
+BER: 79857/1951744 = 4.09e-02
+Saída: dados\capturas\sessao_20261125_casa\etapa5\dbpsk_256k_tx48_20261125_160814_saida.txt
+Registro: dados\capturas\sessao_20261125_casa\etapa5\dbpsk_256k_tx48_20261125_160814_rx.json

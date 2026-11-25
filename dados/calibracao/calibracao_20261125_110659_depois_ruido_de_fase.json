@@ -1,0 +1,66 @@
+{
+  "captura": "calibracao_20261125_110659_depois.npy",
+  "versao_do_codigo": "bloco-25-2-g22258e4-sujo",
+  "taxa_sps": 2048000.0,
+  "freq_do_tom_hz": 249689.6,
+  "saltos_de_emenda": 0,
+  "l_dbc_hz": {
+    "300": -78.4,
+    "1000": -80.2,
+    "3000": -80.0,
+    "10000": -80.0,
+    "30000": -80.1,
+    "100000": -80.2,
+    "300000": -79.6
+  },
+  "perfis": {
+    "prova-a": {
+      "atraso_amostras": 3,
+      "medida_rad": 0.0051,
+      "ruido_branco_rad": 0.0052,
+      "ruido_de_fase_rad": 0.0,
+      "tolerancia_rad": 0.0959,
+      "situacao": "ok"
+    },
+    "prova-a-8psk": {
+      "atraso_amostras": 800,
+      "medida_rad": 0.0302,
+      "ruido_branco_rad": 0.0313,
+      "ruido_de_fase_rad": 0.0,
+      "tolerancia_rad": 0.157,
+      "situacao": "ok"
+    },
+    "prova-a-24": {
+      "atraso_amostras": 3,
+      "medida_rad": 0.0051,
+      "ruido_branco_rad": 0.0052,
+      "ruido_de_fase_rad": 0.0,
+      "tolerancia_rad": 0.0886,
+      "situacao": "ok"
+    },
+    "prova-a-fec": {
+      "atraso_amostras": 3,
+      "medida_rad": 0.0051,
+      "ruido_branco_rad": 0.0052,
+      "ruido_de_fase_rad": 0.0,
+      "tolerancia_rad": 0.166,
+      "situacao": "ok"
+    },
+    "prova-a-dbpsk": {
+      "atraso_amostras": 3,
+      "medida_rad": 0.0051,
+      "ruido_branco_rad": 0.0052,
+      "ruido_de_fase_rad": 0.0,
+      "tolerancia_rad": 0.166,
+      "situacao": "ok"
+    },
+    "prova-b": {
+      "atraso_amostras": 80,
+      "medida_rad": 0.0314,
+      "ruido_branco_rad": 0.0322,
+      "ruido_de_fase_rad": 0.0,
+      "tolerancia_rad": 0.271,
+      "situacao": "ok"
+    }
+  }
+}

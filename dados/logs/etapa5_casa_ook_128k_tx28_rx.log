@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\scripts\gravar_iq.py", line 111, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\scripts\gravar_iq.py", line 83, in main
+    captura = capturar(config, leituras * AMOSTRAS_POR_LEITURA)
+  File "C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\sdrlink\hw\rtl_rx.py", line 258, in capturar
+    radio.close()
+    ~~~~~~~~~~~^^
+  File "C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\.venv\Lib\site-packages\rtlsdr\rtlsdr.py", line 214, in close
+    librtlsdr.rtlsdr_close(self.dev_p)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+OSError: exception: access violation reading 0x0000000000000020
+Exception ignored in: <function BaseRtlSdr.__del__ at 0x0000027B49EE8540>
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\.venv\Lib\site-packages\rtlsdr\rtlsdr.py", line 218, in __del__
+  File "C:\Users\User\Documents\IFSC\SISTEMA_COMUNICACAO\Trabalho_SiSCOM\Sistema_comunicacao_projeto_radio_digital\.venv\Lib\site-packages\rtlsdr\rtlsdr.py", line 214, in close
+OSError: exception: access violation reading 0x0000000000000020
+Found Rafael Micro R820T/2 tuner
+Allocating 15 (non-zero-copy) user-space buffers

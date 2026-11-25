@@ -10,6 +10,7 @@ achado A17: a leitura é assíncrona e contínua, sem perder amostras entre bloc
 from __future__ import annotations
 
 import threading
+import warnings
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -223,6 +224,22 @@ def _ler(radio: Any, n_amostras: int, taxa_sps: float) -> NDArray[np.complex64]:
     return bytes_para_iq(acumulador.dados)
 
 
+def fechar(radio: Any) -> None:
+    """Fecha o rádio sem perder a captura se a librtlsdr falhar ao fechar.
+
+    Na bancada de 25/11, em 4 de 18 gravações a leitura terminou completa e o
+    rtlsdr_close deu "access violation" (OSError no ctypes): a gravação inteira se
+    perdia por um erro depois de ela estar na memória. Agora vira aviso; o rádio é
+    marcado como fechado para o __del__ do pyrtlsdr não tentar de novo.
+    """
+    try:
+        radio.close()
+    except OSError as erro:
+        radio.device_opened = False
+        warnings.warn(f"o RTL-SDR falhou ao fechar ({erro}); a captura foi mantida",
+                      RuntimeWarning, stacklevel=2)  # fmt: skip
+
+
 def capturar(config: ConfigRtl, n_amostras: int) -> Captura:
     """Configura o RTL-SDR, descarta o início e captura n_amostras.
 
@@ -255,4 +272,4 @@ def capturar(config: ConfigRtl, n_amostras: int) -> Captura:
         amostras = _ler(radio, n_amostras, config.taxa_sps)
         return Captura(amostras, centro_hz, taxa_sps, ganho_db, correcao_ppm)
     finally:
-        radio.close()
+        fechar(radio)

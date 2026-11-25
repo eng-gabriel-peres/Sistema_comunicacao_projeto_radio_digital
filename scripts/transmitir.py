@@ -26,7 +26,7 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
-from sdrlink import transmissor
+from sdrlink import prova, transmissor
 from sdrlink.config import Perfil, argumentos_de_enlace, perfil_dos_argumentos
 from sdrlink.hw import pluto_tx
 from sdrlink.quadro import Pacote
@@ -39,7 +39,11 @@ BANDA_MAX_HZ = 1e6  # limite da prova (seção 8)
 def _argumentos() -> tuple[argparse.Namespace, Perfil]:
     """Lê os parâmetros da linha de comando."""
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    p.add_argument("payloads", type=Path, help="arquivo do avaliador (.bin ou .txt em hex)")
+    p.add_argument(
+        "payloads",
+        type=Path,
+        help="arquivo do avaliador: .txt (hex por linha) ou qualquer outro, fatiado em 128 bytes",
+    )
     argumentos_de_enlace(p)
     p.add_argument("--ganho-db", type=float, default=-30.0, help="atenuação de TX (0 = máximo)")
     p.add_argument("--duracao-s", type=float, default=60.0, help="janela da prova")
@@ -52,8 +56,21 @@ def _argumentos() -> tuple[argparse.Namespace, Perfil]:
     p.add_argument(
         "--simular", type=Path, default=None, help="grava o sinal em .npy em vez de transmitir"
     )
+    p.add_argument(
+        "--atraso-s",
+        type=float,
+        default=0.0,
+        help="espera depois do sinal pronto e antes de entrar no ar (para começar a gravação)",
+    )
+    p.add_argument(
+        "--repetir",
+        action="store_true",
+        help="repete o arquivo em ciclo até encher a janela (arquivo menor que a janela)",
+    )
     p.add_argument("--pasta", type=Path, default=RAIZ / "dados" / "logs")
     args = p.parse_args()
+    if args.atraso_s < 0:
+        p.error("--atraso-s não pode ser negativo")
     return args, perfil_dos_argumentos(p, args)
 
 
@@ -100,6 +117,18 @@ def fonte_de_blocos(
     return list(blocos) if pre_gerar else blocos
 
 
+def _pacotes(args: argparse.Namespace, config: ConfigTransmissor) -> tuple[list[Pacote], int]:
+    """Os pacotes do arquivo (repetidos se --repetir) e quantos cabem na janela."""
+    payloads, aviso = prova.ler_arquivo(args.payloads)
+    if aviso:
+        print(f"AVISO: {aviso}")
+    cabem = transmissor.pacotes_que_cabem(config, args.duracao_s)
+    if args.repetir and len(payloads) < cabem:
+        print(f"Repetindo o arquivo ({len(payloads)} payloads) até {cabem} pacotes")
+        payloads = prova.repetir_ate(payloads, cabem)
+    return transmissor.numerar(payloads), cabem
+
+
 def main() -> int:
     """Confere a banda, transmite (ou simula) e grava o log do TX."""
     args, perfil = _argumentos()
@@ -111,8 +140,7 @@ def main() -> int:
         emendar_caudas=perfil.emendar_caudas,
     )
     baixo, alto = _conferir_banda(config, perfil.lo_hz)
-    pacotes = transmissor.numerar(transmissor.ler_payloads(args.payloads))
-    cabem = transmissor.pacotes_que_cabem(config, args.duracao_s)
+    pacotes, cabem = _pacotes(args, config)
     if len(pacotes) < cabem:
         print(
             f"AVISO: o arquivo tem {len(pacotes)} payloads, mas cabem {cabem} em "
@@ -120,6 +148,7 @@ def main() -> int:
         )
     log: list[RegistroTx] = []
     inicio = datetime.now().astimezone()
+    tempo_no_ar: float | None = None
     t0 = time.time()
     if args.simular is not None:
         sinal = np.concatenate(list(_blocos(pacotes, config, args.duracao_s, log)))
@@ -128,13 +157,20 @@ def main() -> int:
     else:
         pluto = pluto_tx.ConfigPluto(perfil.lo_hz, perfil.taxa_sps, args.ganho_db, args.uri)
         blocos = fonte_de_blocos(pacotes, config, args.duracao_s, log, args.pre_gerar)
+        print(f"Sinal pronto; no ar em {args.atraso_s:g} s", flush=True)
+        time.sleep(args.atraso_s)
+        no_ar = time.time()
+        print(f"No ar desde {datetime.now().strftime('%H:%M:%S')}", flush=True)
         pluto_tx.transmitir_fluxo(pluto, blocos)
+        tempo_no_ar = round(time.time() - no_ar, 2)
     nome = f"tx_{carimbo_de_tempo()}"
     caminho_log = transmissor.gravar_log(log, args.pasta / f"{nome}.txt")
     registro = {
         "versao_do_codigo": versao_do_codigo(),
         "inicio": inicio.isoformat(timespec="seconds"),
         "tempo_real_s": round(time.time() - t0, 2),
+        # bancada de 25/11: sem --pre-gerar, 60 s de conteúdo levaram 99 s para sair (risco R1)
+        "tempo_no_ar_s": tempo_no_ar,
         "modo": "simulado" if args.simular else "pluto",
         "parametros": {k: str(v) for k, v in vars(args).items()},
         "perfil": dataclasses.asdict(perfil),

@@ -37,6 +37,11 @@ SINAL_MAX = 2**22  # amostras de sinal usadas (cerca de 2 s): mais não muda a m
 # com 49 ms a banda errou até 33% e o Eb/N0 até 1,1 dB a 8 dB; com 122 ms, até 2,7% e
 # 0,03 dB; com 244 ms ou mais, abaixo de 2% e 0,05 dB. 0,2 s dá folga sobre os 122 ms.
 RUIDO_MIN_S = 0.2
+BLOCOS_RUIDO_MIN = 2  # com menos blocos não há mediana para comparar
+BLOCO_RUIDO_S = 0.05  # o trecho de ruído é examinado em blocos de 50 ms
+RUIDO_MAX_RELATIVO = (
+    2.0  # bloco com mais que o dobro da potência mediana não é ruído (bancada de 25/11)
+)
 # Abaixo disso a banda a 99% medida não é confiável. Medido no bloco 13 com o perfil
 # prova-b (sinal de 30 kHz em 2,048 MS/s): -13 dB deu 1884 kHz, -9 dB deu 764 kHz,
 # -4 dB deu 30,9 kHz. O resíduo da subtração do ruído, somado em 2 MHz, passa da
@@ -106,6 +111,26 @@ def ebn0_estimado_db(
     return float(10 * np.log10(potencia / (n0 * taxa_bits)))
 
 
+def ruido_limpo(ruido: NDArray[np.complexfloating], taxa_sps: float) -> NDArray[np.complexfloating]:
+    """O trecho de ruído sem os blocos de 50 ms fortes demais (transitório de partida do TX).
+
+    Na bancada de 25/11 o Pluto saturou o RTL por uma fração de segundo ao começar, e o
+    primeiro quadro só foi detectado depois: o "ruído" antes dele ficava mais forte que o
+    sinal e a medida da banda falhava. Ficam só os blocos com até RUIDO_MAX_RELATIVO
+    vezes a potência mediana dos blocos.
+    """
+    tamanho = max(1, int(BLOCO_RUIDO_S * taxa_sps))
+    if len(ruido) < BLOCOS_RUIDO_MIN * tamanho:
+        return ruido
+    blocos = [
+        ruido[k : k + tamanho] for k in range(0, len(ruido), tamanho)
+    ]  # o último pode ser menor
+    potencia = np.array([np.mean(np.abs(b) ** 2) for b in blocos])
+    limite = RUIDO_MAX_RELATIVO * float(np.median(potencia))
+    quietos = [b for b, p in zip(blocos, potencia, strict=True) if p <= limite]
+    return np.asarray(np.concatenate(quietos))
+
+
 def medir_captura(
     x: NDArray[np.complexfloating],
     inicio_sinal: float,
@@ -132,7 +157,7 @@ def medir_captura(
         }
     comeco = int(np.ceil(inicio_sinal))
     trecho = np.asarray(x[comeco : min(int(fim_sinal), comeco + SINAL_MAX)])
-    ruido = np.asarray(x[:fim_ruido])
+    ruido = ruido_limpo(np.asarray(x[:fim_ruido]), taxa_sps)
     if len(trecho) < AMOSTRAS_MIN:
         return {"medido": False, "motivo": f"menos de {AMOSTRAS_MIN} amostras de sinal"}
     baixo, alto = banda_99_medida(trecho, ruido, taxa_sps)
