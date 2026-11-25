@@ -158,10 +158,17 @@ def pluto_falso(monkeypatch: pytest.MonkeyPatch) -> type[_PlutoFalso]:
     return _PlutoFalso
 
 
-def test_transmitir_fluxo_envia_em_ordem_e_desliga(pluto_falso: type[_PlutoFalso]) -> None:
+def test_transmitir_fluxo_envia_em_ordem_e_desliga(
+    pluto_falso: type[_PlutoFalso], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    esperas: list[float] = []
+    monkeypatch.setattr("sdrlink.hw.pluto_tx.time.sleep", esperas.append)
     blocos = [np.full(4, k, dtype=np.complex64) for k in range(3)]
     vistos: list[int] = []
     n = pluto_tx.transmitir_fluxo(pluto_tx.ConfigPluto(919.5e6), iter(blocos), vistos.append)
+    # antes de desligar, espera a fila de 4 buffers sair (bancada de 25/11)
+    taxa = pluto_tx.ConfigPluto(919.5e6).taxa_sps
+    assert esperas == [pytest.approx(4 * 4 / taxa + pluto_tx.MARGEM_DRENO_S)]
     sdr = pluto_falso.instancias[0]
     assert n == 3 and vistos == [1, 2, 3]
     assert [b[0] for b in sdr.enviados] == [0, 1, 2]
@@ -169,12 +176,17 @@ def test_transmitir_fluxo_envia_em_ordem_e_desliga(pluto_falso: type[_PlutoFalso
     assert sdr.destruido and sdr.tx_hardwaregain_chan0 == pluto_tx.GANHO_MIN_DB
 
 
-def test_transmitir_fluxo_desliga_mesmo_com_erro(pluto_falso: type[_PlutoFalso]) -> None:
+def test_transmitir_fluxo_desliga_mesmo_com_erro(
+    pluto_falso: type[_PlutoFalso], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    esperas: list[float] = []
+    monkeypatch.setattr("sdrlink.hw.pluto_tx.time.sleep", esperas.append)
     blocos = [np.zeros(4, dtype=np.complex64), np.zeros(5, dtype=np.complex64)]
     with pytest.raises(ValueError, match="o primeiro tinha 4"):
         pluto_tx.transmitir_fluxo(pluto_tx.ConfigPluto(919.5e6), iter(blocos))
     sdr = pluto_falso.instancias[0]
     assert len(sdr.enviados) == 1 and sdr.destruido
+    assert esperas == []  # com erro desliga na hora
     assert sdr.tx_hardwaregain_chan0 == pluto_tx.GANHO_MIN_DB
     with pytest.raises(ValueError, match="fundo de escala"):
         pluto_tx.transmitir_fluxo(
