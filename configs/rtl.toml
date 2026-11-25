@@ -2,7 +2,7 @@
 # Lida pelo receptor a partir do Bloco 2. Registro completo: docs/calibracao_rtl.md
 
 [calibracao]
-correcao_ppm = 56  # par "Pluto da equipe + RTL da bancada de 25/11", medido em 25/11/2026 (sessão 1)
+correcao_ppm = 87  # par "Pluto da equipe + RTL 2 de 25/11" (o limpo), medido em 25/11/2026, RTL frio
 data = "2026-11-25"
 pluto = "Pluto da equipe (Rev.C AD9364, fw v0.32, serial ...bc7b7b4d52)"
 medicoes_do_par_ppm = [84.04, 84.21]  # 10:06 e 10:09, RTL aquecido
@@ -15,3 +15,5 @@ erro_absoluto_rtl_ppm = -74.6  # mediana nas emissoras FM, aquecido (dados/calib
 # (fm_20261125_095526.json). Em 04/11 o RTL era −75 ppm e o par −84: o Pluto é o mesmo (cerca de
 # −8 ppm nas duas datas) e o RTL é outro, ou mudou. Os campos medicoes_do_par_ppm e
 # residuo_medido_com_84_hz acima são de 04/11.
+# 25/11/2026, 11:06: trocado o RTL (o primeiro tinha o oscilador modulado em 1,7 kHz, raias a −8 dBc).
+# O RTL 2 tem raias a −62 dBc e par −87,4 ppm (calibracao_20261125_110659.json), perto dos −84 de 04/11.
