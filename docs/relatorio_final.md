@@ -2,7 +2,7 @@
 
 SCM22108, Sistemas de Comunicação (IFSC). Gabriel de Oliveira Peres, matrícula 201920800001.
 
-Estado em 25/11/2026, depois do bloco 26: o projeto foi **validado no ar** com o Pluto e o RTL da equipe ([bancada_20261125.md](bancada_20261125.md)). A prova A deu **1 217,7 kbit/s com a DQPSK e 1 777,6 kbit/s com a 8-PSK**, os mesmos números da simulação; a prova B passou com 694 de 694 pacotes; a Etapa 5 foi medida nas três modulações. A bancada achou 9 defeitos, todos corrigidos ou contornados, e o dia da competição ficou em quatro comandos ([roteiro_da_prova.md](roteiro_da_prova.md), seção 0). Falta a prova B na distância real, o teste com dois computadores e o registro de uso de IA. Este documento junta todos os blocos: o que cada um fez, o que funcionou, o que falhou e como foi corrigido, e o que dá para melhorar. Os detalhes de cada bloco estão nos documentos que vêm depois deste, no mesmo relatório.
+Estado em 25/11/2026, depois do bloco 26: o projeto foi **validado no ar** com o Pluto e o RTL da equipe ([bancada_20261125.md](bancada_20261125.md)). A prova A deu **1 217,7 kbit/s com a DQPSK e 1 777,6 kbit/s com a 8-PSK**, os mesmos números da simulação; a prova B passou com 694 de 694 pacotes; a Etapa 5 foi medida nas três modulações. A bancada achou 9 defeitos, todos corrigidos ou contornados, e o dia da competição ficou em quatro comandos ([roteiro_da_prova.md](roteiro_da_prova.md), seção 0). O ensaio com dois computadores passou em 26/11 (1 209,6 kbit/s). Falta a prova B na distância real e o registro de uso de IA. Este documento junta todos os blocos: o que cada um fez, o que funcionou, o que falhou e como foi corrigido, e o que dá para melhorar. Os detalhes de cada bloco estão nos documentos que vêm depois deste, no mesmo relatório.
 
 ## 1. Resumo
 
@@ -17,7 +17,7 @@ Estado em 25/11/2026, depois do bloco 26: o projeto foi **validado no ar** com o
 | Comparação com a OOK de referência | a referência entrega **7,3 kbit/s** no ar (21 bytes por quadro, 10 kbit/s, pulso retangular; captura real de 04/11). O `prova-a` chegou a **1 217,7 kbit/s medidos no ar** em 25/11 (167 vezes mais), e a 8-PSK a 1 777,6 kbit/s, na mesma banda de 1 MHz. As duas medidas são do mesmo par de rádios na mesma mesa, mas em dias diferentes |
 | Simulação × teoria | BER de BPSK, DBPSK, DQPSK e 2-FSK a menos de 0,08 dB das fórmulas; a DQPSK bate com a fórmula exata (Marcum) a 0,5% |
 | Qualidade | 311 testes automáticos (3 deles só com o hardware ligado); portão (ruff, mypy --strict, regras NASA, pytest) em todo commit; testes de mutante em cada decisão; uma tag ou mais por bloco (de `bloco-00` a `bloco-26`); toda evidência com a versão do código que a gerou |
-| Falta | a prova B na distância real (no ensaio variei a atenuação do Pluto), o teste com dois computadores e o registro de uso de IA |
+| Falta | a prova B na distância real (no ensaio variei a atenuação do Pluto) e o registro de uso de IA |
 
 ## 2. O sistema
 
@@ -168,7 +168,6 @@ A bancada de 25/11 fechou o enlace no ar com o quadro v3, a Etapa 5 nas três mo
 
 | Pendência | Para quê | Plano |
 |---|---|---|
-| TX e RX em computadores distintos (P2) | PLT-02 | antes da competição, com a pasta de instalação e o `git pull` |
 | Prova B na distância real | CMP-B | no dia, com `prova_rx.py --distancia-m` e `relatorio_alcance.py` |
 | Separar a causa dos 3 a 4 dB entre o Eb/N0 estimado e a teoria no ar | MET-04 | hipótese: N0 medido antes de o TX ligar ([bancada_20261125.md](bancada_20261125.md), seção 5.1) |
 | **Registro de uso de IA** das Etapas 1 a 7 (P1) | PRC-02 (critério de processo) | **vazio**: o texto tem de ser da equipe |

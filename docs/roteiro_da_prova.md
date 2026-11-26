@@ -37,7 +37,9 @@ Ensaio com estes comandos em casa, em 25/11, com um arquivo cifrado de teste (`d
 | Prova B, P3 | −53 dB | 694 / 694 | 0 | 11,8 kbit/s | |
 | Prova B, P4 | −57 dB | 519 / 694 | 25,2% | 8,9 kbit/s | |
 
-As distâncias do ensaio (10 a 70 m) foram só rótulos para testar o relatório: em casa variei a atenuação do Pluto, não a distância. A −30 dB a PER da prova A foi alta porque o enlace em casa é cerca de 6,5 dB mais fraco que o do laboratório (Eb/N0 de 12 dB, no limite da DQPSK); por isso **na prova A começar com −20 dB** e conferir o Eb/N0 no relatório (15 dB ou mais).
+As distâncias do ensaio (10 a 70 m) foram só rótulos para testar o relatório: em casa variei a atenuação do Pluto, não a distância. **Com dois computadores e as antenas a cerca de 1 m** (26/11): DQPSK com TX a −10 dB, 70 873 pacotes, PER de 0,68%, 1 209,6 kbit/s; com as antenas afastadas e o TX a −20 dB, o sinal chegou 11 dB mais fraco e nada passou. **Na sala, começar com o TX a −10 dB** e conferir o nível no RX (−12 a −8 dBFS) antes do ensaio que vale.
+
+A −30 dB a PER da prova A foi alta porque o enlace em casa é cerca de 6,5 dB mais fraco que o do laboratório (Eb/N0 de 12 dB, no limite da DQPSK); por isso **na prova A começar com −20 dB** e conferir o Eb/N0 no relatório (15 dB ou mais).
 
 Cuidados que vieram da bancada:
 1. **Um TX por vez.** Dois processos abrindo o Pluto dão "Open unlocked: -16" e estragam o sinal.
