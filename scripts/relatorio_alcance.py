@@ -1,7 +1,11 @@
 """Prova B: junta as posições medidas numa tabela e num gráfico de goodput e PER por distância.
 
-Uso, depois de rodar o prova_rx.py em cada posição (com --distancia-m):
-    python scripts/relatorio_alcance.py dados/prova/<data>
+Uso, depois de rodar o prova_rx.py em cada posição (com --posicao P1, P2...):
+    python scripts/relatorio_alcance.py dados/prova/<data> --distancias P1=10 P2=25 P3=40
+
+A distância não precisa ser conhecida na hora do ensaio: quem mede (trena, mapa do
+pátio) informa no fim, pelo nome da posição. O --distancias vale mais que o
+--distancia-m dado ao prova_rx.py. Posições sem distância aparecem numa lista à parte.
 
 Lê os <nome>_resumo.json da prova B na pasta e grava alcance.md e alcance.png: goodput
 e PER × distância com os critérios da prova (10 kbit/s, PER de 1%, 500 pacotes) e a
@@ -25,24 +29,46 @@ import matplotlib.pyplot as plt
 PER_MIN_GRAFICO = 1e-4
 
 
-def _posicoes(pasta: Path) -> list[prova.Posicao]:
-    posicoes = []
+def _distancias(itens: list[str]) -> dict[str, float]:
+    """Lê P1=10 P2=25,5 em {"P1": 10.0, "P2": 25.5}.
+
+    Raises:
+        ValueError: item fora do formato NOME=METROS.
+    """
+    mapa: dict[str, float] = {}
+    for item in itens:
+        nome, _, valor = item.partition("=")
+        if not nome.strip() or not valor.strip():
+            raise ValueError(f"use NOME=METROS, por exemplo P1=10 (recebi {item!r})")
+        mapa[nome.strip()] = float(valor.replace(",", "."))
+    return mapa
+
+
+def _posicoes(
+    pasta: Path, distancias: dict[str, float]
+) -> tuple[list[prova.Posicao], list[tuple[str, prova.Posicao]]]:
+    """As posições com distância e, à parte, as sem distância (nome e resultado)."""
+    posicoes: list[prova.Posicao] = []
+    sem_distancia: list[tuple[str, prova.Posicao]] = []
     for arquivo in sorted(pasta.glob("*_resumo.json"))[: prova.MAX_POSICOES]:
         r = json.loads(arquivo.read_text(encoding="utf-8"))
-        if r.get("prova") != "b" or r.get("distancia_m") is None:
+        if r.get("prova") != "b":
             continue
-        pacotes = int(r.get("transmitidos") or r.get("pacotes_unicos") or 0)
+        nome = str(r.get("posicao") or r.get("captura") or arquivo.stem)
+        distancia = distancias.get(nome, r.get("distancia_m"))
         per = r.get("per")
-        posicoes.append(
-            prova.Posicao(
-                distancia_m=float(r["distancia_m"]),
-                goodput_bps=float(r.get("goodput_bps") or 0.0),
-                per=1.0 if per is None else float(per),
-                pacotes=pacotes,
-                ebn0_db=r.get("ebn0_db"),
-            )
+        posicao = prova.Posicao(
+            distancia_m=0.0 if distancia is None else float(distancia),
+            goodput_bps=float(r.get("goodput_bps") or 0.0),
+            per=1.0 if per is None else float(per),
+            pacotes=int(r.get("transmitidos") or r.get("pacotes_unicos") or 0),
+            ebn0_db=r.get("ebn0_db"),
         )
-    return posicoes
+        if distancia is None:
+            sem_distancia.append((nome, posicao))
+        else:
+            posicoes.append(posicao)
+    return posicoes, sem_distancia
 
 
 def _figura(posicoes: list[prova.Posicao], caminho: Path) -> None:
@@ -67,10 +93,15 @@ def main() -> int:
     """Lê os resumos da prova B e grava a tabela e o gráfico."""
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     p.add_argument("pasta", type=Path, help="pasta da prova (dados/prova/<data>)")
+    p.add_argument("--distancias", nargs="*", default=[], help="P1=10 P2=25 ... (metros)")
     args = p.parse_args()
-    ordenadas, maior = prova.alcance(_posicoes(args.pasta))
-    if not ordenadas:
-        p.error(f"nenhum resumo da prova B com distância em {args.pasta}")
+    try:
+        posicoes, sem_distancia = _posicoes(args.pasta, _distancias(args.distancias))
+    except ValueError as erro:
+        p.error(str(erro))
+    if not posicoes and not sem_distancia:
+        p.error(f"nenhum resumo da prova B em {args.pasta}")
+    ordenadas, maior = prova.alcance(posicoes)
     linhas = [
         "# Prova B: alcance",
         "",
@@ -85,9 +116,16 @@ def main() -> int:
             f"| {q.distancia_m:g} | {q.goodput_bps / 1e3:.1f} | {100 * q.per:.2f}% | {q.pacotes} "
             f"| {ebn0} | {'sim' if q.passou else 'não'} |"
         )
-    linhas += ["", "![alcance](alcance.png)", ""]
+    if sem_distancia:
+        linhas += ["", "Posições sem distância (informe com --distancias NOME=METROS):", ""]
+        for nome, q in sem_distancia:
+            resultado = "passou" if q.passou else "não passou"
+            linhas.append(f"- {nome}: {resultado}, {q.pacotes} pacotes, PER de {100 * q.per:.2f}%")
+            print(f"Sem distância: {nome} ({resultado})")
+    if ordenadas:
+        linhas += ["", "![alcance](alcance.png)", ""]
+        _figura(ordenadas, args.pasta / "alcance.png")
     (args.pasta / "alcance.md").write_text("\n".join(linhas), encoding="utf-8", newline="\n")
-    _figura(ordenadas, args.pasta / "alcance.png")
     print("\n".join(linhas[:3]))
     print(f"Relatório: {args.pasta / 'alcance.md'}")
     return 0

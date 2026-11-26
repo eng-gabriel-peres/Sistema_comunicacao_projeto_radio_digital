@@ -218,3 +218,40 @@ def test_quadros_falsos_de_outro_tamanho_ficam_de_fora() -> None:
     assert [p.sequencia for p in validos] == [0, 1] and falsos == 2
     dados, faltando = prova.remontar(validos)  # antes caía com "tamanhos"
     assert dados == bytes(128) + b"x" * 128 and faltando == []
+
+
+def test_alcance_com_as_distancias_informadas_no_fim(tmp_path: Path) -> None:
+    """No pátio ninguém sabe a distância na hora: grava P1, P2, P3 e informa no fim."""
+    for nome, goodput, per in (
+        ("P1", 11_800.0, 0.0),
+        ("P2", 11_700.0, 0.005),
+        ("P3", 7_000.0, 0.4),
+    ):
+        resumo = {"prova": "b", "posicao": nome, "distancia_m": None, "goodput_bps": goodput,
+                  "per": per, "pacotes_unicos": 600, "ebn0_db": None}  # fmt: skip
+        (tmp_path / f"prova_b_{nome}_resumo.json").write_text(json.dumps(resumo), encoding="utf-8")
+    sem = _rodar("relatorio_alcance.py", str(tmp_path))
+    assert sem.returncode == 0, sem.stderr
+    assert (
+        "Sem distância: P2 (passou)" in sem.stdout
+        and "Sem distância: P3 (não passou)" in sem.stdout
+    )
+    com = _rodar("relatorio_alcance.py", str(tmp_path), "--distancias", "P1=12", "P2=37,5", "P3=60")
+    assert com.returncode == 0, com.stderr
+    texto = (tmp_path / "alcance.md").read_text(encoding="utf-8")
+    assert "Maior distância validada: **37.5 m**" in texto and "Sem distância" not in texto
+    errado = _rodar("relatorio_alcance.py", str(tmp_path), "--distancias", "P1")
+    assert errado.returncode != 0 and "NOME=METROS" in errado.stderr
+
+
+def test_prova_rx_da_o_veredito_da_prova_b(tmp_path: Path) -> None:
+    arquivo = tmp_path / "b.enc"
+    arquivo.write_bytes(bytes(range(256)) * 4)
+    sinal = tmp_path / "b_sim.npy"
+    tx = _rodar("transmitir.py", str(arquivo), "--perfil", "prova-b", "--duracao-s", "0.5",
+                "--simular", str(sinal), "--pasta", str(tmp_path))  # fmt: skip
+    assert tx.returncode == 0, tx.stderr
+    rx = _rodar("prova_rx.py", "--prova", "b", "--captura", str(sinal), "--janela-s", "0.5",
+                "--posicao", "P1", "--pasta", str(tmp_path))  # fmt: skip
+    assert rx.returncode == 0, rx.stderr
+    assert "Prova B: NÃO PASSA" in rx.stdout  # poucos pacotes em 0,5 s: menos de 500
