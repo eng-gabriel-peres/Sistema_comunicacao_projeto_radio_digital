@@ -1,9 +1,14 @@
 """RX no dia da prova: grava, decodifica, remonta o arquivo e faz o relatório com gráficos.
 
 Uso (no PC do RX, com o RTL ligado há 10 min):
-    python scripts/prova_rx.py --prova a                      (sala: maior goodput)
-    python scripts/prova_rx.py --prova b --distancia-m 40     (área externa: uma posição)
+    python scripts/prova_rx.py --prova a --teste              (sala: teste de 15 s que diz o perfil)
+    python scripts/prova_rx.py --prova a --perfil <recomendado>   (sala: o ensaio que vale)
+    python scripts/prova_rx.py --prova b --posicao P1         (área externa: uma posição)
     python scripts/prova_rx.py --prova a --captura <arquivo.npy>   (só processa uma gravação)
+
+Ganho do RTL: 30 dB na prova A e 40 dB na prova B (longe, o nível é o do ruído do RTL).
+Na prova A o RX mostra o C/N0 medido e o perfil que esse sinal aguenta; o teste rápido
+(--teste) grava 25 s para uma janela de 15 s, junto com o prova_tx.py --teste.
 
 Passos: grava 70 s (comece quando o TX disser "Sinal pronto"), roda o receber.py (gera
 <captura>_saida.txt, o arquivo que o avaliador pede, e <captura>_rx.json), remonta o
@@ -29,7 +34,7 @@ import matplotlib
 import numpy as np
 from scipy import signal
 
-from sdrlink import metricas, prova
+from sdrlink import config, metricas, prova
 from sdrlink.registro import salvar_json, versao_do_codigo
 
 matplotlib.use("Agg")
@@ -37,6 +42,9 @@ import matplotlib.pyplot as plt
 
 RAIZ = Path(__file__).resolve().parents[1]
 PERFIS = {"a": "prova-a", "b": "prova-b"}
+GANHO_RX_DB = {"a": 30.0, "b": 40.0}  # A: sala, TX no máximo; B: longe, limitado pelo ruído
+TESTE_GRAVACAO_S = 25.0
+TESTE_JANELA_S = 15.0
 BANDA_MAX_KHZ = 1000.0
 TRECHO_ESPECTRO_S = 4.0
 
@@ -46,10 +54,11 @@ def _argumentos() -> argparse.Namespace:
     p.add_argument("--prova", choices=sorted(PERFIS), required=True)
     p.add_argument("--perfil", default=None, help="outro perfil (padrão: prova-a ou prova-b)")
     p.add_argument(
-        "--ganho-db", type=float, default=25.0, help="ganho do RTL (nível de -20 a -12 dBFS)"
+        "--ganho-db", type=float, default=None, help="ganho do RTL (padrão: 30 na A, 40 na B)"
     )
     p.add_argument("--segundos", type=float, default=70.0, help="duração da gravação")
     p.add_argument("--janela-s", type=float, default=60.0, help="janela da prova")
+    p.add_argument("--teste", action="store_true", help="teste rápido: 25 s, janela de 15 s")
     p.add_argument(
         "--captura", type=Path, default=None, help="processa esta gravação em vez de gravar"
     )
@@ -63,7 +72,27 @@ def _argumentos() -> argparse.Namespace:
     p.add_argument("--posicao", default=None, help="nome da posição (P1, P2...)")
     p.add_argument("--deslocamento-hz", type=float, default=None, help="do escolher_canal.py")
     p.add_argument("--pasta", type=Path, default=None, help="padrão: dados/prova/<data>")
-    return p.parse_args()
+    args = p.parse_args()
+    if args.ganho_db is None:
+        args.ganho_db = GANHO_RX_DB[args.prova]
+    if args.teste:
+        args.segundos, args.janela_s = TESTE_GRAVACAO_S, TESTE_JANELA_S
+    return args
+
+
+def _veredito(args: argparse.Namespace, resumo: dict[str, Any], perfil: str) -> None:
+    """Diz se o ensaio vale e, na prova A, que perfil o sinal medido aguenta."""
+    per = resumo["per"]
+    if args.prova == "a":
+        print(f"Prova A: {prova.criterio_prova_a(per, resumo['banda_99_khz'])}")
+        _, frase = prova.recomendar_perfil_a(resumo["ebn0_db"], config.perfil(perfil).taxa_bits)
+        print(f"Recomendação pelo sinal medido: {frase}")
+        return
+    pacotes_b = int(resumo.get("transmitidos") or resumo["pacotes_unicos"])
+    per_b = 1.0 if per is None else float(per)
+    passou = prova.Posicao(0.0, float(resumo["goodput_bps"]), per_b, pacotes_b, None).passou
+    veredito = "PASSA: pode afastar para a próxima posição" if passou else "NÃO PASSA"
+    print(f"Prova B: {veredito} (500 pacotes, 10 kbit/s, PER de até 1%)")
 
 
 def _rodar(script: str, *argumentos: str) -> subprocess.CompletedProcess[str]:
@@ -185,7 +214,8 @@ def main() -> int:
     perfil = args.perfil or PERFIS[args.prova]
     pasta = args.pasta or RAIZ / "dados" / "prova" / datetime.now().strftime("%Y%m%d")
     pasta.mkdir(parents=True, exist_ok=True)
-    nome = f"prova_{args.prova}" + (f"_{args.posicao}" if args.posicao else "")
+    nome = ("teste" if args.teste else "prova") + f"_{args.prova}"
+    nome += f"_{args.posicao}" if args.posicao else ""
     captura = args.captura or _gravar(args, perfil, pasta, nome)
     extra = ["--deslocamento-hz", str(args.deslocamento_hz)] if args.deslocamento_hz else []
     print("Decodificando...", flush=True)
@@ -214,14 +244,7 @@ def main() -> int:
         f"\nRESULTADO: {resumo['pacotes_unicos']} pacotes, goodput {goodput:.1f} kbit/s, "
         f"PER {'?' if per is None else f'{100 * float(per):.3f}%'} ({resumo['per_e_goodput']})"
     )
-    if args.prova == "a":
-        print(f"Prova A: {prova.criterio_prova_a(per, resumo['banda_99_khz'])}")
-    else:
-        pacotes_b = int(resumo.get("transmitidos") or resumo["pacotes_unicos"])
-        per_b = 1.0 if per is None else float(per)
-        passou = prova.Posicao(0.0, float(resumo["goodput_bps"]), per_b, pacotes_b, None).passou
-        veredito = "PASSA: pode afastar para a próxima posição" if passou else "NÃO PASSA"
-        print(f"Prova B: {veredito} (500 pacotes, 10 kbit/s, PER de até 1%)")
+    _veredito(args, resumo, perfil)
     print(f"Relatório: {relatorio}")
     return 0
 

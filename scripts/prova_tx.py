@@ -1,8 +1,13 @@
 """TX no dia da prova: um comando transmite o arquivo do professor pelo perfil certo.
 
 Uso (no PC do TX, com o Pluto ligado):
-    python scripts/prova_tx.py <arquivo do professor> --prova a
-    python scripts/prova_tx.py <arquivo do professor> --prova b --ganho-db -10
+    python scripts/prova_tx.py <arquivo do professor> --prova a --teste   (15 s, para o RX
+        dizer o perfil)
+    python scripts/prova_tx.py <arquivo do professor> --prova a --perfil <recomendado> --repetir
+    python scripts/prova_tx.py <arquivo do professor> --prova b
+
+O TX vai no máximo por padrão (--ganho-db 0): não há limite de potência na prova, e na sala
+o RX fica no fundo, longe da mesa do professor. Só baixe se o RX avisar saturação.
 
 Faz o mesmo que o transmitir.py com as escolhas da prova já feitas:
     --prova a  perfil prova-a (DQPSK, cerca de 1 218 kbit/s); --prova b  perfil prova-b
@@ -24,6 +29,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
 PERFIS = {"a": "prova-a", "b": "prova-b"}
+DURACAO_TESTE_S = 15.0
 
 
 def _argumentos() -> argparse.Namespace:
@@ -31,8 +37,11 @@ def _argumentos() -> argparse.Namespace:
     p.add_argument("arquivo", type=Path, help="o arquivo que o professor entregou")
     p.add_argument("--prova", choices=sorted(PERFIS), required=True)
     p.add_argument("--perfil", default=None, help="outro perfil (padrão: prova-a ou prova-b)")
-    p.add_argument("--ganho-db", type=float, default=-30.0, help="atenuação do Pluto (0 = máximo)")
+    p.add_argument("--ganho-db", type=float, default=0.0, help="atenuação do Pluto (0 = máximo)")
     p.add_argument("--duracao-s", type=float, default=60.0)
+    p.add_argument(
+        "--teste", action="store_true", help="teste rápido de 15 s (com o prova_rx --teste)"
+    )
     p.add_argument("--atraso-s", type=float, default=10.0, help="contagem entre pronto e no ar")
     p.add_argument("--deslocamento-hz", type=float, default=None, help="do escolher_canal.py")
     p.add_argument("--repetir", action="store_true", help="repete o arquivo até encher a janela")
@@ -40,6 +49,9 @@ def _argumentos() -> argparse.Namespace:
     args = p.parse_args()
     if not args.arquivo.exists():
         p.error(f"arquivo não encontrado: {args.arquivo}")
+    if args.teste:  # o RX grava 25 s para uma janela de 15 s
+        args.duracao_s = DURACAO_TESTE_S
+        args.repetir = True
     return args
 
 

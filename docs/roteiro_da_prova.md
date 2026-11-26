@@ -4,15 +4,33 @@ Passo a passo para a bancada e para as provas A e B (seção 8 do enunciado), co
 
 ## 0. No dia da competição (10/12): os comandos
 
-Depois da bancada de 25/11 juntei tudo em quatro scripts. O professor entrega um arquivo cifrado (qualquer tipo e tamanho); o TX fatia em payloads de 128 bytes (o último é completado com zeros) e o RX remonta o arquivo na ordem da sequência. Os dois lados usam o mesmo perfil e o mesmo deslocamento.
+Depois da bancada de 25/11 juntei tudo em quatro scripts. O professor entrega um arquivo cifrado (qualquer tipo e tamanho); o TX fatia em payloads de 128 bytes (o último é completado com zeros) e o RX remonta o arquivo na ordem da sequência. Os dois lados usam sempre o mesmo `--prova` e o mesmo `--perfil`: a primeira linha do TX ("Prova A: prova-a...") e a do RX ("Gravando 70 s com o perfil prova-a") têm de bater.
 
-| Momento | PC do TX (Pluto) | PC do RX (RTL, ligado há 10 min) |
+**Formato das provas (combinado com o professor em 26/11):** não há limite de potência, então o TX vai no máximo (`--ganho-db 0`, o padrão do `prova_tx.py`).
+- **Prova A, na sala:** TX na mesa do professor, RX no fundo da sala.
+- **Prova B, na área externa:** duas posições, na metade do caminho e no final; o professor sabe a distância aproximada de cada uma.
+
+### 0.1 Prova A (sala)
+
+| Passo | PC do TX (mesa do professor) | PC do RX (fundo da sala, RTL ligado há 10 min) |
 |---|---|---|
-| Prova B, antes de cada posição (Pluto parado) | | `python scripts/escolher_canal.py --perfil prova-b` (se o deslocamento do perfil não for o mais limpo, usar o escolhido com `--deslocamento-hz` nos dois lados) |
-| 1. Gerar o sinal | `python scripts/prova_tx.py <arquivo> --prova a --perfil prova-a-8psk --ganho-db -20` (ou o perfil que a regra da seção 3.1 escolher; o mesmo `--perfil` no RX) (prova B: `--prova b --ganho-db <G>`); se o arquivo não enche os 60 s, `--repetir` | esperar |
-| 2. Começar | o TX mostra **Sinal pronto; no ar em 10 s** (gerar leva cerca de 1 min) | no aviso: `python scripts/prova_rx.py --prova a` (prova B: `--prova b --posicao P<n>`) |
-| 3. Resultado | o log `tx_<carimbo>.txt` fica em `dados/prova/<data>/` | o RX grava 70 s, decodifica e mostra **RESULTADO: pacotes, goodput, PER**; na prova A diz também se **PASSA** (PER de até 1% e banda abaixo de 1 MHz) |
-| Prova B, no fim | | `python scripts/relatorio_alcance.py dados/prova/<data> --distancias P1=<m> P2=<m> ...`: tabela e gráfico de goodput e PER por distância e a maior distância validada |
+| 1. Teste rápido (cerca de 2 min) | `python scripts/prova_tx.py <arquivo> --prova a --teste` | no aviso "Sinal pronto": `python scripts/prova_rx.py --prova a --teste` |
+| 2. Ler a recomendação | | a última linha diz o perfil que o sinal aguenta: **"Recomendação pelo sinal medido: C/N0 de X dB-Hz: use --perfil prova-a-8psk"** (ou `prova-a`, ou `prova-a-fec`) |
+| 3. O ensaio que vale | `python scripts/prova_tx.py <arquivo> --prova a --perfil <recomendado> --repetir` | no aviso: `python scripts/prova_rx.py --prova a --perfil <recomendado>` |
+| 4. Resultado | o log `tx_<carimbo>.txt` fica em `dados/prova/<data>/` | **RESULTADO: pacotes, goodput, PER** e **"Prova A: PASSA"** (PER de até 1% e banda abaixo de 1 MHz) |
+
+O teste mede o C/N0, que não depende do perfil testado: um teste com a DQPSK já diz se a 8-PSK cabe. Os limiares vêm do que medi no ar (`prova.LIMIARES_C_N0_PROVA_A`): 8-PSK a partir de 84,1 dB-Hz (1 778 kbit/s), DQPSK a partir de 79,4 dB-Hz (1 218 kbit/s), DQPSK com FEC a partir de 71,4 dB-Hz (626 kbit/s). Se nem a FEC couber, aproximar ou alinhar as antenas (as duas em pé) e testar de novo. Se o RX avisar saturação (o TX no máximo pode saturar o RTL), baixar o ganho do RX com `--ganho-db 20`; o padrão é 30.
+
+### 0.2 Prova B (área externa, duas posições)
+
+| Passo | PC do TX (fixo) | PC do RX (vai até a posição) |
+|---|---|---|
+| 1. Em cada posição, com o Pluto parado | | `python scripts/escolher_canal.py --perfil prova-b` (se o +375 kHz não estiver entre os mais limpos, usar o escolhido com `--deslocamento-hz` nos dois lados) |
+| 2. Transmitir | `python scripts/prova_tx.py <arquivo> --prova b --repetir` | no aviso "Sinal pronto": `python scripts/prova_rx.py --prova b --posicao P1` (metade do caminho) ou `--posicao P2` (final) |
+| 3. Resultado | | **"Prova B: PASSA"** ou **"NÃO PASSA"** (500 pacotes, 10 kbit/s, PER de até 1%) |
+| 4. No fim | | `python scripts/relatorio_alcance.py dados/prova/<data> --distancias P1=<m> P2=<m>` com as distâncias que o professor disser: tabela, gráfico e a maior distância validada |
+
+O RX da prova B usa ganho de 40 dB por padrão: longe, o nível é o do ruído do próprio RTL, e o ganho alto melhora a sensibilidade. Se a P2 não passar, repetir uma vez (um surto de interferência pode derrubar um ensaio); se falhar de novo, o resultado é a P1.
 
 O que o `prova_rx.py` deixa na pasta da prova, para cada ensaio:
 
@@ -37,9 +55,9 @@ Ensaio com estes comandos em casa, em 25/11, com um arquivo cifrado de teste (`d
 | Prova B, P3 | −53 dB | 694 / 694 | 0 | 11,8 kbit/s | |
 | Prova B, P4 | −57 dB | 519 / 694 | 25,2% | 8,9 kbit/s | |
 
-As distâncias do ensaio (10 a 70 m) foram só rótulos para testar o relatório: em casa variei a atenuação do Pluto, não a distância. **Com dois computadores e as antenas a cerca de 1 m** (26/11): DQPSK com TX a −10 dB, 70 873 pacotes, PER de 0,68%, 1 209,6 kbit/s; com as antenas afastadas e o TX a −20 dB, o sinal chegou 11 dB mais fraco e nada passou. **Na sala, começar com o TX a −10 dB** e conferir o nível no RX (−12 a −8 dBFS) antes do ensaio que vale.
+As distâncias do ensaio (10 a 70 m) foram só rótulos para testar o relatório: em casa variei a atenuação do Pluto, não a distância. **Com dois computadores e as antenas a cerca de 1 m** (26/11): DQPSK com TX a −10 dB, 70 873 pacotes, PER de 0,68%, 1 209,6 kbit/s; com as antenas afastadas e o TX a −20 dB, o sinal chegou 11 dB mais fraco e nada passou. Por isso, na prova, o TX vai no máximo e o teste rápido escolhe o perfil (seção 0.1).
 
-A −30 dB a PER da prova A foi alta porque o enlace em casa é cerca de 6,5 dB mais fraco que o do laboratório (Eb/N0 de 12 dB, no limite da DQPSK); por isso **na prova A começar com −20 dB** e conferir o Eb/N0 no relatório (15 dB ou mais).
+A −30 dB a PER da prova A foi alta porque o enlace em casa é cerca de 6,5 dB mais fraco que o do laboratório (Eb/N0 de 12 dB, no limite da DQPSK); o teste rápido da seção 0.1 pega esse caso e recomenda um perfil mais robusto.
 
 Cuidados que vieram da bancada:
 1. **Um TX por vez.** Dois processos abrindo o Pluto dão "Open unlocked: -16" e estragam o sinal.
@@ -66,6 +84,8 @@ Cuidados que vieram da bancada:
 ## 3. Prova A: maior goodput em 60 s
 
 ### 3.1 Escolha do perfil (regra de troca)
+
+**No dia, o teste rápido da seção 0.1 faz esta escolha sozinho**, pelo C/N0 medido. O que segue é o raciocínio por trás dos limiares e o jeito manual, se o teste falhar.
 
 Com a potência e a distância da prova, transmitir 10 s e processar:
 
