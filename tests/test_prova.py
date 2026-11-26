@@ -205,3 +205,16 @@ def test_criterio_da_prova_a() -> None:
     assert prova.criterio_prova_a(0.0, 1000.0) == "NÃO PASSA: banda de 1000 kHz"
     assert prova.criterio_prova_a(0.0, None) == "PASSA na PER; banda não medida"
     assert prova.criterio_prova_a(None, 700.0) == "NÃO PASSA: sem PER"
+
+
+def test_quadros_falsos_de_outro_tamanho_ficam_de_fora() -> None:
+    pacotes = [
+        Pacote(0, bytes(128)),
+        Pacote(7, bytes(80)),
+        Pacote(1, b"x" * 128),
+        Pacote(9, bytes(208)),
+    ]
+    validos, falsos = prova.so_os_da_prova(pacotes)
+    assert [p.sequencia for p in validos] == [0, 1] and falsos == 2
+    dados, faltando = prova.remontar(validos)  # antes caía com "tamanhos"
+    assert dados == bytes(128) + b"x" * 128 and faltando == []

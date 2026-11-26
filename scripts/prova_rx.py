@@ -188,7 +188,11 @@ def main() -> int:
     print("Decodificando...", flush=True)
     _rodar("receber.py", str(captura), "--perfil", perfil, "--janela-s", str(args.janela_s), *extra)
     registro = json.loads(captura.with_name(captura.stem + "_rx.json").read_text(encoding="utf-8"))
-    pacotes = metricas.ler_pacotes(captura.with_name(captura.stem + "_saida.txt"))
+    lidos = metricas.ler_pacotes(captura.with_name(captura.stem + "_saida.txt"))
+    pacotes, falsos = prova.so_os_da_prova(lidos)
+    if falsos:
+        print(f"AVISO: {falsos} pacotes com tamanho diferente de 128 bytes (quadros falsos) "
+              "ficaram fora do arquivo remontado")  # fmt: skip
     faltando = 0
     if pacotes:
         dados, buracos = prova.remontar(pacotes)

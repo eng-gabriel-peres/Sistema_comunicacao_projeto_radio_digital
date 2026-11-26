@@ -86,6 +86,17 @@ def repetir_ate(payloads: list[bytes], quantidade: int) -> list[bytes]:
     return (payloads * voltas)[:quantidade]
 
 
+def so_os_da_prova(pacotes: list[Pacote]) -> tuple[list[Pacote], int]:
+    """Os pacotes de 128 bytes e quantos de outro tamanho foram descartados.
+
+    No ensaio com dois PCs (25/11) um sinal fraco gerou falsos positivos que passaram no
+    CRC-16 com 80 e 208 bytes de payload, e o remontar recusava a lista inteira. Na prova
+    todo payload tem 128 bytes; um tamanho diferente só pode ser um quadro falso.
+    """
+    validos = [p for p in pacotes if len(p.payload) == TAMANHO_PAYLOAD]
+    return validos, len(pacotes) - len(validos)
+
+
 def remontar(pacotes: list[Pacote], n_pacotes: int | None = None) -> tuple[bytes, list[int]]:
     """O arquivo a partir dos pacotes recebidos, na ordem da sequência, e as sequências que faltam.
 
