@@ -147,7 +147,9 @@ def test_arquivo_de_saida(tmp_path: Path) -> None:
 def test_validacoes_e_decimacao() -> None:
     assert ConfigReceptor(ConfigModem("ook", "rrc", 16), FS).decimacao == 2
     assert ConfigReceptor(ConfigModem("ook", "rrc", 12), FS).decimacao == 1  # 12/2 = 6 < 8
-    assert len(ConfigReceptor(ConfigModem("dbpsk", "rrc", 8), FS).hipoteses_hz()) == 3
+    dbpsk = ConfigModem("dbpsk", "rrc", 8)
+    assert len(ConfigReceptor(dbpsk, FS, offset_max_hz=3000.0).hipoteses_hz()) == 3
+    assert len(ConfigReceptor(dbpsk, FS).hipoteses_hz()) == 7  # busca padrão de ±10 kHz (26/11)
     with pytest.raises(ValueError, match="limiar"):
         ConfigReceptor(ConfigModem("ook", "rrc", 16), FS, limiar=1.0)
     with pytest.raises(ValueError, match="deslocamento"):

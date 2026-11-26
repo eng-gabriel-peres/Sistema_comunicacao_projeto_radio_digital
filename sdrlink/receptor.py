@@ -52,7 +52,14 @@ BITS_PREFIXO = quadro.BITS_PREFIXO  # 29 bits conhecidos, um por símbolo em tod
 LIMIAR_PADRAO = (
     0.5  # medido: quadros reais acima de 0,59 a partir de 8 dB; falsos 99,99% abaixo de 0,43
 )
-OFFSET_MAX_PADRAO_HZ = 3000.0
+# Busca de offset de ±10 kHz (cerca de 11 ppm em 920 MHz). Era 3 kHz: no ensaio externo de
+# 26/11 o RTL frio pôs o offset em 2,1 kHz e a prova B perdeu os quadros que passaram de
+# 3 kHz. Cada quadro tem o seu offset estimado, então a busca larga acompanha a deriva do
+# RTL enquanto ele esquenta, sem esperar. Em gravações reais com uma rampa de 1 a 9 kHz,
+# 205 de 205 pacotes (contra 61 com 3 kHz) e nenhuma detecção falsa só com ruído; a
+# prova B leva o dobro do tempo para processar e a prova A não muda (a grade dela já
+# cobre ±12 kHz). Registro: ensaios/etapa6/offset_amplo_ensaio.py.
+OFFSET_MAX_PADRAO_HZ = 10000.0
 SPS_INTERNO_MIN = 8  # o receptor decima até ficar com pelo menos 8 amostras por símbolo
 TRECHOS_ESTIMATIVA = 4  # o offset é medido entre pelo menos 4 trechos do preâmbulo
 # meia banda do filtro de detecção, em múltiplos da taxa de símbolos: um pouco acima da banda
