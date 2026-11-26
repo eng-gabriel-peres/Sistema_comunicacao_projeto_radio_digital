@@ -199,7 +199,7 @@ Legenda: ✅ atendido com evidência; 🟡 atendido em simulação ou em parte, 
 | ID | Estado | Evidência / o que falta | Etapa |
 |---|---|---|---|
 | PLT-01 | ✅ | Pluto só como TX (`ip:192.168.2.22`, fw v0.32), RTL só como RX; nenhum código abre o RX do Pluto | 1 |
-| PLT-02 | ✅ | O sistema não depende de rede (arquivos e scripts independentes nos dois lados); todos os ensaios reais até agora foram num PC só (pendência P2). **Bancada de 25/11** ([bancada_20261125.md](bancada_20261125.md)): ensaio com dois computadores (notebook TX, desktop RX) em 26/11: DQPSK com 1 209,6 kbit/s e PER de 0,68% (seção 6). | bancada |
+| PLT-02 | ✅ | O sistema não depende de rede (arquivos e scripts independentes nos dois lados); todos os ensaios reais até agora foram num PC só (pendência P2). **Bancada de 25/11** ([bancada_20261125.md](bancada_20261125.md)): ensaio com dois computadores (notebook TX, desktop RX) em 26/11: DQPSK com 1 209,6 kbit/s e PER de 0,68%, e prova B com 693 de 694 pacotes (seção 6). | bancada |
 | PLT-03 | ✅ | Toda a cadeia de modulação e demodulação é do projeto, em Python; SciPy só para filtros, FFT e reamostragem | 3 |
 | PLT-04 | ✅ | Sem amplificadores, alteração de hardware ou canal paralelo: o projeto usa só o Pluto e o RTL como vêm | todas |
 | PLT-05 | ✅ | Faixa de 915 a 928 MHz conferida pelo TX antes de transmitir (sinal, vazamento do LO e imagem IQ); LO de 919,5 MHz, longe da harmônica de 921,6 MHz do RTL (D5) | 3 |
