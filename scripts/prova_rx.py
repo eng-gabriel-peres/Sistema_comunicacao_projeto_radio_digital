@@ -56,7 +56,10 @@ def _argumentos() -> argparse.Namespace:
     p.add_argument(
         "--log-tx", type=Path, default=None, help="log do TX (ou a pasta dele), para a PER exata"
     )
-    p.add_argument("--distancia-m", type=float, default=None, help="prova B: distância da posição")
+    p.add_argument(
+        "--distancia-m", type=float, default=None,
+        help="prova B: distância, se já souber (senão, informe no relatorio_alcance.py)",
+    )  # fmt: skip
     p.add_argument("--posicao", default=None, help="nome da posição (P1, P2...)")
     p.add_argument("--deslocamento-hz", type=float, default=None, help="do escolher_canal.py")
     p.add_argument("--pasta", type=Path, default=None, help="padrão: dados/prova/<data>")
@@ -213,6 +216,12 @@ def main() -> int:
     )
     if args.prova == "a":
         print(f"Prova A: {prova.criterio_prova_a(per, resumo['banda_99_khz'])}")
+    else:
+        pacotes_b = int(resumo.get("transmitidos") or resumo["pacotes_unicos"])
+        per_b = 1.0 if per is None else float(per)
+        passou = prova.Posicao(0.0, float(resumo["goodput_bps"]), per_b, pacotes_b, None).passou
+        veredito = "PASSA: pode afastar para a próxima posição" if passou else "NÃO PASSA"
+        print(f"Prova B: {veredito} (500 pacotes, 10 kbit/s, PER de até 1%)")
     print(f"Relatório: {relatorio}")
     return 0
 

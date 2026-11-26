@@ -10,9 +10,9 @@ Depois da bancada de 25/11 juntei tudo em quatro scripts. O professor entrega um
 |---|---|---|
 | Prova B, antes de cada posição (Pluto parado) | | `python scripts/escolher_canal.py --perfil prova-b` (se o deslocamento do perfil não for o mais limpo, usar o escolhido com `--deslocamento-hz` nos dois lados) |
 | 1. Gerar o sinal | `python scripts/prova_tx.py <arquivo> --prova a --perfil prova-a-8psk --ganho-db -20` (ou o perfil que a regra da seção 3.1 escolher; o mesmo `--perfil` no RX) (prova B: `--prova b --ganho-db <G>`); se o arquivo não enche os 60 s, `--repetir` | esperar |
-| 2. Começar | o TX mostra **Sinal pronto; no ar em 10 s** (gerar leva cerca de 1 min) | no aviso: `python scripts/prova_rx.py --prova a` (prova B: `--prova b --distancia-m <d> --posicao P<n>`) |
+| 2. Começar | o TX mostra **Sinal pronto; no ar em 10 s** (gerar leva cerca de 1 min) | no aviso: `python scripts/prova_rx.py --prova a` (prova B: `--prova b --posicao P<n>`) |
 | 3. Resultado | o log `tx_<carimbo>.txt` fica em `dados/prova/<data>/` | o RX grava 70 s, decodifica e mostra **RESULTADO: pacotes, goodput, PER**; na prova A diz também se **PASSA** (PER de até 1% e banda abaixo de 1 MHz) |
-| Prova B, no fim | | `python scripts/relatorio_alcance.py dados/prova/<data>`: tabela e gráfico de goodput e PER por distância e a maior distância validada |
+| Prova B, no fim | | `python scripts/relatorio_alcance.py dados/prova/<data> --distancias P1=<m> P2=<m> ...`: tabela e gráfico de goodput e PER por distância e a maior distância validada |
 
 O que o `prova_rx.py` deixa na pasta da prova, para cada ensaio:
 
@@ -109,12 +109,14 @@ Em cada posição: goodput de pelo menos 10 kbit/s, PER de até 1% e **pelo meno
 | Tempo para 500 pacotes | **43 s**: o ensaio tem de durar pelo menos isso; com 60 s, cerca de 690 pacotes |
 | C/N0 necessário | 48,2 dB-Hz com o limiar de detecção de 0,4 do perfil (bloco 19; cerca de 25 dB a menos que o `prova-a` e 20 dB a menos que o `prova-a-dbpsk`: cerca de 18 vezes a distância do `prova-a` no espaço livre) |
 
+A prova é por posições paradas, não andando: em cada uma a antena fica fixa pelo menos 43 s (500 pacotes). Um lado fica fixo e o outro se afasta, posição por posição, até uma falhar. **TX no máximo** (`--ganho-db 0`), salvo se o professor limitar a potência; RX com ganho alto (40 dB), porque longe o nível é o do ruído do próprio RTL.
+
 Em cada posição, pelos comandos da [seção 0](#0-no-dia-da-competição-1012-os-comandos):
 1. Pluto parado: `escolher_canal.py --perfil prova-b` no RX. Se aparecer surto no deslocamento do perfil, usar o mais limpo com `--deslocamento-hz` nos dois lados.
-2. TX: `prova_tx.py <arquivo> --prova b --ganho-db <G>`; RX, no aviso: `prova_rx.py --prova b --distancia-m <d> --posicao P<n>`.
-3. O `RESULTADO` diz se passou (500 pacotes, 10 kbit/s, PER de até 1%). A configuração fica no `<captura>_resumo.json` e no JSON do TX.
+2. TX: `prova_tx.py <arquivo> --prova b --ganho-db <G>`; RX, no aviso: `prova_rx.py --prova b --posicao P<n>`. A distância não precisa ser conhecida na hora: anote o nome da posição e deixe quem mede (o professor, com trena ou pelo mapa do pátio) dizer a distância depois.
+3. A linha "Prova B: PASSA" ou "NÃO PASSA" diz se a posição valeu (500 pacotes, 10 kbit/s, PER de até 1%). Passou: afastar para a próxima. Não passou: a anterior é o resultado (vale repetir a mesma posição uma vez, se houve interferência). A configuração fica no `<captura>_resumo.json` e no JSON do TX.
 4. **Banda:** se o `receber.py` avisar "banda não confiável", usar a banda medida na posição mais próxima. Com sinal fraco a medida por subtração do ruído não vale (seção 7).
-5. No fim: `relatorio_alcance.py dados/prova/<data>`.
+5. No fim: `relatorio_alcance.py dados/prova/<data> --distancias P1=<m> P2=<m> ...` (as distâncias medidas de cada posição; sem elas o relatório lista as posições pelo nome, com o resultado de cada uma).
 
 Se uma posição falhar com o `prova-b`, não há perfil mais sensível pronto: o `prova-b-sem-fec` precisa de 2,9 dB **a mais**. A última posição validada é o resultado.
 
