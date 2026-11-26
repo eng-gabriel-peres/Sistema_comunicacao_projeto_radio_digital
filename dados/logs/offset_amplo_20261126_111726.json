@@ -1,0 +1,214 @@
+{
+ "versao_do_codigo": "bloco-31-sujo",
+ "trecho_s": 20.0,
+ "linhas": [
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "fixo 0 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 357,
+   "aceitos": 205,
+   "tempo_s": 14.5
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "fixo 0 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 357,
+   "aceitos": 205,
+   "tempo_s": 27.5
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "fixo 2500 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 412,
+   "aceitos": 205,
+   "tempo_s": 16.0
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "fixo 2500 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 412,
+   "aceitos": 205,
+   "tempo_s": 28.0
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "fixo 4000 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 0,
+   "aceitos": 0,
+   "tempo_s": 9.7
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "fixo 4000 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 341,
+   "aceitos": 205,
+   "tempo_s": 29.4
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "fixo 6000 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 0,
+   "aceitos": 0,
+   "tempo_s": 12.9
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "fixo 6000 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 417,
+   "aceitos": 205,
+   "tempo_s": 34.3
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "fixo 9000 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 0,
+   "aceitos": 0,
+   "tempo_s": 10.2
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "fixo 9000 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 336,
+   "aceitos": 205,
+   "tempo_s": 28.0
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "rampa 1000 a 9000 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 98,
+   "aceitos": 61,
+   "tempo_s": 10.4
+  },
+  {
+   "gravacao": "forte (-40 dB)",
+   "caso": "rampa 1000 a 9000 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 366,
+   "aceitos": 205,
+   "tempo_s": 21.1
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "fixo 0 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 238,
+   "aceitos": 183,
+   "tempo_s": 9.4
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "fixo 0 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 238,
+   "aceitos": 183,
+   "tempo_s": 19.3
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "fixo 2500 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 209,
+   "aceitos": 183,
+   "tempo_s": 8.5
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "fixo 2500 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 209,
+   "aceitos": 183,
+   "tempo_s": 18.4
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "fixo 4000 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 1,
+   "aceitos": 0,
+   "tempo_s": 7.2
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "fixo 4000 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 242,
+   "aceitos": 183,
+   "tempo_s": 19.0
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "fixo 6000 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 1,
+   "aceitos": 0,
+   "tempo_s": 7.3
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "fixo 6000 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 203,
+   "aceitos": 183,
+   "tempo_s": 17.9
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "fixo 9000 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 2,
+   "aceitos": 0,
+   "tempo_s": 7.3
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "fixo 9000 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 196,
+   "aceitos": 183,
+   "tempo_s": 17.9
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "rampa 1000 a 9000 Hz",
+   "busca_hz": 3000.0,
+   "deteccoes": 15,
+   "aceitos": 14,
+   "tempo_s": 7.3
+  },
+  {
+   "gravacao": "fraco (-52 dB)",
+   "caso": "rampa 1000 a 9000 Hz",
+   "busca_hz": 10000.0,
+   "deteccoes": 218,
+   "aceitos": 183,
+   "tempo_s": 18.4
+  },
+  {
+   "gravacao": "só ruído (12.0 s)",
+   "caso": "sem TX",
+   "busca_hz": 3000.0,
+   "deteccoes": 0,
+   "aceitos": 0,
+   "tempo_s": 4.7
+  },
+  {
+   "gravacao": "só ruído (12.0 s)",
+   "caso": "sem TX",
+   "busca_hz": 10000.0,
+   "deteccoes": 0,
+   "aceitos": 0,
+   "tempo_s": 10.2
+  }
+ ]
+}

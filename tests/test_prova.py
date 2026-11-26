@@ -275,3 +275,23 @@ def test_recomendar_perfil_da_prova_a_pelo_sinal(
     nome, frase = prova.recomendar_perfil_a(ebn0_db, taxa_bits)
     assert nome == esperado
     assert (f"--perfil {esperado}" in frase) if esperado else ("--perfil" not in frase)
+
+
+def test_prova_b_recebe_com_o_rtl_frio_andando_ate_9_khz(tmp_path: Path) -> None:
+    """Ensaio externo de 26/11: offset de 2,1 kHz e andando; a busca de 3 kHz perdia quadros."""
+    from sdrlink import receptor  # noqa: PLC0415
+
+    arquivo = tmp_path / "b.enc"
+    arquivo.write_bytes(bytes(range(256)) * 4)
+    sinal = tmp_path / "b_sim.npy"
+    tx = _rodar("transmitir.py", str(arquivo), "--perfil", "prova-b", "--duracao-s", "0.6",
+                "--simular", str(sinal), "--pasta", str(tmp_path))  # fmt: skip
+    assert tx.returncode == 0, tx.stderr
+    p = config.perfil("prova-b")
+    x = np.load(sinal)
+    f = np.linspace(4000.0, 9000.0, len(x))  # RTL esquentando: de 4 a 9 kHz na gravação
+    y = x * np.exp(2j * np.pi * np.cumsum(f) / p.taxa_sps)
+    cfg = receptor.ConfigReceptor(p.modem(), p.taxa_sps, p.deslocamento_hz, p.limiar, fec=p.fec)
+    aceitos = {q.sequencia for q in receptor.pacotes_aceitos(receptor.receber(y, cfg))}
+    transmitidos = len((next(tmp_path.glob("tx_*.txt"))).read_text(encoding="utf-8").splitlines())
+    assert transmitidos >= 5 and len(aceitos) == transmitidos  # todos

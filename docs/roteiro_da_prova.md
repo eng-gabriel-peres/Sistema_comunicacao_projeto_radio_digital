@@ -12,7 +12,7 @@ Depois da bancada de 25/11 juntei tudo em quatro scripts. O professor entrega um
 
 ### 0.1 Prova A (sala)
 
-| Passo | PC do TX (mesa do professor) | PC do RX (fundo da sala, RTL ligado há 10 min) |
+| Passo | PC do TX (mesa do professor) | PC do RX (fundo da sala) |
 |---|---|---|
 | 1. Teste rápido (cerca de 2 min) | `python scripts/prova_tx.py <arquivo> --prova a --teste` | no aviso "Sinal pronto": `python scripts/prova_rx.py --prova a --teste` |
 | 2. Ler a recomendação | | a última linha diz o perfil que o sinal aguenta: **"Recomendação pelo sinal medido: C/N0 de X dB-Hz: use --perfil prova-a-8psk"** (ou `prova-a`, ou `prova-a-fec`) |
@@ -76,7 +76,7 @@ Cuidados que vieram da bancada:
 
 | Passo | Comando ou ação | Conferir |
 |---|---|---|
-| 1. Aquecer o RTL | ligado no USB por **10 minutos** antes de calibrar ou medir (PLT-06) | |
+| 1. Aquecer o RTL | ligado no USB por **10 minutos** antes de **calibrar** (PLT-06). Para receber não precisa: o receptor procura o offset até ±10 kHz em cada quadro (bloco 32) | |
 | 2. Captura de controle, Pluto desligado | `python scripts/gravar_iq.py --perfil prova-a --segundos 2 --nome controle` | nada forte entre 919,5 e 920,4 MHz (o sinal da prova A fica de +50 a +800 kHz do LO de 919,5 MHz) |
 | 3. Calibração do RTL (se o Pluto ou o RTL forem outros) | TX: `python scripts/transmitir_tom.py --freq-tom-hz <tom> --duracao-s 120`; RX, ao mesmo tempo: `python scripts/calibrar_rtl.py --freq-tom-hz <tom> --minutos-ligado 10` | anotar o ppm em `configs/rtl.toml` (hoje: +88 ppm para o RTL da equipe aquecido, bancada de 25/11) |
 | 4. Ganho do RX | `gravar_iq.py --ganho-db <G>`, AGC desligado | o JSON da captura registra o ganho (MET-05) e a fração de amostras saturadas: tem de ser 0 |
