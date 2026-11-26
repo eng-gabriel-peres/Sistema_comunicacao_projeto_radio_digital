@@ -134,6 +134,7 @@ def test_arquivo_cifrado_de_ponta_a_ponta_sem_radio(tmp_path: Path) -> None:
     assert resumo["per"] == 0.0 and resumo["per_e_goodput"] == "exatos, pelo log do TX"
     assert (tmp_path / "prova_a_sim_relatorio.png").stat().st_size > 0
     assert "RESULTADO" in rx.stdout and "Prova A: PASSA" in rx.stdout
+    assert "Recomendação pelo sinal medido:" in rx.stdout
 
 
 def test_prova_rx_num_terminal_sem_utf8(tmp_path: Path) -> None:
@@ -255,3 +256,22 @@ def test_prova_rx_da_o_veredito_da_prova_b(tmp_path: Path) -> None:
                 "--posicao", "P1", "--pasta", str(tmp_path))  # fmt: skip
     assert rx.returncode == 0, rx.stderr
     assert "Prova B: NÃO PASSA" in rx.stdout  # poucos pacotes em 0,5 s: menos de 500
+
+
+@pytest.mark.parametrize(
+    ("ebn0_db", "taxa_bits", "esperado"),
+    [
+        (22.0, 2_048_000.0, "prova-a-8psk"),  # 8-PSK a -20 dB em 25/11: passou
+        (17.0, 2_048_000.0, "prova-a"),  # 8-PSK a -25 dB: PER de 5%, a DQPSK cabe
+        (18.13, 1_365_333.3, "prova-a"),  # DQPSK em dois PCs, 26/11: PER de 0,68%
+        (12.1, 1_365_333.3, "prova-a-fec"),  # DQPSK a -30 dB em casa: PER de 55%
+        (5.0, 1_365_333.3, None),  # nem a FEC
+        (None, 1_365_333.3, None),
+    ],
+)
+def test_recomendar_perfil_da_prova_a_pelo_sinal(
+    ebn0_db: float | None, taxa_bits: float, esperado: str | None
+) -> None:
+    nome, frase = prova.recomendar_perfil_a(ebn0_db, taxa_bits)
+    assert nome == esperado
+    assert (f"--perfil {esperado}" in frase) if esperado else ("--perfil" not in frase)

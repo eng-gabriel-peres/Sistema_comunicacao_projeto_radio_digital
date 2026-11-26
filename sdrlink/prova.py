@@ -34,6 +34,17 @@ SEGUNDO = 1.0
 PERCENTIL_SURTO = 99.0  # o surto é o que aparece em 1% do tempo acima do típico
 MAX_POSICOES = 1000
 JANELAS_MIN = 10  # janelas de FFT para um percentil fazer sentido
+# C/N0 estimado (Eb/N0 estimado + 10 log10 da taxa de bits no ar) que cada perfil da prova A
+# pede no ar, do melhor goodput para o mais robusto. Medidos em 25 e 26/11 com o RTL2:
+# 8-PSK passou com Eb/N0 estimado de 22 dB (85,1 dB-Hz) e não com 17 dB (80,1); DQPSK
+# passou com 18,1 dB (79,4) e não com 12,1 (73,4). A DQPSK com FEC não foi ao ar: o valor
+# é o da simulação (8 dB abaixo da DQPSK) somado à mesma diferença no ar. A DBPSK
+# (625 kbit/s) fica de fora: o mesmo goodput da FEC, com 3 dB a menos de folga.
+LIMIARES_C_N0_PROVA_A = (
+    ("prova-a-8psk", 84.1, 1777.6),
+    ("prova-a", 79.4, 1217.7),
+    ("prova-a-fec", 71.4, 626.4),
+)
 
 
 def fatiar(dados: bytes, tamanho: int = TAMANHO_PAYLOAD) -> list[bytes]:
@@ -193,6 +204,28 @@ class Posicao:
             and self.per <= PER_MAX
             and self.pacotes >= PACOTES_MIN_B
         )
+
+
+def recomendar_perfil_a(ebn0_db: float | None, taxa_bits: float) -> tuple[str | None, str]:
+    """O perfil da prova A que o sinal medido aguenta, pelo C/N0 de um teste com qualquer perfil.
+
+    O C/N0 não depende da modulação testada: um teste curto com a DQPSK já diz se a 8-PSK
+    cabe. Devolve o nome do perfil (None se nem o mais robusto cabe) e a frase para a tela.
+    """
+    if ebn0_db is None or taxa_bits <= 0:
+        return None, "sem Eb/N0 medido: repita o teste com o TX mais forte ou as antenas mais perto"
+    c_n0 = ebn0_db + 10 * np.log10(taxa_bits)
+    for nome, limiar, goodput in LIMIARES_C_N0_PROVA_A:
+        if c_n0 >= limiar:
+            return nome, (
+                f"C/N0 de {c_n0:.1f} dB-Hz: use --perfil {nome} (cerca de {goodput:g} kbit/s, "
+                f"folga de {c_n0 - limiar:.1f} dB)"
+            )
+    nome, limiar, _ = LIMIARES_C_N0_PROVA_A[-1]
+    return None, (
+        f"C/N0 de {c_n0:.1f} dB-Hz, {limiar - c_n0:.1f} dB abaixo do {nome}: aproxime ou "
+        "alinhe as antenas (as duas em pé) e teste de novo"
+    )
 
 
 def criterio_prova_a(per: float | None, banda_khz: float | None) -> str:
